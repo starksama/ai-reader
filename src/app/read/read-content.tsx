@@ -8,6 +8,7 @@ import { ArticleView } from '@/components/reader/article-view';
 import { DetailLayer } from '@/components/layers/detail-layer';
 import { LayerStack } from '@/components/layers/layer-stack';
 import { ExportButton } from '@/components/reader/export-button';
+import { useKeyboardShortcuts } from '@/hooks/use-keyboard-shortcuts';
 
 interface ParsedArticle {
   title: string;
@@ -34,6 +35,22 @@ export function ReadContent() {
   
   const { layers, currentIndex, push, pop, reset } = useLayerStore();
   const currentLayer = layers[currentIndex];
+
+  // Keyboard shortcuts
+  useKeyboardShortcuts({
+    onEscape: () => {
+      if (currentIndex > 0) {
+        pop();
+        setSelectedParagraph(null);
+      }
+    },
+    onBack: () => {
+      if (currentIndex > 0) {
+        pop();
+        setSelectedParagraph(null);
+      }
+    },
+  });
 
   // Reset layers when URL changes
   useEffect(() => {
