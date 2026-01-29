@@ -8,6 +8,7 @@ import { ArticleView } from '@/components/reader/article-view';
 import { DetailLayer } from '@/components/layers/detail-layer';
 import { LayerStack } from '@/components/layers/layer-stack';
 import { ExportButton } from '@/components/reader/export-button';
+import { LoadingSkeleton } from '@/components/reader/loading-skeleton';
 import { useKeyboardShortcuts } from '@/hooks/use-keyboard-shortcuts';
 
 interface ParsedArticle {
@@ -109,16 +110,20 @@ export function ReadContent() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-pulse text-4xl mb-4">📖</div>
-          <p className="text-lg" style={{ color: 'var(--text-secondary)' }}>
-            Loading article...
-          </p>
-          <p className="text-sm mt-2" style={{ color: 'var(--text-secondary)' }}>
-            Fetching and parsing content
-          </p>
+      <div className="min-h-screen">
+        <div 
+          className="sticky top-[57px] z-20 px-4 py-2 border-b"
+          style={{ 
+            backgroundColor: 'var(--bg-primary)',
+            borderColor: 'var(--border)',
+          }}
+        >
+          <div className="flex items-center gap-2 text-sm" style={{ color: 'var(--text-secondary)' }}>
+            <span className="animate-pulse">📖</span>
+            <span>Loading article...</span>
+          </div>
         </div>
+        <LoadingSkeleton />
       </div>
     );
   }
