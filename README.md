@@ -1,52 +1,63 @@
 # 📖 AI Reader
 
-**Explainpaper for everything** — A reading-first AI tool that helps you understand any article.
+**Understand anything deeper** — A reading-first AI tool for any article.
 
-Paste a URL, read in a clean distraction-free view, tap any paragraph to dive deeper with AI assistance.
+Paste a URL, read in a clean distraction-free view, select any text to dive deeper with AI.
 
-## Features
+## ✨ Features
 
-- **🔗 URL Parsing** — Paste any article URL, powered by Readability.js
-- **📖 Clean Reader** — Distraction-free reading with progress tracking
-- **✨ Tap to Explore** — Click any paragraph to get AI explanations
-- **📝 Export Notes** — Save your highlights and Q&A as markdown
-- **🎨 Themes** — Light, dark, and sepia modes
-- **📱 Mobile-First** — Swipe gestures, touch-friendly UI
-- **⌨️ Keyboard Shortcuts** — Escape to go back, Alt+Left for navigation
+- **Text Selection** — Select any text to get AI explanations
+- **Clean Reader** — Distraction-free reading with progress tracking  
+- **Smooth Transitions** — Framer Motion powered animations
+- **Notes Export** — Save highlights and Q&A as markdown
+- **Themes** — Light, dark, and sepia modes
+- **Mobile-First** — Touch-friendly text selection, responsive design
+- **Keyboard Shortcuts** — Navigate with ↑↓ keys, Escape to go back
 
-## Tech Stack
+## 🎯 How It Works
 
-- **Framework:** Next.js 15 (App Router)
-- **Styling:** Tailwind CSS
-- **State:** Zustand with persist middleware
-- **Animations:** Framer Motion
-- **Parsing:** @mozilla/readability + jsdom
-- **Language:** TypeScript
+1. **Paste any article URL** or try the demo articles
+2. **Read** in a clean, focused environment
+3. **Select text** you want to understand better
+4. **Dive Deeper** — ask questions, get explanations
+5. **Export** your notes as markdown
 
-## Getting Started
+## 🛠 Tech Stack
+
+- **Next.js 15** — App Router, React Server Components
+- **Tailwind CSS** — Utility-first styling
+- **Framer Motion** — Smooth animations
+- **Zustand** — State management with persistence
+- **Readability.js** — Article parsing
+
+## 🚀 Getting Started
 
 ```bash
-# Install dependencies
+# Install
 pnpm install
 
-# Run development server
+# Development
 pnpm dev
 
-# Build for production
+# Build
 pnpm build
 ```
 
-Open [http://localhost:3000](http://localhost:3000) to start reading.
+## 📱 Mobile Support
 
-## Roadmap
+- Touch and drag to select text
+- Selection menu adapts to mobile viewport
+- Swipe-friendly navigation (coming soon)
+
+## 🗺 Roadmap
 
 - [ ] Real AI integration (Gemini/Claude)
-- [ ] Text-to-speech for paragraphs
-- [ ] Highlight and annotate
-- [ ] Reading history
+- [ ] Text-to-speech
 - [ ] Browser extension
+- [ ] Reading history
+- [ ] Highlight annotations
 
-## License
+## 📄 License
 
 MIT
 
