@@ -15,7 +15,7 @@ export function useTextSelection() {
     range: null,
   });
   
-  const isSelectingRef = useRef(false);
+  const mouseDownPosRef = useRef<{ x: number; y: number } | null>(null);
 
   const updateSelection = useCallback(() => {
     const sel = window.getSelection();
@@ -35,24 +35,36 @@ export function useTextSelection() {
     // Find which paragraph the selection is in
     try {
       const range = sel.getRangeAt(0);
-      const container = range.commonAncestorContainer;
       
-      // Find the paragraph element
-      let element: Element | null = null;
-      if (container.nodeType === Node.TEXT_NODE) {
-        element = container.parentElement;
+      // Get start and end containers
+      const startContainer = range.startContainer;
+      const endContainer = range.endContainer;
+      
+      // Find paragraph for start
+      let startElement: Element | null = null;
+      if (startContainer.nodeType === Node.TEXT_NODE) {
+        startElement = startContainer.parentElement;
       } else {
-        element = container as Element;
+        startElement = startContainer as Element;
       }
+      const startParagraph = startElement?.closest?.('[data-paragraph-index]');
       
-      const paragraphEl = element?.closest?.('[data-paragraph-index]');
+      // Find paragraph for end
+      let endElement: Element | null = null;
+      if (endContainer.nodeType === Node.TEXT_NODE) {
+        endElement = endContainer.parentElement;
+      } else {
+        endElement = endContainer as Element;
+      }
+      const endParagraph = endElement?.closest?.('[data-paragraph-index]');
       
-      if (!paragraphEl) {
+      // Only accept if selection is within a single paragraph
+      if (!startParagraph || !endParagraph || startParagraph !== endParagraph) {
         return;
       }
 
       const paragraphIndex = parseInt(
-        paragraphEl.getAttribute('data-paragraph-index') || '-1',
+        startParagraph.getAttribute('data-paragraph-index') || '-1',
         10
       );
 
@@ -77,18 +89,24 @@ export function useTextSelection() {
   }, []);
 
   useEffect(() => {
-    const handleMouseDown = () => {
-      isSelectingRef.current = true;
+    const handleMouseDown = (e: MouseEvent) => {
+      mouseDownPosRef.current = { x: e.clientX, y: e.clientY };
     };
 
-    const handleMouseUp = () => {
-      // Delay to let selection finalize
-      setTimeout(() => {
-        if (isSelectingRef.current) {
-          updateSelection();
-          isSelectingRef.current = false;
-        }
-      }, 10);
+    const handleMouseUp = (e: MouseEvent) => {
+      const startPos = mouseDownPosRef.current;
+      if (!startPos) return;
+      
+      // Only process as selection if mouse moved significantly (not a click)
+      const dx = Math.abs(e.clientX - startPos.x);
+      const dy = Math.abs(e.clientY - startPos.y);
+      
+      if (dx > 5 || dy > 5) {
+        // Delay to let selection finalize
+        setTimeout(updateSelection, 10);
+      }
+      
+      mouseDownPosRef.current = null;
     };
 
     const handleSelectionChange = () => {

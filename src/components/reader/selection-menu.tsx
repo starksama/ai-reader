@@ -80,6 +80,14 @@ export function SelectionMenu({
     }
   }, [selection.range, isMobile]);
 
+  // Close on scroll (desktop only)
+  useEffect(() => {
+    if (!showMenu || isMobile) return;
+    const handleScroll = () => onClear();
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [showMenu, isMobile, onClear]);
+
   const show = showMenu && selection.text.length > 0 && selection.paragraphIndex !== null;
 
   const handleDiveDeeper = () => {
@@ -136,7 +144,7 @@ export function SelectionMenu({
               {/* Handle */}
               <div className="flex justify-center pt-2 pb-1">
                 <div 
-                  className="w-10 h-1 rounded-full"
+                  className="w-10 h-1 rounded-sm"
                   style={{ backgroundColor: 'var(--border)' }}
                 />
               </div>
@@ -216,7 +224,7 @@ export function SelectionMenu({
           style={{ left: position.x, top: position.y }}
         >
           <div 
-            className="flex items-stretch shadow-lg"
+            className="flex items-stretch shadow-lg rounded-sm"
             style={{
               backgroundColor: 'var(--bg-secondary)',
               border: '1px solid var(--border)',

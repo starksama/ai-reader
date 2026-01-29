@@ -73,6 +73,14 @@ export function ParagraphMenu({
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [isOpen, onClose]);
 
+  // Close on scroll
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleScroll = () => onClose();
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [isOpen, onClose]);
+
   const handleCopy = async () => {
     await navigator.clipboard.writeText(paragraphText);
     setCopied(true);
@@ -95,7 +103,7 @@ export function ParagraphMenu({
           style={{ left: adjustedPosition.x, top: adjustedPosition.y }}
         >
           <div
-            className="shadow-lg overflow-hidden min-w-[160px]"
+            className="shadow-lg overflow-hidden min-w-[160px] rounded-sm"
             style={{
               backgroundColor: 'var(--bg-secondary)',
               border: '1px solid var(--border)',

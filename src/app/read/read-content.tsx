@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
+import { ArrowLeft } from 'lucide-react';
 import { useLayerStore } from '@/stores/layer-store';
 import { ArticleView } from '@/components/reader/article-view';
 import { DetailLayer } from '@/components/layers/detail-layer';
@@ -122,10 +123,9 @@ export function ReadContent() {
             borderColor: 'var(--border)',
           }}
         >
-          <div className="max-w-4xl mx-auto px-4 py-3">
+          <div className="reader-container py-3">
             <div className="flex items-center gap-2 text-sm" style={{ color: 'var(--text-secondary)' }}>
-              <span className="animate-pulse">📖</span>
-              <span>Loading article...</span>
+              <span className="animate-pulse">Loading...</span>
             </div>
           </div>
         </div>
@@ -142,17 +142,17 @@ export function ReadContent() {
           animate={{ opacity: 1, y: 0 }}
           className="text-center max-w-md"
         >
-          <div className="text-5xl mb-4">😕</div>
           <h2 className="text-xl font-semibold mb-2" style={{ color: 'var(--text-primary)' }}>
             Couldn&apos;t load article
           </h2>
           <p className="mb-6" style={{ color: 'var(--text-secondary)' }}>{error}</p>
           <a
             href="/"
-            className="inline-block px-6 py-3 rounded-xl text-white font-medium transition-opacity hover:opacity-90"
+            className="inline-flex items-center gap-2 px-6 py-3 rounded-sm text-white font-medium transition-opacity hover:opacity-90"
             style={{ backgroundColor: 'var(--accent)' }}
           >
-            ← Try another URL
+            <ArrowLeft size={14} />
+            <span>Try another URL</span>
           </a>
         </motion.div>
       </div>
@@ -182,19 +182,20 @@ export function ReadContent() {
                 borderColor: 'var(--border)',
               }}
             >
-              <div className="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between">
+              <div className="reader-container py-3 flex items-center justify-between">
                 <button
                   onClick={() => router.push('/')}
-                  className="text-sm font-medium transition-opacity hover:opacity-70"
+                  className="flex items-center gap-1.5 text-sm font-medium transition-opacity hover:opacity-70"
                   style={{ color: 'var(--accent)' }}
                 >
-                  ← Back
+                  <ArrowLeft size={14} />
+                  <span>Back</span>
                 </button>
                 
                 <div className="flex items-center gap-3">
                   {exploredParagraphs.size > 0 && (
                     <div 
-                      className="text-xs px-2 py-1 rounded-full"
+                      className="text-xs px-2 py-1 rounded-sm"
                       style={{ 
                         backgroundColor: 'var(--accent)',
                         color: '#fff',

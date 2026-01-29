@@ -135,7 +135,7 @@ export function DetailLayer({
           borderColor: 'var(--border)',
         }}
       >
-        <div className="max-w-2xl mx-auto px-4 py-3 flex items-center justify-between">
+        <div className="reader-container py-3 flex items-center justify-between">
           <button
             onClick={onBack}
             className="flex items-center gap-2 text-sm transition-opacity hover:opacity-70"
@@ -174,13 +174,13 @@ export function DetailLayer({
         </div>
       </div>
 
-      <div className="max-w-2xl mx-auto px-4 py-6">
+      <div className="reader-container py-6">
         {/* Selected text */}
         {selectedText && (
           <motion.div
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
-            className="mb-4 p-4"
+            className="mb-4 p-4 rounded-sm"
             style={{ backgroundColor: 'var(--accent)', color: '#fff' }}
           >
             <p className="text-xs uppercase tracking-wider mb-2 opacity-60">
@@ -197,7 +197,7 @@ export function DetailLayer({
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.05 }}
-          className="p-4 mb-6"
+          className="p-4 mb-6 rounded-sm"
           style={{ backgroundColor: 'var(--bg-secondary)' }}
         >
           <p className="text-xs uppercase tracking-wider mb-2" style={{ color: 'var(--text-secondary)' }}>
@@ -223,7 +223,7 @@ export function DetailLayer({
                   setQuestion(q);
                   inputRef.current?.focus();
                 }}
-                className="px-3 py-1.5 text-sm transition-all hover:opacity-70"
+                className="px-3 py-1.5 text-sm rounded-sm transition-all hover:opacity-70"
                 style={{
                   backgroundColor: 'var(--bg-secondary)',
                   color: 'var(--text-secondary)',
@@ -275,7 +275,7 @@ export function DetailLayer({
           className="sticky bottom-4 mt-8"
         >
           <div 
-            className="flex gap-2"
+            className="flex gap-2 rounded-sm overflow-hidden"
             style={{ 
               backgroundColor: 'var(--bg-primary)',
               border: '1px solid var(--border)',

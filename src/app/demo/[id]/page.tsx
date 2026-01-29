@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
+import { ArrowLeft } from 'lucide-react';
 import { getMockArticle, type MockArticle } from '@/data/mock-articles';
 import { useLayerStore } from '@/stores/layer-store';
 import { ArticleView } from '@/components/reader/article-view';
@@ -63,10 +64,9 @@ export default function DemoArticlePage() {
 
   if (!article) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: 'var(--bg-primary)' }}>
         <div className="text-center">
-          <div className="animate-pulse text-4xl mb-4">📖</div>
-          <p style={{ color: 'var(--text-secondary)' }}>Loading...</p>
+          <p className="animate-pulse" style={{ color: 'var(--text-secondary)' }}>Loading...</p>
         </div>
       </div>
     );
@@ -93,18 +93,19 @@ export default function DemoArticlePage() {
                 borderColor: 'var(--border)',
               }}
             >
-              <div className="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between">
+              <div className="reader-container py-3 flex items-center justify-between">
                 <button
                   onClick={() => router.push('/demo')}
-                  className="text-sm font-medium transition-opacity hover:opacity-70"
+                  className="flex items-center gap-1.5 text-sm font-medium transition-opacity hover:opacity-70"
                   style={{ color: 'var(--accent)' }}
                 >
-                  ← Back to demos
+                  <ArrowLeft size={14} />
+                  <span>Back to demos</span>
                 </button>
                 
                 {exploredParagraphs.size > 0 && (
                   <div 
-                    className="text-xs px-2 py-1 rounded-full"
+                    className="text-xs px-2 py-1 rounded-sm"
                     style={{ 
                       backgroundColor: 'var(--accent)',
                       color: '#fff',

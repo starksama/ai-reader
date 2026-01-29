@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, Sun, Moon, BookOpen } from 'lucide-react';
 import { useThemeStore, type Theme } from '@/stores/theme-store';
 
 export default function Home() {
@@ -20,10 +20,10 @@ export default function Home() {
     router.push(`/read?url=${encodeURIComponent(url)}`);
   };
 
-  const themes: { key: Theme; label: string }[] = [
-    { key: 'light', label: 'Light' },
-    { key: 'dark', label: 'Dark' },
-    { key: 'sepia', label: 'Sepia' },
+  const themes: { key: Theme; label: string; icon: React.ReactNode }[] = [
+    { key: 'light', label: 'Light', icon: <Sun size={12} /> },
+    { key: 'dark', label: 'Dark', icon: <Moon size={12} /> },
+    { key: 'sepia', label: 'Sepia', icon: <BookOpen size={12} /> },
   ];
 
   return (
@@ -47,7 +47,7 @@ export default function Home() {
         {/* URL Input */}
         <form onSubmit={handleSubmit} className="mb-6">
           <div 
-            className="flex"
+            className="flex rounded-sm overflow-hidden"
             style={{ border: '1px solid var(--border)' }}
           >
             <input
@@ -84,24 +84,25 @@ export default function Home() {
         </div>
 
         {/* Theme */}
-        <div className="flex justify-center gap-px mb-12" style={{ border: '1px solid var(--border)' }}>
+        <div className="flex justify-center gap-px rounded-sm overflow-hidden" style={{ border: '1px solid var(--border)' }}>
           {themes.map((t) => (
             <button
               key={t.key}
               onClick={() => setTheme(t.key)}
-              className="flex-1 px-3 py-1.5 text-xs transition-all"
+              className="flex-1 px-3 py-1.5 text-xs transition-all flex items-center justify-center gap-1.5"
               style={{
                 backgroundColor: theme === t.key ? 'var(--bg-secondary)' : 'transparent',
                 color: theme === t.key ? 'var(--text-primary)' : 'var(--text-secondary)',
               }}
             >
-              {t.label}
+              {t.icon}
+              <span>{t.label}</span>
             </button>
           ))}
         </div>
 
         {/* Features */}
-        <div className="space-y-2 text-sm" style={{ color: 'var(--text-secondary)' }}>
+        <div className="space-y-2 text-sm mt-12" style={{ color: 'var(--text-secondary)' }}>
           <p>Select text to dive deeper</p>
           <p>Ask questions, get explanations</p>
           <p>Highlight and export notes</p>

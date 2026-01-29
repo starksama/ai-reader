@@ -2,12 +2,13 @@
 
 import Link from 'next/link';
 import { motion } from 'framer-motion';
+import { ArrowLeft } from 'lucide-react';
 import { mockArticles } from '@/data/mock-articles';
 
 export default function DemoPage() {
   return (
     <main className="min-h-screen py-12" style={{ backgroundColor: 'var(--bg-primary)' }}>
-      <div className="max-w-xl mx-auto px-6">
+      <div className="reader-container">
         <motion.div
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
@@ -17,10 +18,11 @@ export default function DemoPage() {
           <div className="mb-8">
             <Link 
               href="/"
-              className="text-sm transition-opacity hover:opacity-70 mb-6 inline-block"
+              className="inline-flex items-center gap-1.5 text-sm transition-opacity hover:opacity-70 mb-6"
               style={{ color: 'var(--accent)' }}
             >
-              ← Back
+              <ArrowLeft size={14} />
+              <span>Back</span>
             </Link>
 
             <h1 className="text-xl font-semibold mb-1" style={{ color: 'var(--text-primary)' }}>
@@ -42,7 +44,7 @@ export default function DemoPage() {
               >
                 <Link
                   href={`/demo/${article.id}`}
-                  className="block p-4 transition-colors hover:bg-[var(--bg-secondary)]"
+                  className="block p-4 rounded-sm transition-colors hover:bg-[var(--bg-secondary)]"
                   style={{ border: '1px solid var(--border)' }}
                 >
                   <h2 
@@ -56,7 +58,7 @@ export default function DemoPage() {
                   </p>
                   <div className="flex gap-3 text-xs" style={{ color: 'var(--text-secondary)' }}>
                     <span>{Math.ceil(article.wordCount / 200)} min</span>
-                    <span>•</span>
+                    <span>·</span>
                     <span>{article.paragraphs.length} paragraphs</span>
                   </div>
                 </Link>

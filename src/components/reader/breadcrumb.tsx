@@ -1,5 +1,6 @@
 'use client';
 
+import { ArrowLeft } from 'lucide-react';
 import { Layer } from '@/stores/layer-store';
 
 interface BreadcrumbProps {
@@ -19,7 +20,7 @@ export function Breadcrumb({ layers, currentIndex, onNavigate }: BreadcrumbProps
           className="flex items-center gap-1 hover:opacity-70 transition-opacity"
           style={{ color: 'var(--accent)' }}
         >
-          <span>←</span>
+          <ArrowLeft size={14} />
         </button>
       )}
       
