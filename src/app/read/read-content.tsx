@@ -5,11 +5,13 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft } from 'lucide-react';
 import { useLayerStore } from '@/stores/layer-store';
+import { useThemeStore } from '@/stores/theme-store';
 import { ArticleView } from '@/components/reader/article-view';
 import { DetailLayer } from '@/components/layers/detail-layer';
 import { ExportButton } from '@/components/reader/export-button';
 import { LoadingSkeleton } from '@/components/reader/loading-skeleton';
 import { useKeyboardShortcuts } from '@/hooks/use-keyboard-shortcuts';
+import { SettingsPanel } from '@/components/reader/settings-panel';
 
 interface ParsedArticle {
   title: string;
@@ -38,6 +40,7 @@ export function ReadContent() {
   const [exploredParagraphs, setExploredParagraphs] = useState<Set<number>>(new Set());
   
   const { layers, currentIndex, push, pop, reset } = useLayerStore();
+  const { fontSize } = useThemeStore();
   const isDetailView = currentIndex > 0;
 
   // Keyboard shortcuts
@@ -164,7 +167,7 @@ export function ReadContent() {
   const currentLayer = layers[currentIndex];
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: 'var(--bg-primary)' }}>
+    <div className={`min-h-screen font-${fontSize}`} style={{ backgroundColor: 'var(--bg-primary)' }}>
       <AnimatePresence mode="wait">
         {!isDetailView ? (
           <motion.div
@@ -192,7 +195,7 @@ export function ReadContent() {
                   <span>Back</span>
                 </button>
                 
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2">
                   {exploredParagraphs.size > 0 && (
                     <div 
                       className="text-xs px-2 py-1 rounded-sm"
@@ -205,6 +208,7 @@ export function ReadContent() {
                     </div>
                   )}
                   {url && <ExportButton url={url} />}
+                  <SettingsPanel />
                 </div>
               </div>
             </div>

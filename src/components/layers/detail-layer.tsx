@@ -181,12 +181,15 @@ export function DetailLayer({
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
             className="mb-4 p-4 rounded-sm"
-            style={{ backgroundColor: 'var(--accent)', color: '#fff' }}
+            style={{ 
+              backgroundColor: 'var(--accent-subtle)', 
+              borderLeft: '2px solid var(--accent)',
+            }}
           >
-            <p className="text-xs uppercase tracking-wider mb-2 opacity-60">
+            <p className="text-xs uppercase tracking-wider mb-2" style={{ color: 'var(--text-tertiary)' }}>
               Selection
             </p>
-            <p className="leading-relaxed">
+            <p className="leading-relaxed" style={{ color: 'var(--text-primary)' }}>
               "{selectedText}"
             </p>
           </motion.div>
@@ -198,9 +201,12 @@ export function DetailLayer({
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.05 }}
           className="p-4 mb-6 rounded-sm"
-          style={{ backgroundColor: 'var(--bg-secondary)' }}
+          style={{ 
+            backgroundColor: 'var(--bg-secondary)',
+            border: '1px solid var(--border-subtle)',
+          }}
         >
-          <p className="text-xs uppercase tracking-wider mb-2" style={{ color: 'var(--text-secondary)' }}>
+          <p className="text-xs uppercase tracking-wider mb-2" style={{ color: 'var(--text-tertiary)' }}>
             {selectedText ? 'Context' : 'Passage'}
           </p>
           <p className="leading-relaxed" style={{ color: 'var(--text-primary)' }}>

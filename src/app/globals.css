@@ -6,33 +6,45 @@
   --bg-primary: #fafafa;
   --bg-primary-rgb: 250, 250, 250;
   --bg-secondary: #ffffff;
-  --text-primary: #1a1a1a;
-  --text-secondary: #666666;
+  --bg-tertiary: #f5f5f5;
+  --text-primary: #171717;
+  --text-secondary: #525252;
+  --text-tertiary: #a3a3a3;
   --accent: #2563eb;
-  --highlight: rgba(37, 99, 235, 0.08);
+  --accent-subtle: #dbeafe;
+  --highlight: rgba(37, 99, 235, 0.06);
   --border: #e5e5e5;
+  --border-subtle: #f0f0f0;
 }
 
 .dark {
-  --bg-primary: #0a0a0a;
-  --bg-primary-rgb: 10, 10, 10;
-  --bg-secondary: #171717;
+  --bg-primary: #09090b;
+  --bg-primary-rgb: 9, 9, 11;
+  --bg-secondary: #18181b;
+  --bg-tertiary: #27272a;
   --text-primary: #fafafa;
-  --text-secondary: #a3a3a3;
+  --text-secondary: #a1a1aa;
+  --text-tertiary: #71717a;
   --accent: #3b82f6;
-  --highlight: rgba(59, 130, 246, 0.12);
-  --border: #262626;
+  --accent-subtle: rgba(59, 130, 246, 0.15);
+  --highlight: rgba(59, 130, 246, 0.08);
+  --border: #27272a;
+  --border-subtle: #3f3f46;
 }
 
 .sepia {
-  --bg-primary: #f5f1e8;
-  --bg-primary-rgb: 245, 241, 232;
-  --bg-secondary: #ebe5d9;
-  --text-primary: #433422;
-  --text-secondary: #6b5c4c;
-  --accent: #9a6324;
-  --highlight: rgba(154, 99, 36, 0.1);
-  --border: #d5cdc0;
+  --bg-primary: #faf8f3;
+  --bg-primary-rgb: 250, 248, 243;
+  --bg-secondary: #f5f0e6;
+  --bg-tertiary: #ebe5d9;
+  --text-primary: #292524;
+  --text-secondary: #57534e;
+  --text-tertiary: #a8a29e;
+  --accent: #b45309;
+  --accent-subtle: #fef3c7;
+  --highlight: rgba(180, 83, 9, 0.08);
+  --border: #e7e5e4;
+  --border-subtle: #f5f5f4;
 }
 
 /* Base Styles */
@@ -59,17 +71,42 @@ body {
   color: white;
 }
 
-/* Typography */
+/* Typography - Font size controlled by CSS variables */
+:root {
+  --reader-font-size: 18px;
+  --reader-line-height: 1.75;
+}
+
+.font-small {
+  --reader-font-size: 16px;
+  --reader-line-height: 1.7;
+}
+
+.font-medium {
+  --reader-font-size: 18px;
+  --reader-line-height: 1.75;
+}
+
+.font-large {
+  --reader-font-size: 20px;
+  --reader-line-height: 1.8;
+}
+
 .reader-text {
-  font-size: 18px;
-  line-height: 1.75;
+  font-size: var(--reader-font-size);
+  line-height: var(--reader-line-height);
   letter-spacing: -0.01em;
 }
 
 @media (max-width: 640px) {
-  .reader-text {
-    font-size: 17px;
-    line-height: 1.7;
+  .font-small {
+    --reader-font-size: 15px;
+  }
+  .font-medium {
+    --reader-font-size: 17px;
+  }
+  .font-large {
+    --reader-font-size: 19px;
   }
 }
 
