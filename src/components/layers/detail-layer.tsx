@@ -15,6 +15,7 @@ interface DetailLayerProps {
   paragraph: Paragraph;
   articleUrl: string;
   articleTitle: string;
+  selectedText?: string; // Text user selected within the paragraph
   onBack: () => void;
 }
 
@@ -55,7 +56,7 @@ What aspect would you like to explore further?`,
 Any specific questions about this passage?`,
 ];
 
-export function DetailLayer({ paragraph, articleUrl, articleTitle, onBack }: DetailLayerProps) {
+export function DetailLayer({ paragraph, articleUrl, articleTitle, selectedText, onBack }: DetailLayerProps) {
   const [question, setQuestion] = useState('');
   const [isAsking, setIsAsking] = useState(false);
   const [response, setResponse] = useState<string | null>(null);
@@ -122,16 +123,35 @@ export function DetailLayer({ paragraph, articleUrl, articleTitle, onBack }: Det
       </div>
 
       <div className="flex-1 reader-container py-6">
-        {/* Quoted text */}
+        {/* Selected text highlight */}
+        {selectedText && (
+          <div
+            className="p-4 rounded-lg mb-4 border-l-4"
+            style={{
+              backgroundColor: 'var(--accent)',
+              borderColor: 'var(--accent)',
+              opacity: 0.9,
+            }}
+          >
+            <p className="text-xs uppercase tracking-wide mb-2 font-medium text-white/70">
+              Your selection
+            </p>
+            <p className="leading-relaxed text-white font-medium">
+              "{selectedText}"
+            </p>
+          </div>
+        )}
+
+        {/* Full paragraph context */}
         <div
           className="p-4 rounded-lg mb-6 border-l-4"
           style={{
             backgroundColor: 'var(--highlight)',
-            borderColor: 'var(--accent)',
+            borderColor: selectedText ? 'var(--border)' : 'var(--accent)',
           }}
         >
           <p className="text-xs uppercase tracking-wide mb-2 font-medium" style={{ color: 'var(--text-secondary)' }}>
-            Selected passage
+            {selectedText ? 'Full paragraph' : 'Selected passage'}
           </p>
           <p className="leading-relaxed" style={{ color: 'var(--text-primary)' }}>
             {paragraph.text}

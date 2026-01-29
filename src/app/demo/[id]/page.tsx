@@ -45,11 +45,12 @@ export default function DemoArticlePage() {
     }
   }, [id, reset]);
 
-  const handleParagraphClick = (index: number) => {
+  const handleParagraphClick = (index: number, selectedText?: string) => {
     setSelectedParagraph(index);
     push({
       type: 'paragraph',
       paragraphIndex: index,
+      selectedText,
     });
   };
 
@@ -103,6 +104,7 @@ export default function DemoArticlePage() {
             article={article}
             selectedParagraph={selectedParagraph}
             onParagraphClick={handleParagraphClick}
+            onSelectionAsk={(text, index) => handleParagraphClick(index, text)}
           />
 
           {/* Detail Layers */}
@@ -113,6 +115,7 @@ export default function DemoArticlePage() {
                   paragraph={article.paragraphs[layer.paragraphIndex!]}
                   articleUrl={article.url}
                   articleTitle={article.title}
+                  selectedText={layer.selectedText}
                   onBack={handleBack}
                 />
               )}

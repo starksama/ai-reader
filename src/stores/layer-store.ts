@@ -4,6 +4,7 @@ export interface Layer {
   id: string;
   type: 'main' | 'paragraph' | 'reply';
   paragraphIndex?: number;
+  selectedText?: string; // User's text selection within the paragraph
   content?: string;
 }
 

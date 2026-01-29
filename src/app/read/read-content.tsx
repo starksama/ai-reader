@@ -93,11 +93,12 @@ export function ReadContent() {
     fetchArticle();
   }, [url]);
 
-  const handleParagraphClick = (index: number) => {
+  const handleParagraphClick = (index: number, selectedText?: string) => {
     setSelectedParagraph(index);
     push({
       type: 'paragraph',
       paragraphIndex: index,
+      selectedText,
       content: article?.paragraphs[index]?.text,
     });
   };
@@ -192,6 +193,7 @@ export function ReadContent() {
           article={article}
           selectedParagraph={selectedParagraph}
           onParagraphClick={handleParagraphClick}
+          onSelectionAsk={(text, index) => handleParagraphClick(index, text)}
         />
 
         {/* Detail Layers */}
@@ -202,6 +204,7 @@ export function ReadContent() {
                 paragraph={article.paragraphs[layer.paragraphIndex!]}
                 articleUrl={url || ''}
                 articleTitle={article.title}
+                selectedText={layer.selectedText}
                 onBack={handleBack}
               />
             )}
