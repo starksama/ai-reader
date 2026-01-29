@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { AsyncResponse } from '@/components/async/async-response';
 
 interface Paragraph {
@@ -15,75 +15,184 @@ interface DetailLayerProps {
   onBack: () => void;
 }
 
+// Mock responses based on common question types
+const mockResponses = [
+  `This paragraph establishes a key concept that's central to the article's argument. Let me break it down:
+
+**Main idea:** The author is making a point about how this topic relates to the broader context.
+
+**Why it matters:** This sets up the foundation for what comes next in the article.
+
+**Key terms:** Look for specific terminology that the author uses repeatedly — these are usually important.
+
+Would you like me to explain any specific part in more detail?`,
+
+  `Great question! Here's what I understand from this passage:
+
+The author is discussing a nuanced point here. The key insight is that they're not just stating facts, but building toward a larger argument.
+
+**Context clues:**
+• Notice the language choices — they signal the author's perspective
+• This connects to earlier points made in the article
+• The structure suggests this is a supporting argument
+
+What aspect would you like to explore further?`,
+
+  `Let me help you understand this better.
+
+**Summary:** This paragraph serves as a transition point in the article, connecting previous ideas to what comes next.
+
+**Deeper analysis:**
+1. The author uses specific examples to illustrate their point
+2. There's an implicit assumption being made here
+3. This ties back to the article's central thesis
+
+**For further exploration:** Consider how this relates to the paragraphs before and after it.
+
+Any specific questions about this passage?`,
+];
+
 export function DetailLayer({ paragraph, onBack }: DetailLayerProps) {
   const [question, setQuestion] = useState('');
   const [isAsking, setIsAsking] = useState(false);
   const [response, setResponse] = useState<string | null>(null);
+  const [chatHistory, setChatHistory] = useState<Array<{ q: string; a: string }>>([]);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  // Focus input on mount
+  useEffect(() => {
+    inputRef.current?.focus();
+  }, []);
 
   const handleAsk = async () => {
-    if (!question.trim()) return;
+    if (!question.trim() || isAsking) return;
     
+    const currentQuestion = question;
+    setQuestion('');
     setIsAsking(true);
     setResponse(null);
     
-    // Simulate AI response with streaming
-    const mockResponse = `Great question about this passage! Here's what I understand:
-
-The text discusses "${paragraph.text.slice(0, 50)}..." which relates to the broader context of the article.
-
-Key points:
-• This paragraph establishes an important concept
-• It connects to the overall narrative
-• The author's intent appears to be informative
-
-Would you like me to elaborate on any specific aspect?`;
-
-    // Simulate streaming delay
-    await new Promise(resolve => setTimeout(resolve, 500));
+    // Simulate thinking delay
+    await new Promise(resolve => setTimeout(resolve, 800 + Math.random() * 700));
+    
+    // Pick a random mock response
+    const mockResponse = mockResponses[Math.floor(Math.random() * mockResponses.length)];
+    
     setResponse(mockResponse);
+    setChatHistory(prev => [...prev, { q: currentQuestion, a: mockResponse }]);
     setIsAsking(false);
   };
 
-  return (
-    <div className="reader-container min-h-screen">
-      {/* Back button for mobile */}
-      <button
-        onClick={onBack}
-        className="md:hidden flex items-center gap-2 mb-4 py-2"
-        style={{ color: 'var(--accent)' }}
-      >
-        ← Back to article
-      </button>
+  const suggestedQuestions = [
+    "What does this mean?",
+    "Why is this important?",
+    "Can you simplify this?",
+  ];
 
-      {/* Quoted text */}
-      <div
-        className="p-4 rounded-lg mb-6 border-l-4"
-        style={{
-          backgroundColor: 'var(--highlight)',
-          borderColor: 'var(--accent)',
+  return (
+    <div className="min-h-screen flex flex-col">
+      {/* Header with back button */}
+      <div 
+        className="sticky top-[53px] z-10 px-4 py-3 border-b"
+        style={{ 
+          backgroundColor: 'var(--bg-primary)',
+          borderColor: 'var(--border)',
         }}
       >
-        <p className="text-sm mb-2" style={{ color: 'var(--text-secondary)' }}>
-          Selected passage:
-        </p>
-        <p style={{ color: 'var(--text-primary)' }}>{paragraph.text}</p>
+        <button
+          onClick={onBack}
+          className="flex items-center gap-2 text-sm font-medium transition-opacity hover:opacity-70"
+          style={{ color: 'var(--accent)' }}
+        >
+          ← Back to article
+        </button>
       </div>
 
-      {/* Ask input */}
-      <div className="mb-6">
-        <label 
-          className="block text-sm mb-2 font-medium"
-          style={{ color: 'var(--text-secondary)' }}
+      <div className="flex-1 reader-container py-6">
+        {/* Quoted text */}
+        <div
+          className="p-4 rounded-lg mb-6 border-l-4"
+          style={{
+            backgroundColor: 'var(--highlight)',
+            borderColor: 'var(--accent)',
+          }}
         >
-          Ask about this passage
-        </label>
-        <div className="flex gap-2">
+          <p className="text-xs uppercase tracking-wide mb-2 font-medium" style={{ color: 'var(--text-secondary)' }}>
+            Selected passage
+          </p>
+          <p className="leading-relaxed" style={{ color: 'var(--text-primary)' }}>
+            {paragraph.text}
+          </p>
+        </div>
+
+        {/* Suggested questions */}
+        {chatHistory.length === 0 && !isAsking && (
+          <div className="mb-6">
+            <p className="text-sm mb-3" style={{ color: 'var(--text-secondary)' }}>
+              Try asking:
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {suggestedQuestions.map((q) => (
+                <button
+                  key={q}
+                  onClick={() => {
+                    setQuestion(q);
+                    inputRef.current?.focus();
+                  }}
+                  className="px-3 py-1.5 rounded-full text-sm border transition-colors hover:border-current"
+                  style={{ 
+                    borderColor: 'var(--border)',
+                    color: 'var(--text-secondary)',
+                  }}
+                >
+                  {q}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Chat history */}
+        {chatHistory.map((chat, idx) => (
+          <div key={idx} className="mb-6">
+            <div 
+              className="text-sm font-medium mb-2"
+              style={{ color: 'var(--text-secondary)' }}
+            >
+              You asked: {chat.q}
+            </div>
+            <div 
+              className="p-4 rounded-lg prose prose-sm max-w-none"
+              style={{ 
+                backgroundColor: 'var(--bg-secondary)',
+                color: 'var(--text-primary)',
+              }}
+            >
+              <div className="whitespace-pre-wrap">{chat.a}</div>
+            </div>
+          </div>
+        ))}
+
+        {/* Current response */}
+        <AsyncResponse isLoading={isAsking} response={response && chatHistory.length === 0 ? response : null} />
+      </div>
+
+      {/* Fixed input at bottom */}
+      <div 
+        className="sticky bottom-0 p-4 border-t"
+        style={{ 
+          backgroundColor: 'var(--bg-primary)',
+          borderColor: 'var(--border)',
+        }}
+      >
+        <div className="max-w-[680px] mx-auto flex gap-2">
           <input
+            ref={inputRef}
             type="text"
             value={question}
             onChange={(e) => setQuestion(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && handleAsk()}
-            placeholder="What does this mean? Why is this important?"
+            placeholder="Ask about this passage..."
             className="flex-1 px-4 py-3 rounded-lg border focus:outline-none focus:ring-2"
             style={{
               backgroundColor: 'var(--bg-secondary)',
@@ -102,12 +211,6 @@ Would you like me to elaborate on any specific aspect?`;
           </button>
         </div>
       </div>
-
-      {/* Response area */}
-      <AsyncResponse 
-        isLoading={isAsking} 
-        response={response} 
-      />
     </div>
   );
 }
