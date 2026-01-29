@@ -15,33 +15,62 @@ interface SelectionMenuProps {
 }
 
 export function SelectionMenu({ selection, onDiveDeeper, onCopy, onClear }: SelectionMenuProps) {
-  const [position, setPosition] = useState({ x: 0, y: 0 });
+  const [position, setPosition] = useState({ x: 0, y: 0, isBelow: false });
+  const [isMobile, setIsMobile] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const [copied, setCopied] = useState(false);
 
   useEffect(() => {
+    setIsMobile(window.innerWidth < 640);
+    
+    const handleResize = () => setIsMobile(window.innerWidth < 640);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  useEffect(() => {
     if (selection.range) {
       const rect = selection.range.getBoundingClientRect();
-      const menuWidth = 240;
+      const menuWidth = isMobile ? window.innerWidth - 32 : 200;
+      const menuHeight = 120;
       
-      // Position above the selection, centered
-      let x = rect.left + rect.width / 2 - menuWidth / 2;
-      let y = rect.top - 60;
+      let x: number;
+      let y: number;
+      let isBelow = false;
 
-      // Keep within viewport
-      const padding = 12;
-      if (x < padding) x = padding;
-      if (x + menuWidth > window.innerWidth - padding) {
-        x = window.innerWidth - menuWidth - padding;
-      }
-      if (y < padding) {
-        // Show below if not enough space above
+      if (isMobile) {
+        // On mobile, center horizontally and position below selection
+        x = 16;
         y = rect.bottom + 12;
+        isBelow = true;
+        
+        // If too close to bottom, show above
+        if (y + menuHeight > window.innerHeight - 20) {
+          y = rect.top - menuHeight - 12;
+          isBelow = false;
+        }
+      } else {
+        // On desktop, position above selection centered
+        x = rect.left + rect.width / 2 - menuWidth / 2;
+        y = rect.top - menuHeight - 8;
+        
+        // Keep within viewport
+        const padding = 12;
+        if (x < padding) x = padding;
+        if (x + menuWidth > window.innerWidth - padding) {
+          x = window.innerWidth - menuWidth - padding;
+        }
+        
+        // Show below if not enough space above
+        if (y < padding) {
+          y = rect.bottom + 12;
+          isBelow = true;
+        }
       }
 
-      setPosition({ x, y });
+      setPosition({ x, y, isBelow });
     }
-  }, [selection.range]);
+  }, [selection.range, isMobile]);
 
   const show = selection.text.length > 0 && selection.paragraphIndex !== null;
 
@@ -67,77 +96,74 @@ export function SelectionMenu({ selection, onDiveDeeper, onCopy, onClear }: Sele
       {show && (
         <motion.div
           ref={menuRef}
-          initial={{ opacity: 0, y: 8, scale: 0.96 }}
+          initial={{ opacity: 0, y: position.isBelow ? -8 : 8, scale: 0.96 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
-          exit={{ opacity: 0, y: 8, scale: 0.96 }}
+          exit={{ opacity: 0, y: position.isBelow ? -8 : 8, scale: 0.96 }}
           transition={{ duration: 0.15, ease: 'easeOut' }}
           className="fixed z-50"
-          style={{ left: position.x, top: position.y }}
+          style={{ 
+            left: position.x, 
+            top: position.y,
+            width: isMobile ? 'calc(100% - 32px)' : 'auto',
+          }}
         >
-          {/* Main menu */}
           <div 
-            className="rounded-xl shadow-2xl overflow-hidden backdrop-blur-sm"
+            className="rounded-2xl shadow-2xl overflow-hidden"
             style={{
-              backgroundColor: 'rgba(var(--bg-primary-rgb), 0.95)',
+              backgroundColor: 'var(--bg-secondary)',
               border: '1px solid var(--border)',
             }}
           >
             {/* Selected text preview */}
             <div 
-              className="px-3 py-2 text-xs border-b"
-              style={{ 
-                borderColor: 'var(--border)',
-                color: 'var(--text-secondary)',
-              }}
+              className="px-4 py-3 border-b"
+              style={{ borderColor: 'var(--border)' }}
             >
-              <span className="opacity-60">Selected:</span>{' '}
-              <span className="font-medium" style={{ color: 'var(--text-primary)' }}>
-                "{selection.text.slice(0, 40)}{selection.text.length > 40 ? '...' : ''}"
-              </span>
+              <p className="text-xs mb-1" style={{ color: 'var(--text-secondary)' }}>
+                Selected text
+              </p>
+              <p 
+                className="text-sm font-medium line-clamp-2"
+                style={{ color: 'var(--text-primary)' }}
+              >
+                "{selection.text}"
+              </p>
             </div>
 
             {/* Actions */}
-            <div className="p-1.5">
+            <div className="p-2 flex gap-2">
               <button
                 onClick={handleDiveDeeper}
-                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors hover:bg-[var(--highlight)]"
-                style={{ color: 'var(--text-primary)' }}
+                className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-sm font-medium text-white transition-all active:scale-98"
+                style={{ backgroundColor: 'var(--accent)' }}
               >
-                <span className="text-base">🔍</span>
+                <span>🔍</span>
                 <span>Dive Deeper</span>
               </button>
               
               <button
                 onClick={handleCopy}
-                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors hover:bg-[var(--highlight)]"
-                style={{ color: 'var(--text-secondary)' }}
+                className="px-4 py-3 rounded-xl text-sm transition-all active:scale-98"
+                style={{ 
+                  backgroundColor: 'var(--highlight)',
+                  color: 'var(--text-secondary)',
+                }}
               >
-                <span className="text-base">{copied ? '✓' : '📋'}</span>
-                <span>{copied ? 'Copied!' : 'Copy'}</span>
+                {copied ? '✓' : '📋'}
               </button>
 
               <button
                 onClick={onClear}
-                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors hover:bg-[var(--highlight)]"
-                style={{ color: 'var(--text-secondary)' }}
+                className="px-4 py-3 rounded-xl text-sm transition-all active:scale-98"
+                style={{ 
+                  backgroundColor: 'var(--highlight)',
+                  color: 'var(--text-secondary)',
+                }}
               >
-                <span className="text-base">✕</span>
-                <span>Cancel</span>
+                ✕
               </button>
             </div>
           </div>
-
-          {/* Arrow pointing to selection */}
-          <div 
-            className="absolute left-1/2 -translate-x-1/2 w-3 h-3 rotate-45"
-            style={{
-              backgroundColor: 'var(--bg-primary)',
-              border: '1px solid var(--border)',
-              borderTop: 'none',
-              borderLeft: 'none',
-              bottom: '-6px',
-            }}
-          />
         </motion.div>
       )}
     </AnimatePresence>

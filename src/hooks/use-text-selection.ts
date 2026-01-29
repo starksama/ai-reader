@@ -15,16 +15,15 @@ export function useTextSelection() {
     range: null,
   });
 
-  const handleSelectionChange = useCallback(() => {
+  const updateSelection = useCallback(() => {
     const sel = window.getSelection();
     if (!sel || sel.isCollapsed || !sel.toString().trim()) {
-      setSelection({ text: '', paragraphIndex: null, range: null });
+      // Don't clear immediately on mobile to allow for menu interaction
       return;
     }
 
     const text = sel.toString().trim();
     if (text.length < 3) {
-      setSelection({ text: '', paragraphIndex: null, range: null });
       return;
     }
 
@@ -33,15 +32,19 @@ export function useTextSelection() {
     const container = range.commonAncestorContainer;
     const paragraphEl = container.nodeType === Node.TEXT_NODE
       ? container.parentElement?.closest('[data-paragraph-index]')
-      : (container as Element).closest('[data-paragraph-index]');
+      : (container as Element).closest?.('[data-paragraph-index]');
 
     const paragraphIndex = paragraphEl
       ? parseInt(paragraphEl.getAttribute('data-paragraph-index') || '-1', 10)
       : null;
 
+    if (paragraphIndex === -1) {
+      return;
+    }
+
     setSelection({
       text,
-      paragraphIndex: paragraphIndex !== -1 ? paragraphIndex : null,
+      paragraphIndex,
       range: range.cloneRange(),
     });
   }, []);
@@ -52,11 +55,42 @@ export function useTextSelection() {
   }, []);
 
   useEffect(() => {
+    // Handle mouse selection
+    const handleMouseUp = () => {
+      // Small delay to allow selection to finalize
+      setTimeout(updateSelection, 10);
+    };
+
+    // Handle touch selection (for mobile)
+    const handleTouchEnd = () => {
+      // Longer delay for touch to allow selection handles to appear
+      setTimeout(updateSelection, 100);
+    };
+
+    // Handle selection change (works for both mouse and touch)
+    const handleSelectionChange = () => {
+      const sel = window.getSelection();
+      if (sel && sel.isCollapsed && selection.text) {
+        // Selection was cleared by user
+        setTimeout(() => {
+          const currentSel = window.getSelection();
+          if (currentSel && currentSel.isCollapsed) {
+            setSelection({ text: '', paragraphIndex: null, range: null });
+          }
+        }, 200);
+      }
+    };
+
+    document.addEventListener('mouseup', handleMouseUp);
+    document.addEventListener('touchend', handleTouchEnd);
     document.addEventListener('selectionchange', handleSelectionChange);
+
     return () => {
+      document.removeEventListener('mouseup', handleMouseUp);
+      document.removeEventListener('touchend', handleTouchEnd);
       document.removeEventListener('selectionchange', handleSelectionChange);
     };
-  }, [handleSelectionChange]);
+  }, [updateSelection, selection.text]);
 
   return {
     selection,

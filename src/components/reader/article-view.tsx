@@ -137,6 +137,15 @@ export function ArticleView({
             </div>
           )}
         </div>
+
+        {/* Hint */}
+        <p 
+          className="mt-6 text-sm flex items-center gap-2"
+          style={{ color: 'var(--text-secondary)' }}
+        >
+          <span>💡</span>
+          <span>Select text or tap a paragraph to dive deeper</span>
+        </p>
       </header>
 
       {/* Paragraphs */}
