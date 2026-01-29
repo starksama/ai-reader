@@ -1,0 +1,124 @@
+@import "tailwindcss";
+
+/* Design System Colors */
+:root {
+  /* Light Mode (Default) */
+  --bg-primary: #fafafa;
+  --bg-secondary: #ffffff;
+  --text-primary: #1a1a1a;
+  --text-secondary: #666666;
+  --accent: #2563eb;
+  --highlight: #fef3c7;
+  --border: #e5e5e5;
+}
+
+.dark {
+  --bg-primary: #1a1a1a;
+  --bg-secondary: #262626;
+  --text-primary: #e5e5e5;
+  --text-secondary: #a3a3a3;
+  --accent: #60a5fa;
+  --highlight: #78350f;
+  --border: #404040;
+}
+
+.sepia {
+  --bg-primary: #f4ecd8;
+  --bg-secondary: #ebe3cf;
+  --text-primary: #5c4b37;
+  --text-secondary: #7a6a56;
+  --accent: #8b5a2b;
+  --highlight: #e6d9b8;
+  --border: #d4c9b5;
+}
+
+/* Base Styles */
+body {
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: var(--font-inter), system-ui, sans-serif;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+/* Typography */
+.reader-text {
+  font-size: 18px;
+  line-height: 1.7;
+  max-width: 680px;
+  margin: 0 auto;
+}
+
+@media (max-width: 640px) {
+  .reader-text {
+    font-size: 16px;
+    line-height: 1.6;
+  }
+}
+
+/* Reader Container */
+.reader-container {
+  max-width: 680px;
+  margin: 0 auto;
+  padding: 24px 20px;
+}
+
+/* Paragraph Styles */
+.paragraph {
+  margin-bottom: 1.5em;
+  padding: 8px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.paragraph:hover {
+  background-color: var(--highlight);
+}
+
+.paragraph.selected {
+  background-color: var(--highlight);
+  border-left: 3px solid var(--accent);
+}
+
+/* Layer Transitions */
+.layer-enter {
+  transform: translateX(100%);
+}
+
+.layer-enter-active {
+  transform: translateX(0);
+  transition: transform 300ms ease-out;
+}
+
+.layer-exit {
+  transform: translateX(0);
+}
+
+.layer-exit-active {
+  transform: translateX(100%);
+  transition: transform 250ms ease-in;
+}
+
+/* Breadcrumb */
+.breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  color: var(--text-secondary);
+  padding: 12px 0;
+}
+
+.breadcrumb-item {
+  cursor: pointer;
+  transition: color 0.15s ease;
+}
+
+.breadcrumb-item:hover {
+  color: var(--accent);
+}
+
+.breadcrumb-current {
+  color: var(--text-primary);
+  font-weight: 500;
+}
