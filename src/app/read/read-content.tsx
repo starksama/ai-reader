@@ -6,6 +6,7 @@ import { useLayerStore } from '@/stores/layer-store';
 import { Breadcrumb } from '@/components/reader/breadcrumb';
 import { ArticleView } from '@/components/reader/article-view';
 import { DetailLayer } from '@/components/layers/detail-layer';
+import { LayerStack } from '@/components/layers/layer-stack';
 
 interface ParsedArticle {
   title: string;
@@ -30,8 +31,13 @@ export function ReadContent() {
   const [error, setError] = useState<string | null>(null);
   const [selectedParagraph, setSelectedParagraph] = useState<number | null>(null);
   
-  const { layers, currentIndex, push, pop } = useLayerStore();
+  const { layers, currentIndex, push, pop, reset } = useLayerStore();
   const currentLayer = layers[currentIndex];
+
+  // Reset layers when URL changes
+  useEffect(() => {
+    reset();
+  }, [url, reset]);
 
   useEffect(() => {
     if (!url) {
@@ -43,6 +49,7 @@ export function ReadContent() {
     async function fetchArticle() {
       try {
         setIsLoading(true);
+        setError(null);
         const response = await fetch('/api/parse', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -86,8 +93,13 @@ export function ReadContent() {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-pulse text-2xl mb-2">📖</div>
-          <p style={{ color: 'var(--text-secondary)' }}>Loading article...</p>
+          <div className="animate-pulse text-4xl mb-4">📖</div>
+          <p className="text-lg" style={{ color: 'var(--text-secondary)' }}>
+            Loading article...
+          </p>
+          <p className="text-sm mt-2" style={{ color: 'var(--text-secondary)' }}>
+            Fetching and parsing content
+          </p>
         </div>
       </div>
     );
@@ -97,17 +109,17 @@ export function ReadContent() {
     return (
       <div className="min-h-screen flex items-center justify-center p-6">
         <div className="text-center max-w-md">
-          <div className="text-4xl mb-4">😕</div>
+          <div className="text-5xl mb-4">😕</div>
           <h2 className="text-xl font-semibold mb-2" style={{ color: 'var(--text-primary)' }}>
             Couldn&apos;t load article
           </h2>
-          <p className="mb-4" style={{ color: 'var(--text-secondary)' }}>{error}</p>
+          <p className="mb-6" style={{ color: 'var(--text-secondary)' }}>{error}</p>
           <a
             href="/"
-            className="inline-block px-4 py-2 rounded-lg text-white"
+            className="inline-block px-6 py-3 rounded-lg text-white font-medium transition-opacity hover:opacity-90"
             style={{ backgroundColor: 'var(--accent)' }}
           >
-            Try another URL
+            ← Try another URL
           </a>
         </div>
       </div>
@@ -117,9 +129,15 @@ export function ReadContent() {
   if (!article) return null;
 
   return (
-    <div className="min-h-screen relative overflow-hidden">
-      {/* Breadcrumb */}
-      <div className="sticky top-0 z-10 px-4 py-2" style={{ backgroundColor: 'var(--bg-primary)' }}>
+    <div className="min-h-screen">
+      {/* Sticky Breadcrumb */}
+      <div 
+        className="sticky top-0 z-20 px-4 py-3 border-b"
+        style={{ 
+          backgroundColor: 'var(--bg-primary)',
+          borderColor: 'var(--border)',
+        }}
+      >
         <Breadcrumb
           layers={layers}
           currentIndex={currentIndex}
@@ -132,34 +150,27 @@ export function ReadContent() {
         />
       </div>
 
-      {/* Layer Stack */}
-      <div className="relative">
+      {/* Layer Stack with Swipe */}
+      <LayerStack currentIndex={currentIndex} onSwipeBack={handleBack}>
         {/* Main Article Layer */}
-        <div
-          className={`transition-transform duration-300 ease-out ${
-            currentIndex > 0 ? '-translate-x-full' : 'translate-x-0'
-          }`}
-        >
-          <ArticleView
-            article={article}
-            selectedParagraph={selectedParagraph}
-            onParagraphClick={handleParagraphClick}
-          />
-        </div>
+        <ArticleView
+          article={article}
+          selectedParagraph={selectedParagraph}
+          onParagraphClick={handleParagraphClick}
+        />
 
-        {/* Detail Layer */}
-        {currentIndex > 0 && currentLayer.type === 'paragraph' && (
-          <div
-            className="absolute inset-0 transition-transform duration-300 ease-out"
-            style={{ backgroundColor: 'var(--bg-primary)' }}
-          >
-            <DetailLayer
-              paragraph={article.paragraphs[currentLayer.paragraphIndex!]}
-              onBack={handleBack}
-            />
+        {/* Detail Layers */}
+        {layers.slice(1).map((layer, idx) => (
+          <div key={layer.id}>
+            {layer.type === 'paragraph' && article.paragraphs[layer.paragraphIndex!] && (
+              <DetailLayer
+                paragraph={article.paragraphs[layer.paragraphIndex!]}
+                onBack={handleBack}
+              />
+            )}
           </div>
-        )}
-      </div>
+        ))}
+      </LayerStack>
     </div>
   );
 }
