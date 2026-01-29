@@ -116,7 +116,13 @@ export default function DemoArticlePage() {
                   articleUrl={article.url}
                   articleTitle={article.title}
                   selectedText={layer.selectedText}
+                  totalParagraphs={article.paragraphs.length}
                   onBack={handleBack}
+                  onNavigate={(index) => {
+                    if (index >= 0 && index < article.paragraphs.length) {
+                      handleParagraphClick(index);
+                    }
+                  }}
                 />
               )}
             </div>

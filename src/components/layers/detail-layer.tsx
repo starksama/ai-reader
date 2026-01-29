@@ -16,7 +16,9 @@ interface DetailLayerProps {
   articleUrl: string;
   articleTitle: string;
   selectedText?: string; // Text user selected within the paragraph
+  totalParagraphs: number;
   onBack: () => void;
+  onNavigate?: (index: number) => void;
 }
 
 // Mock responses based on common question types
@@ -56,7 +58,15 @@ What aspect would you like to explore further?`,
 Any specific questions about this passage?`,
 ];
 
-export function DetailLayer({ paragraph, articleUrl, articleTitle, selectedText, onBack }: DetailLayerProps) {
+export function DetailLayer({ 
+  paragraph, 
+  articleUrl, 
+  articleTitle, 
+  selectedText, 
+  totalParagraphs,
+  onBack,
+  onNavigate,
+}: DetailLayerProps) {
   const [question, setQuestion] = useState('');
   const [isAsking, setIsAsking] = useState(false);
   const [response, setResponse] = useState<string | null>(null);
@@ -105,7 +115,7 @@ export function DetailLayer({ paragraph, articleUrl, articleTitle, selectedText,
 
   return (
     <div className="min-h-screen flex flex-col">
-      {/* Header with back button */}
+      {/* Header with back button and navigation */}
       <div 
         className="sticky top-[97px] z-10 px-4 py-3 border-b"
         style={{ 
@@ -113,13 +123,44 @@ export function DetailLayer({ paragraph, articleUrl, articleTitle, selectedText,
           borderColor: 'var(--border)',
         }}
       >
-        <button
-          onClick={onBack}
-          className="flex items-center gap-2 text-sm font-medium transition-opacity hover:opacity-70"
-          style={{ color: 'var(--accent)' }}
-        >
-          ← Back to article
-        </button>
+        <div className="flex items-center justify-between max-w-4xl mx-auto">
+          <button
+            onClick={onBack}
+            className="flex items-center gap-2 text-sm font-medium transition-opacity hover:opacity-70"
+            style={{ color: 'var(--accent)' }}
+          >
+            ← Back
+          </button>
+          
+          {/* Paragraph navigation */}
+          <div className="flex items-center gap-2">
+            <span className="text-xs" style={{ color: 'var(--text-secondary)' }}>
+              {paragraph.index + 1} / {totalParagraphs}
+            </span>
+            {onNavigate && (
+              <div className="flex gap-1">
+                <button
+                  onClick={() => onNavigate(paragraph.index - 1)}
+                  disabled={paragraph.index === 0}
+                  className="w-8 h-8 rounded flex items-center justify-center transition-opacity disabled:opacity-30"
+                  style={{ backgroundColor: 'var(--bg-secondary)' }}
+                  title="Previous paragraph"
+                >
+                  ↑
+                </button>
+                <button
+                  onClick={() => onNavigate(paragraph.index + 1)}
+                  disabled={paragraph.index >= totalParagraphs - 1}
+                  className="w-8 h-8 rounded flex items-center justify-center transition-opacity disabled:opacity-30"
+                  style={{ backgroundColor: 'var(--bg-secondary)' }}
+                  title="Next paragraph"
+                >
+                  ↓
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
       </div>
 
       <div className="flex-1 reader-container py-6">
