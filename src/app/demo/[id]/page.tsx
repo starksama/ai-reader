@@ -1,26 +1,25 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
+import { motion, AnimatePresence } from 'framer-motion';
 import { getMockArticle, type MockArticle } from '@/data/mock-articles';
 import { useLayerStore } from '@/stores/layer-store';
-import { Breadcrumb } from '@/components/reader/breadcrumb';
 import { ArticleView } from '@/components/reader/article-view';
 import { DetailLayer } from '@/components/layers/detail-layer';
-import { LayerStack } from '@/components/layers/layer-stack';
-import { ExportButton } from '@/components/reader/export-button';
-import { ReaderHeader } from '@/components/reader/reader-header';
-import { ShortcutsHint } from '@/components/reader/shortcuts-hint';
 import { useKeyboardShortcuts } from '@/hooks/use-keyboard-shortcuts';
 
 export default function DemoArticlePage() {
   const params = useParams();
+  const router = useRouter();
   const id = params.id as string;
   
   const [article, setArticle] = useState<MockArticle | null>(null);
   const [selectedParagraph, setSelectedParagraph] = useState<number | null>(null);
   const [exploredParagraphs, setExploredParagraphs] = useState<Set<number>>(new Set());
   const { layers, currentIndex, push, pop, reset } = useLayerStore();
+
+  const isDetailView = currentIndex > 0;
 
   // Keyboard shortcuts
   useKeyboardShortcuts({
@@ -64,76 +63,93 @@ export default function DemoArticlePage() {
 
   if (!article) {
     return (
-      <>
-        <ReaderHeader />
-        <div className="min-h-screen flex items-center justify-center">
-          <p style={{ color: 'var(--text-secondary)' }}>Article not found</p>
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-pulse text-4xl mb-4">📖</div>
+          <p style={{ color: 'var(--text-secondary)' }}>Loading...</p>
         </div>
-      </>
+      </div>
     );
   }
 
+  const currentLayer = layers[currentIndex];
+
   return (
-    <>
-      <ReaderHeader articleUrl={article.url} />
-      <div className="min-h-screen">
-        {/* Sticky Breadcrumb */}
-        <div 
-          className="sticky top-[57px] z-20 px-4 py-2 border-b"
-          style={{ 
-            backgroundColor: 'var(--bg-primary)',
-            borderColor: 'var(--border)',
-          }}
-        >
-          <div className="flex items-center justify-between max-w-4xl mx-auto">
-            <Breadcrumb
-              layers={layers}
-              currentIndex={currentIndex}
-              onNavigate={(index) => {
-                if (index === 0) {
-                  setSelectedParagraph(null);
-                }
-                useLayerStore.getState().goTo(index);
+    <div className="min-h-screen" style={{ backgroundColor: 'var(--bg-primary)' }}>
+      <AnimatePresence mode="wait">
+        {!isDetailView ? (
+          <motion.div
+            key="article"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0, x: -20 }}
+            transition={{ duration: 0.2 }}
+          >
+            {/* Simple top bar */}
+            <div 
+              className="sticky top-0 z-40 border-b backdrop-blur-sm"
+              style={{ 
+                backgroundColor: 'rgba(var(--bg-primary-rgb), 0.9)',
+                borderColor: 'var(--border)',
               }}
-            />
-            <ExportButton url={article.url} />
-          </div>
-        </div>
-
-        {/* Layer Stack with Swipe */}
-        <LayerStack currentIndex={currentIndex} onSwipeBack={handleBack}>
-          {/* Main Article Layer */}
-          <ArticleView
-            article={article}
-            selectedParagraph={selectedParagraph}
-            exploredParagraphs={exploredParagraphs}
-            onParagraphClick={handleParagraphClick}
-            onSelectionAsk={(text, index) => handleParagraphClick(index, text)}
-          />
-
-          {/* Detail Layers */}
-          {layers.slice(1).map((layer) => (
-            <div key={layer.id}>
-              {layer.type === 'paragraph' && article.paragraphs[layer.paragraphIndex!] && (
-                <DetailLayer
-                  paragraph={article.paragraphs[layer.paragraphIndex!]}
-                  articleUrl={article.url}
-                  articleTitle={article.title}
-                  selectedText={layer.selectedText}
-                  totalParagraphs={article.paragraphs.length}
-                  onBack={handleBack}
-                  onNavigate={(index) => {
-                    if (index >= 0 && index < article.paragraphs.length) {
-                      handleParagraphClick(index);
-                    }
-                  }}
-                />
-              )}
+            >
+              <div className="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between">
+                <button
+                  onClick={() => router.push('/demo')}
+                  className="text-sm font-medium transition-opacity hover:opacity-70"
+                  style={{ color: 'var(--accent)' }}
+                >
+                  ← Back to demos
+                </button>
+                
+                {exploredParagraphs.size > 0 && (
+                  <div 
+                    className="text-xs px-2 py-1 rounded-full"
+                    style={{ 
+                      backgroundColor: 'var(--accent)',
+                      color: '#fff',
+                    }}
+                  >
+                    {exploredParagraphs.size} explored
+                  </div>
+                )}
+              </div>
             </div>
-          ))}
-        </LayerStack>
-      </div>
-      <ShortcutsHint />
-    </>
+
+            <ArticleView
+              article={article}
+              selectedParagraph={selectedParagraph}
+              exploredParagraphs={exploredParagraphs}
+              onParagraphClick={handleParagraphClick}
+              onSelectionAsk={(text, index) => handleParagraphClick(index, text)}
+            />
+          </motion.div>
+        ) : (
+          <motion.div
+            key="detail"
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: 20 }}
+            transition={{ duration: 0.2 }}
+          >
+            {currentLayer?.type === 'paragraph' && article.paragraphs[currentLayer.paragraphIndex!] && (
+              <DetailLayer
+                paragraph={article.paragraphs[currentLayer.paragraphIndex!]}
+                articleUrl={article.url}
+                articleTitle={article.title}
+                selectedText={currentLayer.selectedText}
+                totalParagraphs={article.paragraphs.length}
+                onBack={handleBack}
+                onNavigate={(index) => {
+                  if (index >= 0 && index < article.paragraphs.length) {
+                    handleParagraphClick(index);
+                  }
+                }}
+              />
+            )}
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
   );
 }

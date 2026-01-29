@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
+import { motion } from 'framer-motion';
 import { AsyncResponse } from '@/components/async/async-response';
 import { useNotesStore } from '@/stores/notes-store';
 import { useKeyboardShortcuts } from '@/hooks/use-keyboard-shortcuts';
@@ -17,47 +18,38 @@ interface DetailLayerProps {
   paragraph: Paragraph;
   articleUrl: string;
   articleTitle: string;
-  selectedText?: string; // Text user selected within the paragraph
+  selectedText?: string;
   totalParagraphs: number;
   onBack: () => void;
   onNavigate?: (index: number) => void;
 }
 
-// Mock responses based on common question types
+// Mock responses
 const mockResponses = [
-  `This paragraph establishes a key concept that's central to the article's argument. Let me break it down:
+  `This passage makes a key point about the author's main argument. Let me break it down:
 
-**Main idea:** The author is making a point about how this topic relates to the broader context.
+**Core insight:** The author is connecting this idea to a broader theme in the article.
 
-**Why it matters:** This sets up the foundation for what comes next in the article.
+**Why it matters:** Understanding this helps you grasp the overall message.
 
-**Key terms:** Look for specific terminology that the author uses repeatedly — these are usually important.
+Would you like me to explore any specific part further?`,
 
-Would you like me to explain any specific part in more detail?`,
+  `Great question! Here's what I see in this passage:
 
-  `Great question! Here's what I understand from this passage:
+The author is building toward a larger point. Notice how they:
+• Use specific language to signal importance
+• Connect this to earlier ideas
+• Set up what comes next
 
-The author is discussing a nuanced point here. The key insight is that they're not just stating facts, but building toward a larger argument.
-
-**Context clues:**
-• Notice the language choices — they signal the author's perspective
-• This connects to earlier points made in the article
-• The structure suggests this is a supporting argument
-
-What aspect would you like to explore further?`,
+What would you like to explore next?`,
 
   `Let me help you understand this better.
 
-**Summary:** This paragraph serves as a transition point in the article, connecting previous ideas to what comes next.
+**Summary:** This serves as a transition point, connecting previous ideas to what follows.
 
-**Deeper analysis:**
-1. The author uses specific examples to illustrate their point
-2. There's an implicit assumption being made here
-3. This ties back to the article's central thesis
+**Key takeaway:** The author is making an implicit argument here that supports their main thesis.
 
-**For further exploration:** Consider how this relates to the paragraphs before and after it.
-
-Any specific questions about this passage?`,
+Any follow-up questions?`,
 ];
 
 export function DetailLayer({ 
@@ -92,11 +84,11 @@ export function DetailLayer({
     },
   });
 
-  // Focus input and scroll to top on mount
+  // Scroll to top and focus input
   useEffect(() => {
     inputRef.current?.focus();
     window.scrollTo({ top: 0, behavior: 'smooth' });
-  }, [paragraph.index]); // Re-run when paragraph changes
+  }, [paragraph.index]);
 
   const handleAsk = async () => {
     if (!question.trim() || isAsking) return;
@@ -107,9 +99,8 @@ export function DetailLayer({
     setResponse(null);
     
     // Simulate thinking delay
-    await new Promise(resolve => setTimeout(resolve, 800 + Math.random() * 700));
+    await new Promise(resolve => setTimeout(resolve, 600 + Math.random() * 600));
     
-    // Pick a random mock response
     const mockResponse = mockResponses[Math.floor(Math.random() * mockResponses.length)];
     
     setResponse(mockResponse);
@@ -118,43 +109,49 @@ export function DetailLayer({
     // Save note
     addNote(articleUrl, articleTitle, {
       paragraphIndex: paragraph.index,
-      paragraphText: paragraph.text.slice(0, 200) + (paragraph.text.length > 200 ? '...' : ''),
+      paragraphText: (selectedText || paragraph.text).slice(0, 200) + '...',
       question: currentQuestion,
       answer: mockResponse,
     });
-    showToast('📝 Note saved!');
+    showToast('📝 Note saved');
     
     setIsAsking(false);
   };
 
   const suggestedQuestions = [
-    "What does this mean?",
+    "Explain this simply",
     "Why is this important?",
-    "Can you simplify this?",
+    "Give me an example",
   ];
 
   return (
-    <div className="min-h-screen flex flex-col">
-      {/* Header with back button and navigation */}
+    <motion.div 
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      className="min-h-screen"
+      style={{ backgroundColor: 'var(--bg-primary)' }}
+    >
+      {/* Minimal header */}
       <div 
-        className="sticky top-[97px] z-10 px-4 py-3 border-b"
+        className="sticky top-0 z-10 border-b"
         style={{ 
           backgroundColor: 'var(--bg-primary)',
           borderColor: 'var(--border)',
         }}
       >
-        <div className="flex items-center justify-between max-w-4xl mx-auto">
+        <div className="max-w-2xl mx-auto px-4 py-3 flex items-center justify-between">
           <button
             onClick={onBack}
             className="flex items-center gap-2 text-sm font-medium transition-opacity hover:opacity-70"
             style={{ color: 'var(--accent)' }}
           >
-            ← Back
+            <span>←</span>
+            <span>Back</span>
           </button>
           
           {/* Paragraph navigation */}
-          <div className="flex items-center gap-2">
-            <span className="text-xs" style={{ color: 'var(--text-secondary)' }}>
+          <div className="flex items-center gap-3">
+            <span className="text-xs tabular-nums" style={{ color: 'var(--text-secondary)' }}>
               {paragraph.index + 1} / {totalParagraphs}
             </span>
             {onNavigate && (
@@ -162,18 +159,16 @@ export function DetailLayer({
                 <button
                   onClick={() => onNavigate(paragraph.index - 1)}
                   disabled={paragraph.index === 0}
-                  className="w-8 h-8 rounded flex items-center justify-center transition-opacity disabled:opacity-30"
-                  style={{ backgroundColor: 'var(--bg-secondary)' }}
-                  title="Previous paragraph"
+                  className="w-7 h-7 rounded-md flex items-center justify-center text-sm transition-all disabled:opacity-30 hover:bg-[var(--highlight)]"
+                  style={{ color: 'var(--text-secondary)' }}
                 >
                   ↑
                 </button>
                 <button
                   onClick={() => onNavigate(paragraph.index + 1)}
                   disabled={paragraph.index >= totalParagraphs - 1}
-                  className="w-8 h-8 rounded flex items-center justify-center transition-opacity disabled:opacity-30"
-                  style={{ backgroundColor: 'var(--bg-secondary)' }}
-                  title="Next paragraph"
+                  className="w-7 h-7 rounded-md flex items-center justify-center text-sm transition-all disabled:opacity-30 hover:bg-[var(--highlight)]"
+                  style={{ color: 'var(--text-secondary)' }}
                 >
                   ↓
                 </button>
@@ -183,47 +178,50 @@ export function DetailLayer({
         </div>
       </div>
 
-      <div className="flex-1 reader-container py-6">
+      <div className="max-w-2xl mx-auto px-4 py-8">
         {/* Selected text highlight */}
         {selectedText && (
-          <div
-            className="p-4 rounded-lg mb-4 border-l-4"
-            style={{
-              backgroundColor: 'var(--accent)',
-              borderColor: 'var(--accent)',
-              opacity: 0.9,
-            }}
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-4 p-4 rounded-xl"
+            style={{ backgroundColor: 'var(--accent)', color: '#fff' }}
           >
-            <p className="text-xs uppercase tracking-wide mb-2 font-medium text-white/70">
+            <p className="text-xs uppercase tracking-wide mb-2 opacity-70 font-medium">
               Your selection
             </p>
-            <p className="leading-relaxed text-white font-medium">
+            <p className="text-lg font-medium leading-relaxed">
               "{selectedText}"
             </p>
-          </div>
+          </motion.div>
         )}
 
         {/* Full paragraph context */}
-        <div
-          className="p-4 rounded-lg mb-6 border-l-4"
-          style={{
-            backgroundColor: 'var(--highlight)',
-            borderColor: selectedText ? 'var(--border)' : 'var(--accent)',
-          }}
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.05 }}
+          className="p-4 rounded-xl mb-8"
+          style={{ backgroundColor: 'var(--bg-secondary)' }}
         >
           <p className="text-xs uppercase tracking-wide mb-2 font-medium" style={{ color: 'var(--text-secondary)' }}>
-            {selectedText ? 'Full paragraph' : 'Selected passage'}
+            {selectedText ? 'Full context' : 'Selected passage'}
           </p>
           <p className="leading-relaxed" style={{ color: 'var(--text-primary)' }}>
             {paragraph.text}
           </p>
-        </div>
+        </motion.div>
 
         {/* Suggested questions */}
         {chatHistory.length === 0 && !isAsking && (
-          <div className="mb-6">
-            <p className="text-sm mb-3" style={{ color: 'var(--text-secondary)' }}>
-              Try asking:
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.1 }}
+            className="mb-6"
+          >
+            <p className="text-xs uppercase tracking-wide mb-3 font-medium" style={{ color: 'var(--text-secondary)' }}>
+              Quick questions
             </p>
             <div className="flex flex-wrap gap-2">
               {suggestedQuestions.map((q) => (
@@ -233,85 +231,85 @@ export function DetailLayer({
                     setQuestion(q);
                     inputRef.current?.focus();
                   }}
-                  className="px-3 py-1.5 rounded-full text-sm border transition-colors hover:border-current"
-                  style={{ 
-                    borderColor: 'var(--border)',
-                    color: 'var(--text-secondary)',
+                  className="px-3 py-2 rounded-lg text-sm transition-all hover:scale-105"
+                  style={{
+                    backgroundColor: 'var(--highlight)',
+                    color: 'var(--text-primary)',
                   }}
                 >
                   {q}
                 </button>
               ))}
             </div>
-          </div>
+          </motion.div>
         )}
 
         {/* Chat history */}
-        {chatHistory.map((chat, idx) => (
-          <div key={idx} className="mb-6">
-            <div 
-              className="text-sm font-medium mb-2"
-              style={{ color: 'var(--text-secondary)' }}
-            >
-              You asked: {chat.q}
-            </div>
-            <div 
-              className="p-4 rounded-lg prose prose-sm max-w-none"
-              style={{ 
-                backgroundColor: 'var(--bg-secondary)',
-                color: 'var(--text-primary)',
-              }}
-            >
-              <div className="whitespace-pre-wrap">{chat.a}</div>
-            </div>
+        {chatHistory.length > 0 && (
+          <div className="space-y-4 mb-6">
+            {chatHistory.map((item, idx) => (
+              <motion.div 
+                key={idx}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+              >
+                <div className="mb-2">
+                  <span className="text-xs font-medium px-2 py-1 rounded" style={{ backgroundColor: 'var(--highlight)', color: 'var(--text-secondary)' }}>
+                    You asked
+                  </span>
+                  <p className="mt-2 font-medium" style={{ color: 'var(--text-primary)' }}>{item.q}</p>
+                </div>
+                <AsyncResponse isLoading={false} response={item.a} />
+              </motion.div>
+            ))}
           </div>
-        ))}
+        )}
 
         {/* Current response */}
-        <AsyncResponse isLoading={isAsking} response={response && chatHistory.length === 0 ? response : null} />
-      </div>
+        {(isAsking || response) && chatHistory.length === 0 && (
+          <div className="mb-6">
+            <AsyncResponse isLoading={isAsking} response={response} />
+          </div>
+        )}
 
-      {/* Fixed input at bottom */}
-      <div 
-        className="sticky bottom-0 p-4 border-t"
-        style={{ 
-          backgroundColor: 'var(--bg-primary)',
-          borderColor: 'var(--border)',
-        }}
-      >
-        <div className="max-w-[680px] mx-auto flex gap-2">
-          <input
-            ref={inputRef}
-            type="text"
-            value={question}
-            onChange={(e) => setQuestion(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && handleAsk()}
-            placeholder="Ask about this passage..."
-            className="flex-1 px-4 py-3 rounded-lg border focus:outline-none focus:ring-2"
-            style={{
-              backgroundColor: 'var(--bg-secondary)',
-              borderColor: 'var(--border)',
-              color: 'var(--text-primary)',
+        {/* Input area */}
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.15 }}
+          className="sticky bottom-4 mt-8"
+        >
+          <div 
+            className="flex gap-2 p-2 rounded-xl shadow-lg"
+            style={{ 
+              backgroundColor: 'var(--bg-primary)',
+              border: '1px solid var(--border)',
             }}
-            disabled={isAsking}
-          />
-          <button
-            onClick={handleAsk}
-            disabled={isAsking || !question.trim()}
-            className="px-5 py-3 rounded-lg font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-50"
-            style={{ backgroundColor: 'var(--accent)' }}
           >
-            {isAsking ? '...' : 'Ask'}
-          </button>
-        </div>
+            <input
+              ref={inputRef}
+              type="text"
+              value={question}
+              onChange={(e) => setQuestion(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && handleAsk()}
+              placeholder="Ask anything about this passage..."
+              className="flex-1 px-4 py-3 bg-transparent outline-none text-sm"
+              style={{ color: 'var(--text-primary)' }}
+              disabled={isAsking}
+            />
+            <button
+              onClick={handleAsk}
+              disabled={isAsking || !question.trim()}
+              className="px-5 py-3 rounded-lg font-medium text-sm text-white transition-all hover:opacity-90 disabled:opacity-50"
+              style={{ backgroundColor: 'var(--accent)' }}
+            >
+              {isAsking ? '...' : 'Ask'}
+            </button>
+          </div>
+        </motion.div>
       </div>
 
-      {/* Toast for feedback */}
-      <Toast 
-        message={toast.message} 
-        isVisible={toast.visible} 
-        onHide={hideToast} 
-      />
-    </div>
+      <Toast message={toast.message} isVisible={toast.visible} onHide={hideToast} />
+    </motion.div>
   );
 }

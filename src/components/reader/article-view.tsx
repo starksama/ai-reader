@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useTextSelection } from '@/hooks/use-text-selection';
-import { SelectionTooltip } from './selection-tooltip';
+import { SelectionMenu } from './selection-menu';
 
 interface Paragraph {
   id: string;
@@ -25,7 +25,7 @@ interface ArticleViewProps {
   article: Article;
   selectedParagraph: number | null;
   exploredParagraphs?: Set<number>;
-  onParagraphClick: (index: number) => void;
+  onParagraphClick: (index: number, selectedText?: string) => void;
   onSelectionAsk?: (text: string, paragraphIndex: number) => void;
 }
 
@@ -37,8 +37,7 @@ export function ArticleView({
   onSelectionAsk,
 }: ArticleViewProps) {
   const [readProgress, setReadProgress] = useState(0);
-  const [highlightedCount, setHighlightedCount] = useState(0);
-  const { selection, hasSelection, clearSelection } = useTextSelection();
+  const { selection, clearSelection } = useTextSelection();
 
   // Track scroll progress
   useEffect(() => {
@@ -53,31 +52,25 @@ export function ArticleView({
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // Count highlighted paragraphs
-  useEffect(() => {
-    if (selectedParagraph !== null) {
-      setHighlightedCount(prev => prev + 1);
-    }
-  }, [selectedParagraph]);
-
-  const handleAskAbout = (text: string, paragraphIndex: number) => {
+  const handleDiveDeeper = (text: string, paragraphIndex: number) => {
     if (onSelectionAsk) {
       onSelectionAsk(text, paragraphIndex);
     } else {
-      // Default: open the paragraph detail view
-      onParagraphClick(paragraphIndex);
+      onParagraphClick(paragraphIndex, text);
     }
   };
+
+  const exploredCount = exploredParagraphs.size;
 
   return (
     <article className="pb-20">
       {/* Progress Bar */}
       <div 
-        className="fixed top-0 left-0 right-0 h-1 z-30"
+        className="fixed top-0 left-0 right-0 h-0.5 z-50"
         style={{ backgroundColor: 'var(--border)' }}
       >
         <div 
-          className="h-full transition-all duration-150"
+          className="h-full transition-all duration-150 ease-out"
           style={{ 
             width: `${readProgress}%`,
             backgroundColor: 'var(--accent)',
@@ -85,60 +78,65 @@ export function ArticleView({
         />
       </div>
 
-      {/* Selection Tooltip */}
-      <SelectionTooltip
+      {/* Selection Menu */}
+      <SelectionMenu
         selection={selection}
-        onAskAbout={handleAskAbout}
+        onDiveDeeper={handleDiveDeeper}
+        onCopy={() => {}}
         onClear={clearSelection}
       />
 
       {/* Header */}
-      <header className="reader-container pt-6">
+      <header className="reader-container pt-8 pb-6">
         <h1 
-          className="text-2xl md:text-3xl font-bold mb-3 leading-tight"
+          className="text-2xl md:text-4xl font-bold mb-4 leading-tight tracking-tight"
           style={{ color: 'var(--text-primary)' }}
         >
           {article.title}
         </h1>
         
-        <div className="flex flex-wrap gap-2 text-sm mb-6" style={{ color: 'var(--text-secondary)' }}>
-          {article.byline && <span>{article.byline}</span>}
-          {article.byline && article.siteName && <span>·</span>}
-          {article.siteName && <span>{article.siteName}</span>}
-        </div>
-
-        {/* Stats */}
-        <div 
-          className="flex flex-wrap items-center gap-3 md:gap-4 text-sm py-3 px-4 rounded-lg mb-6"
-          style={{ backgroundColor: 'var(--bg-secondary)' }}
-        >
-          <span style={{ color: 'var(--text-secondary)' }}>
-            {readProgress}% read
-          </span>
-          <span className="hidden md:inline" style={{ color: 'var(--border)' }}>|</span>
-          {article.wordCount && (
-            <span style={{ color: 'var(--text-secondary)' }}>
-              ~{Math.ceil(article.wordCount / 200)} min read
-            </span>
+        {/* Meta info */}
+        <div className="flex flex-wrap items-center gap-3 text-sm" style={{ color: 'var(--text-secondary)' }}>
+          {article.byline && (
+            <span className="font-medium">{article.byline}</span>
           )}
-          <span className="hidden md:inline" style={{ color: 'var(--border)' }}>|</span>
-          <span style={{ color: 'var(--text-secondary)' }}>
-            {article.paragraphs.length} paragraphs
-          </span>
-          {highlightedCount > 0 && (
+          {article.siteName && (
             <>
-              <span className="hidden md:inline" style={{ color: 'var(--border)' }}>|</span>
-              <span style={{ color: 'var(--accent)' }}>
-                {highlightedCount} explored
-              </span>
+              <span className="opacity-40">·</span>
+              <span>{article.siteName}</span>
+            </>
+          )}
+          {article.wordCount && (
+            <>
+              <span className="opacity-40">·</span>
+              <span>{Math.ceil(article.wordCount / 200)} min read</span>
             </>
           )}
         </div>
 
-        {/* Hint */}
-        <p className="text-sm mb-8" style={{ color: 'var(--text-secondary)' }}>
-          💡 Tap any paragraph or select text to explore deeper
-        </p>
+        {/* Progress stats */}
+        <div className="flex items-center gap-4 mt-6 text-xs font-medium">
+          <div 
+            className="px-3 py-1.5 rounded-full"
+            style={{ 
+              backgroundColor: 'var(--bg-secondary)',
+              color: 'var(--text-secondary)',
+            }}
+          >
+            {readProgress}% read
+          </div>
+          {exploredCount > 0 && (
+            <div 
+              className="px-3 py-1.5 rounded-full"
+              style={{ 
+                backgroundColor: 'var(--accent)',
+                color: '#fff',
+              }}
+            >
+              {exploredCount} explored
+            </div>
+          )}
+        </div>
       </header>
 
       {/* Paragraphs */}
@@ -151,34 +149,53 @@ export function ArticleView({
               data-paragraph-index={paragraph.index}
               onClick={(e) => {
                 // Don't trigger click if user is selecting text
-                if (window.getSelection()?.toString().trim()) return;
+                const selectedText = window.getSelection()?.toString().trim();
+                if (selectedText && selectedText.length > 3) return;
                 onParagraphClick(paragraph.index);
               }}
-              className={`paragraph ${
+              className={`paragraph relative group ${
                 selectedParagraph === paragraph.index ? 'selected' : ''
               } ${isExplored ? 'explored' : ''}`}
               role="button"
               tabIndex={0}
               onKeyDown={(e) => e.key === 'Enter' && onParagraphClick(paragraph.index)}
             >
+              {/* Explored indicator */}
               {isExplored && (
-                <span 
-                  className="inline-block w-2 h-2 rounded-full mr-2 align-middle"
+                <div 
+                  className="absolute -left-6 top-1/2 -translate-y-1/2 w-2 h-2 rounded-full opacity-60"
                   style={{ backgroundColor: 'var(--accent)' }}
-                  title="You explored this paragraph"
                 />
               )}
               {paragraph.text}
+              
+              {/* Hover hint */}
+              <span 
+                className="absolute right-0 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity text-xs px-2 py-1 rounded"
+                style={{ 
+                  backgroundColor: 'var(--bg-secondary)',
+                  color: 'var(--text-secondary)',
+                }}
+              >
+                Click to explore
+              </span>
             </div>
           );
         })}
       </div>
 
       {/* End marker */}
-      <div className="reader-container text-center py-12">
-        <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
-          — End of article —
-        </p>
+      <div className="reader-container text-center py-16">
+        <div 
+          className="inline-flex items-center gap-2 text-sm px-4 py-2 rounded-full"
+          style={{ 
+            backgroundColor: 'var(--bg-secondary)',
+            color: 'var(--text-secondary)',
+          }}
+        >
+          <span>✓</span>
+          <span>End of article</span>
+        </div>
       </div>
     </article>
   );
