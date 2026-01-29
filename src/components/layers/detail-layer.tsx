@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { AsyncResponse } from '@/components/async/async-response';
+import { useNotesStore } from '@/stores/notes-store';
 
 interface Paragraph {
   id: string;
@@ -12,6 +13,8 @@ interface Paragraph {
 
 interface DetailLayerProps {
   paragraph: Paragraph;
+  articleUrl: string;
+  articleTitle: string;
   onBack: () => void;
 }
 
@@ -52,12 +55,13 @@ What aspect would you like to explore further?`,
 Any specific questions about this passage?`,
 ];
 
-export function DetailLayer({ paragraph, onBack }: DetailLayerProps) {
+export function DetailLayer({ paragraph, articleUrl, articleTitle, onBack }: DetailLayerProps) {
   const [question, setQuestion] = useState('');
   const [isAsking, setIsAsking] = useState(false);
   const [response, setResponse] = useState<string | null>(null);
   const [chatHistory, setChatHistory] = useState<Array<{ q: string; a: string }>>([]);
   const inputRef = useRef<HTMLInputElement>(null);
+  const { addNote } = useNotesStore();
 
   // Focus input on mount
   useEffect(() => {
@@ -80,6 +84,15 @@ export function DetailLayer({ paragraph, onBack }: DetailLayerProps) {
     
     setResponse(mockResponse);
     setChatHistory(prev => [...prev, { q: currentQuestion, a: mockResponse }]);
+    
+    // Save note
+    addNote(articleUrl, articleTitle, {
+      paragraphIndex: paragraph.index,
+      paragraphText: paragraph.text.slice(0, 200) + (paragraph.text.length > 200 ? '...' : ''),
+      question: currentQuestion,
+      answer: mockResponse,
+    });
+    
     setIsAsking(false);
   };
 

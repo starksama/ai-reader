@@ -7,6 +7,7 @@ import { Breadcrumb } from '@/components/reader/breadcrumb';
 import { ArticleView } from '@/components/reader/article-view';
 import { DetailLayer } from '@/components/layers/detail-layer';
 import { LayerStack } from '@/components/layers/layer-stack';
+import { ExportButton } from '@/components/reader/export-button';
 
 interface ParsedArticle {
   title: string;
@@ -138,16 +139,19 @@ export function ReadContent() {
           borderColor: 'var(--border)',
         }}
       >
-        <Breadcrumb
-          layers={layers}
-          currentIndex={currentIndex}
-          onNavigate={(index) => {
-            if (index === 0) {
-              setSelectedParagraph(null);
-            }
-            useLayerStore.getState().goTo(index);
-          }}
-        />
+        <div className="flex items-center justify-between max-w-4xl mx-auto">
+          <Breadcrumb
+            layers={layers}
+            currentIndex={currentIndex}
+            onNavigate={(index) => {
+              if (index === 0) {
+                setSelectedParagraph(null);
+              }
+              useLayerStore.getState().goTo(index);
+            }}
+          />
+          {url && <ExportButton url={url} />}
+        </div>
       </div>
 
       {/* Layer Stack with Swipe */}
@@ -160,11 +164,13 @@ export function ReadContent() {
         />
 
         {/* Detail Layers */}
-        {layers.slice(1).map((layer, idx) => (
+        {layers.slice(1).map((layer) => (
           <div key={layer.id}>
             {layer.type === 'paragraph' && article.paragraphs[layer.paragraphIndex!] && (
               <DetailLayer
                 paragraph={article.paragraphs[layer.paragraphIndex!]}
+                articleUrl={url || ''}
+                articleTitle={article.title}
                 onBack={handleBack}
               />
             )}
