@@ -1,16 +1,13 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useLayerStore } from '@/stores/layer-store';
-import { Breadcrumb } from '@/components/reader/breadcrumb';
 import { ArticleView } from '@/components/reader/article-view';
 import { DetailLayer } from '@/components/layers/detail-layer';
-import { LayerStack } from '@/components/layers/layer-stack';
 import { ExportButton } from '@/components/reader/export-button';
 import { LoadingSkeleton } from '@/components/reader/loading-skeleton';
-import { ReaderHeader } from '@/components/reader/reader-header';
-import { ShortcutsHint } from '@/components/reader/shortcuts-hint';
 import { useKeyboardShortcuts } from '@/hooks/use-keyboard-shortcuts';
 
 interface ParsedArticle {
@@ -25,10 +22,12 @@ interface ParsedArticle {
     html: string;
   }>;
   url: string;
+  wordCount?: number;
 }
 
 export function ReadContent() {
   const searchParams = useSearchParams();
+  const router = useRouter();
   const url = searchParams.get('url');
   
   const [article, setArticle] = useState<ParsedArticle | null>(null);
@@ -38,7 +37,7 @@ export function ReadContent() {
   const [exploredParagraphs, setExploredParagraphs] = useState<Set<number>>(new Set());
   
   const { layers, currentIndex, push, pop, reset } = useLayerStore();
-  const currentLayer = layers[currentIndex];
+  const isDetailView = currentIndex > 0;
 
   // Keyboard shortcuts
   useKeyboardShortcuts({
@@ -115,100 +114,122 @@ export function ReadContent() {
 
   if (isLoading) {
     return (
-      <>
-        <ReaderHeader articleUrl={url || undefined} />
-        <div className="min-h-screen">
-          <div 
-            className="sticky top-[57px] z-20 px-4 py-2 border-b"
-            style={{ 
-              backgroundColor: 'var(--bg-primary)',
-              borderColor: 'var(--border)',
-            }}
-          >
+      <div className="min-h-screen" style={{ backgroundColor: 'var(--bg-primary)' }}>
+        <div 
+          className="sticky top-0 z-40 border-b backdrop-blur-sm"
+          style={{ 
+            backgroundColor: 'rgba(var(--bg-primary-rgb), 0.9)',
+            borderColor: 'var(--border)',
+          }}
+        >
+          <div className="max-w-4xl mx-auto px-4 py-3">
             <div className="flex items-center gap-2 text-sm" style={{ color: 'var(--text-secondary)' }}>
               <span className="animate-pulse">📖</span>
               <span>Loading article...</span>
             </div>
           </div>
-          <LoadingSkeleton />
         </div>
-      </>
+        <LoadingSkeleton />
+      </div>
     );
   }
 
   if (error) {
     return (
-      <>
-        <ReaderHeader />
-        <div className="min-h-screen flex items-center justify-center p-6">
-          <div className="text-center max-w-md">
-            <div className="text-5xl mb-4">😕</div>
-            <h2 className="text-xl font-semibold mb-2" style={{ color: 'var(--text-primary)' }}>
-              Couldn&apos;t load article
-            </h2>
-            <p className="mb-6" style={{ color: 'var(--text-secondary)' }}>{error}</p>
-            <a
-              href="/"
-              className="inline-block px-6 py-3 rounded-lg text-white font-medium transition-opacity hover:opacity-90"
-              style={{ backgroundColor: 'var(--accent)' }}
-            >
-              ← Try another URL
-            </a>
-          </div>
-        </div>
-      </>
+      <div className="min-h-screen flex items-center justify-center p-6" style={{ backgroundColor: 'var(--bg-primary)' }}>
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="text-center max-w-md"
+        >
+          <div className="text-5xl mb-4">😕</div>
+          <h2 className="text-xl font-semibold mb-2" style={{ color: 'var(--text-primary)' }}>
+            Couldn&apos;t load article
+          </h2>
+          <p className="mb-6" style={{ color: 'var(--text-secondary)' }}>{error}</p>
+          <a
+            href="/"
+            className="inline-block px-6 py-3 rounded-xl text-white font-medium transition-opacity hover:opacity-90"
+            style={{ backgroundColor: 'var(--accent)' }}
+          >
+            ← Try another URL
+          </a>
+        </motion.div>
+      </div>
     );
   }
 
   if (!article) return null;
 
+  const currentLayer = layers[currentIndex];
+
   return (
-    <>
-      <ReaderHeader articleUrl={url || undefined} />
-      <div className="min-h-screen">
-        {/* Sticky Breadcrumb - below header */}
-      <div 
-        className="sticky top-[57px] z-20 px-4 py-2 border-b"
-        style={{ 
-          backgroundColor: 'var(--bg-primary)',
-          borderColor: 'var(--border)',
-        }}
-      >
-        <div className="flex items-center justify-between max-w-4xl mx-auto">
-          <Breadcrumb
-            layers={layers}
-            currentIndex={currentIndex}
-            onNavigate={(index) => {
-              if (index === 0) {
-                setSelectedParagraph(null);
-              }
-              useLayerStore.getState().goTo(index);
-            }}
-          />
-          {url && <ExportButton url={url} />}
-        </div>
-      </div>
+    <div className="min-h-screen" style={{ backgroundColor: 'var(--bg-primary)' }}>
+      <AnimatePresence mode="wait">
+        {!isDetailView ? (
+          <motion.div
+            key="article"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0, x: -20 }}
+            transition={{ duration: 0.2 }}
+          >
+            {/* Top bar */}
+            <div 
+              className="sticky top-0 z-40 border-b backdrop-blur-sm"
+              style={{ 
+                backgroundColor: 'rgba(var(--bg-primary-rgb), 0.9)',
+                borderColor: 'var(--border)',
+              }}
+            >
+              <div className="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between">
+                <button
+                  onClick={() => router.push('/')}
+                  className="text-sm font-medium transition-opacity hover:opacity-70"
+                  style={{ color: 'var(--accent)' }}
+                >
+                  ← Back
+                </button>
+                
+                <div className="flex items-center gap-3">
+                  {exploredParagraphs.size > 0 && (
+                    <div 
+                      className="text-xs px-2 py-1 rounded-full"
+                      style={{ 
+                        backgroundColor: 'var(--accent)',
+                        color: '#fff',
+                      }}
+                    >
+                      {exploredParagraphs.size} explored
+                    </div>
+                  )}
+                  {url && <ExportButton url={url} />}
+                </div>
+              </div>
+            </div>
 
-      {/* Layer Stack with Swipe */}
-      <LayerStack currentIndex={currentIndex} onSwipeBack={handleBack}>
-        {/* Main Article Layer */}
-        <ArticleView
-          article={article}
-          selectedParagraph={selectedParagraph}
-          exploredParagraphs={exploredParagraphs}
-          onParagraphClick={handleParagraphClick}
-          onSelectionAsk={(text, index) => handleParagraphClick(index, text)}
-        />
-
-        {/* Detail Layers */}
-        {layers.slice(1).map((layer) => (
-          <div key={layer.id}>
-            {layer.type === 'paragraph' && article.paragraphs[layer.paragraphIndex!] && (
+            <ArticleView
+              article={article}
+              selectedParagraph={selectedParagraph}
+              exploredParagraphs={exploredParagraphs}
+              onParagraphClick={handleParagraphClick}
+              onSelectionAsk={(text, index) => handleParagraphClick(index, text)}
+            />
+          </motion.div>
+        ) : (
+          <motion.div
+            key="detail"
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: 20 }}
+            transition={{ duration: 0.2 }}
+          >
+            {currentLayer?.type === 'paragraph' && article.paragraphs[currentLayer.paragraphIndex!] && (
               <DetailLayer
-                paragraph={article.paragraphs[layer.paragraphIndex!]}
+                paragraph={article.paragraphs[currentLayer.paragraphIndex!]}
                 articleUrl={url || ''}
                 articleTitle={article.title}
-                selectedText={layer.selectedText}
+                selectedText={currentLayer.selectedText}
                 totalParagraphs={article.paragraphs.length}
                 onBack={handleBack}
                 onNavigate={(index) => {
@@ -218,11 +239,9 @@ export function ReadContent() {
                 }}
               />
             )}
-          </div>
-        ))}
-      </LayerStack>
-      </div>
-      <ShortcutsHint />
-    </>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
   );
 }

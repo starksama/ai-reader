@@ -2,34 +2,21 @@
 
 import { Suspense } from 'react';
 import { ReadContent } from './read-content';
-import { ReaderHeader } from '@/components/reader/reader-header';
 
 export default function ReadPage() {
   return (
-    <>
-      <Suspense fallback={<ReaderHeader />}>
-        <ReadPageContent />
-      </Suspense>
-    </>
-  );
-}
-
-function ReadPageContent() {
-  return (
-    <>
+    <Suspense fallback={<LoadingState />}>
       <ReadContent />
-    </>
+    </Suspense>
   );
 }
 
 function LoadingState() {
   return (
-    <div className="min-h-screen flex items-center justify-center">
+    <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: 'var(--bg-primary)' }}>
       <div className="text-center">
         <div className="animate-pulse text-4xl mb-4">📖</div>
-        <p className="text-lg" style={{ color: 'var(--text-secondary)' }}>
-          Loading article...
-        </p>
+        <p style={{ color: 'var(--text-secondary)' }}>Loading...</p>
       </div>
     </div>
   );
