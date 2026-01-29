@@ -10,6 +10,7 @@ import { DetailLayer } from '@/components/layers/detail-layer';
 import { LayerStack } from '@/components/layers/layer-stack';
 import { ExportButton } from '@/components/reader/export-button';
 import { ReaderHeader } from '@/components/reader/reader-header';
+import { ShortcutsHint } from '@/components/reader/shortcuts-hint';
 import { useKeyboardShortcuts } from '@/hooks/use-keyboard-shortcuts';
 
 export default function DemoArticlePage() {
@@ -129,6 +130,7 @@ export default function DemoArticlePage() {
           ))}
         </LayerStack>
       </div>
+      <ShortcutsHint />
     </>
   );
 }

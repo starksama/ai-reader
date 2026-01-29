@@ -10,6 +10,7 @@ import { LayerStack } from '@/components/layers/layer-stack';
 import { ExportButton } from '@/components/reader/export-button';
 import { LoadingSkeleton } from '@/components/reader/loading-skeleton';
 import { ReaderHeader } from '@/components/reader/reader-header';
+import { ShortcutsHint } from '@/components/reader/shortcuts-hint';
 import { useKeyboardShortcuts } from '@/hooks/use-keyboard-shortcuts';
 
 interface ParsedArticle {
@@ -218,6 +219,7 @@ export function ReadContent() {
         ))}
       </LayerStack>
       </div>
+      <ShortcutsHint />
     </>
   );
 }
