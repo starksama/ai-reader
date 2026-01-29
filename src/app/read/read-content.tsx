@@ -9,6 +9,7 @@ import { DetailLayer } from '@/components/layers/detail-layer';
 import { LayerStack } from '@/components/layers/layer-stack';
 import { ExportButton } from '@/components/reader/export-button';
 import { LoadingSkeleton } from '@/components/reader/loading-skeleton';
+import { ReaderHeader } from '@/components/reader/reader-header';
 import { useKeyboardShortcuts } from '@/hooks/use-keyboard-shortcuts';
 
 interface ParsedArticle {
@@ -110,50 +111,58 @@ export function ReadContent() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen">
-        <div 
-          className="sticky top-[57px] z-20 px-4 py-2 border-b"
-          style={{ 
-            backgroundColor: 'var(--bg-primary)',
-            borderColor: 'var(--border)',
-          }}
-        >
-          <div className="flex items-center gap-2 text-sm" style={{ color: 'var(--text-secondary)' }}>
-            <span className="animate-pulse">📖</span>
-            <span>Loading article...</span>
+      <>
+        <ReaderHeader articleUrl={url || undefined} />
+        <div className="min-h-screen">
+          <div 
+            className="sticky top-[57px] z-20 px-4 py-2 border-b"
+            style={{ 
+              backgroundColor: 'var(--bg-primary)',
+              borderColor: 'var(--border)',
+            }}
+          >
+            <div className="flex items-center gap-2 text-sm" style={{ color: 'var(--text-secondary)' }}>
+              <span className="animate-pulse">📖</span>
+              <span>Loading article...</span>
+            </div>
           </div>
+          <LoadingSkeleton />
         </div>
-        <LoadingSkeleton />
-      </div>
+      </>
     );
   }
 
   if (error) {
     return (
-      <div className="min-h-screen flex items-center justify-center p-6">
-        <div className="text-center max-w-md">
-          <div className="text-5xl mb-4">😕</div>
-          <h2 className="text-xl font-semibold mb-2" style={{ color: 'var(--text-primary)' }}>
-            Couldn&apos;t load article
-          </h2>
-          <p className="mb-6" style={{ color: 'var(--text-secondary)' }}>{error}</p>
-          <a
-            href="/"
-            className="inline-block px-6 py-3 rounded-lg text-white font-medium transition-opacity hover:opacity-90"
-            style={{ backgroundColor: 'var(--accent)' }}
-          >
-            ← Try another URL
-          </a>
+      <>
+        <ReaderHeader />
+        <div className="min-h-screen flex items-center justify-center p-6">
+          <div className="text-center max-w-md">
+            <div className="text-5xl mb-4">😕</div>
+            <h2 className="text-xl font-semibold mb-2" style={{ color: 'var(--text-primary)' }}>
+              Couldn&apos;t load article
+            </h2>
+            <p className="mb-6" style={{ color: 'var(--text-secondary)' }}>{error}</p>
+            <a
+              href="/"
+              className="inline-block px-6 py-3 rounded-lg text-white font-medium transition-opacity hover:opacity-90"
+              style={{ backgroundColor: 'var(--accent)' }}
+            >
+              ← Try another URL
+            </a>
+          </div>
         </div>
-      </div>
+      </>
     );
   }
 
   if (!article) return null;
 
   return (
-    <div className="min-h-screen">
-      {/* Sticky Breadcrumb - below header */}
+    <>
+      <ReaderHeader articleUrl={url || undefined} />
+      <div className="min-h-screen">
+        {/* Sticky Breadcrumb - below header */}
       <div 
         className="sticky top-[57px] z-20 px-4 py-2 border-b"
         style={{ 
@@ -199,6 +208,7 @@ export function ReadContent() {
           </div>
         ))}
       </LayerStack>
-    </div>
+      </div>
+    </>
   );
 }

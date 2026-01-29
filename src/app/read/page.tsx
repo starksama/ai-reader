@@ -7,10 +7,17 @@ import { ReaderHeader } from '@/components/reader/reader-header';
 export default function ReadPage() {
   return (
     <>
-      <ReaderHeader />
-      <Suspense fallback={<LoadingState />}>
-        <ReadContent />
+      <Suspense fallback={<ReaderHeader />}>
+        <ReadPageContent />
       </Suspense>
+    </>
+  );
+}
+
+function ReadPageContent() {
+  return (
+    <>
+      <ReadContent />
     </>
   );
 }

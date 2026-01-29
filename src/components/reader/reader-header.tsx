@@ -2,8 +2,13 @@
 
 import Link from 'next/link';
 import { useThemeStore, type Theme } from '@/stores/theme-store';
+import { ShareButton } from './share-button';
 
-export function ReaderHeader() {
+interface ReaderHeaderProps {
+  articleUrl?: string;
+}
+
+export function ReaderHeader({ articleUrl }: ReaderHeaderProps) {
   const { theme, setTheme } = useThemeStore();
   
   const themes: Theme[] = ['light', 'dark', 'sepia'];
@@ -27,26 +32,31 @@ export function ReaderHeader() {
           <span className="hidden sm:inline">AI Reader</span>
         </Link>
 
-        {/* Theme switcher */}
-        <div className="flex items-center gap-1">
-          {themes.map((t) => (
-            <button
-              key={t}
-              onClick={() => setTheme(t)}
-              className={`w-8 h-8 rounded-md flex items-center justify-center text-sm transition-all ${
-                theme === t ? 'ring-2 ring-offset-1' : ''
-              }`}
-              style={{
-                backgroundColor: theme === t ? 'var(--accent)' : 'transparent',
-                color: theme === t ? '#fff' : 'var(--text-secondary)',
-              }}
-              title={`${t} mode`}
-            >
-              {t === 'light' && '☀️'}
-              {t === 'dark' && '🌙'}
-              {t === 'sepia' && '📜'}
-            </button>
-          ))}
+        {/* Actions */}
+        <div className="flex items-center gap-3">
+          {articleUrl && <ShareButton url={articleUrl} title="Article" />}
+          
+          {/* Theme switcher */}
+          <div className="flex items-center gap-1">
+            {themes.map((t) => (
+              <button
+                key={t}
+                onClick={() => setTheme(t)}
+                className={`w-8 h-8 rounded-md flex items-center justify-center text-sm transition-all ${
+                  theme === t ? 'ring-2 ring-offset-1' : ''
+                }`}
+                style={{
+                  backgroundColor: theme === t ? 'var(--accent)' : 'transparent',
+                  color: theme === t ? '#fff' : 'var(--text-secondary)',
+                }}
+                title={`${t} mode`}
+              >
+                {t === 'light' && '☀️'}
+                {t === 'dark' && '🌙'}
+                {t === 'sepia' && '📜'}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
     </header>
