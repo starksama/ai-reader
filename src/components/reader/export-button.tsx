@@ -1,5 +1,7 @@
 'use client';
 
+import { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useNotesStore } from '@/stores/notes-store';
 
 interface ExportButtonProps {
@@ -7,6 +9,8 @@ interface ExportButtonProps {
 }
 
 export function ExportButton({ url }: ExportButtonProps) {
+  const [showTooltip, setShowTooltip] = useState(false);
+  const [exported, setExported] = useState(false);
   const { getArticleNotes, exportNotes } = useNotesStore();
   const articleNotes = getArticleNotes(url);
   const noteCount = articleNotes?.notes.length || 0;
@@ -14,7 +18,6 @@ export function ExportButton({ url }: ExportButtonProps) {
   const handleExport = () => {
     const markdown = exportNotes(url);
     if (!markdown) {
-      alert('No notes to export yet. Ask questions about paragraphs to create notes!');
       return;
     }
 
@@ -28,21 +31,47 @@ export function ExportButton({ url }: ExportButtonProps) {
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(downloadUrl);
+    
+    setExported(true);
+    setTimeout(() => setExported(false), 2000);
   };
 
   if (noteCount === 0) return null;
 
   return (
-    <button
-      onClick={handleExport}
-      className="flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium transition-colors"
-      style={{
-        backgroundColor: 'var(--bg-secondary)',
-        color: 'var(--text-secondary)',
-      }}
-    >
-      <span>📝</span>
-      <span>Export {noteCount} note{noteCount !== 1 ? 's' : ''}</span>
-    </button>
+    <div className="relative">
+      <motion.button
+        onClick={handleExport}
+        onMouseEnter={() => setShowTooltip(true)}
+        onMouseLeave={() => setShowTooltip(false)}
+        whileHover={{ scale: 1.02 }}
+        whileTap={{ scale: 0.98 }}
+        className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors"
+        style={{
+          backgroundColor: exported ? 'var(--accent)' : 'var(--bg-secondary)',
+          color: exported ? '#fff' : 'var(--text-secondary)',
+        }}
+      >
+        <span>{exported ? '✓' : '📝'}</span>
+        <span>{exported ? 'Exported!' : `${noteCount} notes`}</span>
+      </motion.button>
+
+      <AnimatePresence>
+        {showTooltip && !exported && (
+          <motion.div
+            initial={{ opacity: 0, y: 4 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 4 }}
+            className="absolute top-full right-0 mt-2 px-3 py-2 rounded-lg text-xs whitespace-nowrap"
+            style={{
+              backgroundColor: 'var(--text-primary)',
+              color: 'var(--bg-primary)',
+            }}
+          >
+            Export as markdown
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
   );
 }
