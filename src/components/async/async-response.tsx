@@ -2,19 +2,18 @@
 
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
+import { Copy, Check } from 'lucide-react';
 
 interface AsyncResponseProps {
   isLoading: boolean;
   response: string | null;
-  onCopy?: () => void;
 }
 
-export function AsyncResponse({ isLoading, response, onCopy }: AsyncResponseProps) {
+export function AsyncResponse({ isLoading, response }: AsyncResponseProps) {
   const [displayedText, setDisplayedText] = useState('');
   const [isStreaming, setIsStreaming] = useState(false);
   const [copied, setCopied] = useState(false);
 
-  // Simulate streaming effect
   useEffect(() => {
     if (!response) {
       setDisplayedText('');
@@ -35,51 +34,34 @@ export function AsyncResponse({ isLoading, response, onCopy }: AsyncResponseProp
         clearInterval(interval);
         setIsStreaming(false);
       }
-    }, 20);
+    }, 15);
 
     return () => clearInterval(interval);
   }, [response]);
 
   const handleCopy = async () => {
     if (!response) return;
-    try {
-      await navigator.clipboard.writeText(response);
-      setCopied(true);
-      onCopy?.();
-      setTimeout(() => setCopied(false), 2000);
-    } catch {
-      // Clipboard failed
-    }
+    await navigator.clipboard.writeText(response);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 1500);
   };
 
   if (isLoading) {
     return (
       <motion.div 
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="p-4 rounded-xl"
-        style={{ backgroundColor: 'var(--bg-secondary)' }}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        className="py-4"
       >
-        <div className="flex items-center gap-3">
-          <div className="flex gap-1">
-            {[0, 1, 2].map((i) => (
-              <motion.div
-                key={i}
-                className="w-2 h-2 rounded-full"
-                style={{ backgroundColor: 'var(--accent)' }}
-                animate={{ 
-                  y: [0, -4, 0],
-                }}
-                transition={{
-                  duration: 0.6,
-                  repeat: Infinity,
-                  delay: i * 0.1,
-                }}
-              />
-            ))}
-          </div>
+        <div className="flex items-center gap-2">
+          <motion.div
+            className="w-1 h-4"
+            style={{ backgroundColor: 'var(--accent)' }}
+            animate={{ opacity: [0.3, 1, 0.3] }}
+            transition={{ duration: 1, repeat: Infinity }}
+          />
           <span className="text-sm" style={{ color: 'var(--text-secondary)' }}>
-            Thinking...
+            Thinking
           </span>
         </div>
       </motion.div>
@@ -92,42 +74,34 @@ export function AsyncResponse({ isLoading, response, onCopy }: AsyncResponseProp
 
   return (
     <motion.div 
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="p-4 rounded-xl relative group"
-      style={{ backgroundColor: 'var(--bg-secondary)' }}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      className="py-4 relative group"
     >
       {/* Copy button */}
       {!isStreaming && response && (
         <button
           onClick={handleCopy}
-          className="absolute top-3 right-3 px-2 py-1 rounded-lg text-xs transition-all opacity-0 group-hover:opacity-100"
-          style={{
-            backgroundColor: 'var(--highlight)',
-            color: 'var(--text-secondary)',
-          }}
+          className="absolute top-4 right-0 p-1 transition-opacity opacity-0 group-hover:opacity-100"
+          style={{ color: 'var(--text-secondary)' }}
         >
-          {copied ? '✓ Copied' : '📋 Copy'}
+          {copied ? <Check size={12} /> : <Copy size={12} />}
         </button>
       )}
       
       <div 
-        className="prose prose-sm max-w-none leading-relaxed pr-12"
+        className="text-sm leading-relaxed pr-8"
         style={{ color: 'var(--text-primary)' }}
       >
-        {/* Format text with basic markdown support */}
         {displayedText.split('\n').map((line, i) => {
-          // Bold text
           const formattedLine = line.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
           
-          // Bullet points
           if (line.startsWith('•') || line.startsWith('-')) {
             return (
               <p key={i} className="ml-4 my-1" dangerouslySetInnerHTML={{ __html: formattedLine }} />
             );
           }
           
-          // Regular paragraph
           return line ? (
             <p key={i} className="my-2" dangerouslySetInnerHTML={{ __html: formattedLine }} />
           ) : (
@@ -137,10 +111,10 @@ export function AsyncResponse({ isLoading, response, onCopy }: AsyncResponseProp
         
         {isStreaming && (
           <motion.span 
-            className="inline-block w-0.5 h-4 ml-0.5"
+            className="inline-block w-px h-4 ml-0.5"
             style={{ backgroundColor: 'var(--accent)' }}
             animate={{ opacity: [1, 0] }}
-            transition={{ duration: 0.5, repeat: Infinity }}
+            transition={{ duration: 0.4, repeat: Infinity }}
           />
         )}
       </div>

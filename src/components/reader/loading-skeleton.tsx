@@ -5,60 +5,60 @@ import { motion } from 'framer-motion';
 export function LoadingSkeleton() {
   return (
     <div className="reader-container py-8">
-      {/* Title skeleton */}
+      {/* Title */}
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        className="mb-8"
+        className="mb-6"
       >
         <div 
-          className="h-9 rounded-lg mb-3 w-4/5"
+          className="h-7 mb-3 w-4/5"
           style={{ backgroundColor: 'var(--border)' }}
         />
         <div 
-          className="h-5 rounded-lg w-2/5"
-          style={{ backgroundColor: 'var(--border)', opacity: 0.6 }}
+          className="h-4 w-2/5"
+          style={{ backgroundColor: 'var(--border)', opacity: 0.5 }}
         />
       </motion.div>
 
-      {/* Stats skeleton */}
+      {/* Meta */}
       <motion.div 
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        transition={{ delay: 0.1 }}
+        transition={{ delay: 0.05 }}
         className="flex gap-3 mb-8"
       >
         <div 
-          className="h-7 w-20 rounded-full"
-          style={{ backgroundColor: 'var(--border)', opacity: 0.6 }}
+          className="h-4 w-16"
+          style={{ backgroundColor: 'var(--border)', opacity: 0.4 }}
         />
         <div 
-          className="h-7 w-24 rounded-full"
-          style={{ backgroundColor: 'var(--border)', opacity: 0.6 }}
+          className="h-4 w-20"
+          style={{ backgroundColor: 'var(--border)', opacity: 0.4 }}
         />
       </motion.div>
 
-      {/* Paragraph skeletons */}
-      {[1, 2, 3, 4, 5].map((i) => (
+      {/* Paragraphs */}
+      {[1, 2, 3, 4].map((i) => (
         <motion.div 
           key={i}
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 + i * 0.05 }}
-          className="mb-6 p-4 rounded-xl"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.05 + i * 0.03 }}
+          className="mb-5 p-4"
           style={{ backgroundColor: 'var(--bg-secondary)' }}
         >
           <div 
-            className="h-4 rounded mb-2 w-full"
-            style={{ backgroundColor: 'var(--border)', opacity: 0.5 }}
-          />
-          <div 
-            className="h-4 rounded mb-2 w-full"
-            style={{ backgroundColor: 'var(--border)', opacity: 0.4 }}
-          />
-          <div 
-            className="h-4 rounded w-3/4"
+            className="h-4 mb-2 w-full"
             style={{ backgroundColor: 'var(--border)', opacity: 0.3 }}
+          />
+          <div 
+            className="h-4 mb-2 w-full"
+            style={{ backgroundColor: 'var(--border)', opacity: 0.25 }}
+          />
+          <div 
+            className="h-4 w-3/4"
+            style={{ backgroundColor: 'var(--border)', opacity: 0.2 }}
           />
         </motion.div>
       ))}
