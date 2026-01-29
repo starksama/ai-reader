@@ -1,6 +1,8 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useTextSelection } from '@/hooks/use-text-selection';
+import { SelectionTooltip } from './selection-tooltip';
 
 interface Paragraph {
   id: string;
@@ -23,11 +25,18 @@ interface ArticleViewProps {
   article: Article;
   selectedParagraph: number | null;
   onParagraphClick: (index: number) => void;
+  onSelectionAsk?: (text: string, paragraphIndex: number) => void;
 }
 
-export function ArticleView({ article, selectedParagraph, onParagraphClick }: ArticleViewProps) {
+export function ArticleView({ 
+  article, 
+  selectedParagraph, 
+  onParagraphClick,
+  onSelectionAsk,
+}: ArticleViewProps) {
   const [readProgress, setReadProgress] = useState(0);
   const [highlightedCount, setHighlightedCount] = useState(0);
+  const { selection, hasSelection, clearSelection } = useTextSelection();
 
   // Track scroll progress
   useEffect(() => {
@@ -49,6 +58,15 @@ export function ArticleView({ article, selectedParagraph, onParagraphClick }: Ar
     }
   }, [selectedParagraph]);
 
+  const handleAskAbout = (text: string, paragraphIndex: number) => {
+    if (onSelectionAsk) {
+      onSelectionAsk(text, paragraphIndex);
+    } else {
+      // Default: open the paragraph detail view
+      onParagraphClick(paragraphIndex);
+    }
+  };
+
   return (
     <article className="pb-20">
       {/* Progress Bar */}
@@ -64,6 +82,13 @@ export function ArticleView({ article, selectedParagraph, onParagraphClick }: Ar
           }}
         />
       </div>
+
+      {/* Selection Tooltip */}
+      <SelectionTooltip
+        selection={selection}
+        onAskAbout={handleAskAbout}
+        onClear={clearSelection}
+      />
 
       {/* Header */}
       <header className="reader-container pt-6">
@@ -110,7 +135,7 @@ export function ArticleView({ article, selectedParagraph, onParagraphClick }: Ar
 
         {/* Hint */}
         <p className="text-sm mb-8" style={{ color: 'var(--text-secondary)' }}>
-          💡 Tap any paragraph to explore it deeper
+          💡 Tap any paragraph or select text to explore deeper
         </p>
       </header>
 
@@ -119,7 +144,12 @@ export function ArticleView({ article, selectedParagraph, onParagraphClick }: Ar
         {article.paragraphs.map((paragraph) => (
           <div
             key={paragraph.id}
-            onClick={() => onParagraphClick(paragraph.index)}
+            data-paragraph-index={paragraph.index}
+            onClick={(e) => {
+              // Don't trigger click if user is selecting text
+              if (window.getSelection()?.toString().trim()) return;
+              onParagraphClick(paragraph.index);
+            }}
             className={`paragraph ${
               selectedParagraph === paragraph.index ? 'selected' : ''
             }`}

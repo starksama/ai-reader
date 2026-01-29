@@ -139,6 +139,20 @@ export default function Home() {
           </div>
         </div>
 
+        {/* Demo Link */}
+        <div className="text-center mt-8">
+          <a
+            href="/demo"
+            className="inline-block px-4 py-2 rounded-lg text-sm font-medium border transition-colors"
+            style={{
+              borderColor: 'var(--border)',
+              color: 'var(--text-secondary)',
+            }}
+          >
+            📚 Try demo articles (no URL needed)
+          </a>
+        </div>
+
         {/* Footer */}
         <p className="text-center text-xs mt-12" style={{ color: 'var(--text-secondary)' }}>
           Built by{' '}
