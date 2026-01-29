@@ -9,9 +9,9 @@
 - [ ] Consider native app for better UX (React Native/Expo)
 
 ### Still Needs Work
-- [ ] Settings panel (theme, font size)
-- [ ] Typography review - ensure consistency
-- [ ] Spacing audit
+- [x] Settings panel (theme, font size)
+- [x] Typography review - ensure consistency
+- [x] Spacing audit
 
 ### Testing
 - [ ] Test on real URLs (Vercel deploy)
@@ -24,7 +24,7 @@
 - [ ] Error boundaries
 - [ ] Empty states
 
-## 🟢 Done (31 commits)
+## 🟢 Done (34 commits)
 - [x] Click vs selection separation
 - [x] UI Guide document  
 - [x] Mobile selection support
@@ -38,6 +38,7 @@
 - [x] Selection menu (Dive deeper, Highlight, Copy)
 - [x] Paragraph menu (on click)
 - [x] All components reviewed for style
+- [x] Settings panel with font size control
 
 ## First Principles
 - Core purpose: Help users UNDERSTAND what they read
