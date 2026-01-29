@@ -24,6 +24,7 @@ interface Article {
 interface ArticleViewProps {
   article: Article;
   selectedParagraph: number | null;
+  exploredParagraphs?: Set<number>;
   onParagraphClick: (index: number) => void;
   onSelectionAsk?: (text: string, paragraphIndex: number) => void;
 }
@@ -31,6 +32,7 @@ interface ArticleViewProps {
 export function ArticleView({ 
   article, 
   selectedParagraph, 
+  exploredParagraphs = new Set(),
   onParagraphClick,
   onSelectionAsk,
 }: ArticleViewProps) {
@@ -141,25 +143,35 @@ export function ArticleView({
 
       {/* Paragraphs */}
       <div className="reader-container reader-text">
-        {article.paragraphs.map((paragraph) => (
-          <div
-            key={paragraph.id}
-            data-paragraph-index={paragraph.index}
-            onClick={(e) => {
-              // Don't trigger click if user is selecting text
-              if (window.getSelection()?.toString().trim()) return;
-              onParagraphClick(paragraph.index);
-            }}
-            className={`paragraph ${
-              selectedParagraph === paragraph.index ? 'selected' : ''
-            }`}
-            role="button"
-            tabIndex={0}
-            onKeyDown={(e) => e.key === 'Enter' && onParagraphClick(paragraph.index)}
-          >
-            {paragraph.text}
-          </div>
-        ))}
+        {article.paragraphs.map((paragraph) => {
+          const isExplored = exploredParagraphs.has(paragraph.index);
+          return (
+            <div
+              key={paragraph.id}
+              data-paragraph-index={paragraph.index}
+              onClick={(e) => {
+                // Don't trigger click if user is selecting text
+                if (window.getSelection()?.toString().trim()) return;
+                onParagraphClick(paragraph.index);
+              }}
+              className={`paragraph ${
+                selectedParagraph === paragraph.index ? 'selected' : ''
+              } ${isExplored ? 'explored' : ''}`}
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => e.key === 'Enter' && onParagraphClick(paragraph.index)}
+            >
+              {isExplored && (
+                <span 
+                  className="inline-block w-2 h-2 rounded-full mr-2 align-middle"
+                  style={{ backgroundColor: 'var(--accent)' }}
+                  title="You explored this paragraph"
+                />
+              )}
+              {paragraph.text}
+            </div>
+          );
+        })}
       </div>
 
       {/* End marker */}

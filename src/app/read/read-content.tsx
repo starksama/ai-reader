@@ -35,6 +35,7 @@ export function ReadContent() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedParagraph, setSelectedParagraph] = useState<number | null>(null);
+  const [exploredParagraphs, setExploredParagraphs] = useState<Set<number>>(new Set());
   
   const { layers, currentIndex, push, pop, reset } = useLayerStore();
   const currentLayer = layers[currentIndex];
@@ -96,6 +97,7 @@ export function ReadContent() {
 
   const handleParagraphClick = (index: number, selectedText?: string) => {
     setSelectedParagraph(index);
+    setExploredParagraphs(prev => new Set([...prev, index]));
     push({
       type: 'paragraph',
       paragraphIndex: index,
@@ -193,6 +195,7 @@ export function ReadContent() {
         <ArticleView
           article={article}
           selectedParagraph={selectedParagraph}
+          exploredParagraphs={exploredParagraphs}
           onParagraphClick={handleParagraphClick}
           onSelectionAsk={(text, index) => handleParagraphClick(index, text)}
         />

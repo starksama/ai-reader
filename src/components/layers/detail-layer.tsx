@@ -92,10 +92,11 @@ export function DetailLayer({
     },
   });
 
-  // Focus input on mount
+  // Focus input and scroll to top on mount
   useEffect(() => {
     inputRef.current?.focus();
-  }, []);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, [paragraph.index]); // Re-run when paragraph changes
 
   const handleAsk = async () => {
     if (!question.trim() || isAsking) return;

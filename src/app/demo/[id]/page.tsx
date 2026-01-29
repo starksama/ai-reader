@@ -19,6 +19,7 @@ export default function DemoArticlePage() {
   
   const [article, setArticle] = useState<MockArticle | null>(null);
   const [selectedParagraph, setSelectedParagraph] = useState<number | null>(null);
+  const [exploredParagraphs, setExploredParagraphs] = useState<Set<number>>(new Set());
   const { layers, currentIndex, push, pop, reset } = useLayerStore();
 
   // Keyboard shortcuts
@@ -48,6 +49,7 @@ export default function DemoArticlePage() {
 
   const handleParagraphClick = (index: number, selectedText?: string) => {
     setSelectedParagraph(index);
+    setExploredParagraphs(prev => new Set([...prev, index]));
     push({
       type: 'paragraph',
       paragraphIndex: index,
@@ -104,6 +106,7 @@ export default function DemoArticlePage() {
           <ArticleView
             article={article}
             selectedParagraph={selectedParagraph}
+            exploredParagraphs={exploredParagraphs}
             onParagraphClick={handleParagraphClick}
             onSelectionAsk={(text, index) => handleParagraphClick(index, text)}
           />
