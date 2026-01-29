@@ -12,6 +12,7 @@ import { ExportButton } from '@/components/reader/export-button';
 import { LoadingSkeleton } from '@/components/reader/loading-skeleton';
 import { useKeyboardShortcuts } from '@/hooks/use-keyboard-shortcuts';
 import { SettingsPanel } from '@/components/reader/settings-panel';
+import { KeyboardHints } from '@/components/reader/keyboard-hints';
 
 interface ParsedArticle {
   title: string;
@@ -208,6 +209,7 @@ export function ReadContent() {
                     </div>
                   )}
                   {url && <ExportButton url={url} />}
+                  <KeyboardHints />
                   <SettingsPanel />
                 </div>
               </div>

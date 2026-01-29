@@ -19,12 +19,12 @@
 - [ ] Test branch navigation
 
 ## 🟡 Medium Priority
-- [ ] Add keyboard shortcut hints
+- [x] Add keyboard shortcut hints
 - [ ] Better loading states
 - [x] Error boundaries
 - [ ] Empty states
 
-## 🟢 Done (34 commits)
+## 🟢 Done (40 commits)
 - [x] Click vs selection separation
 - [x] UI Guide document  
 - [x] Mobile selection support
@@ -39,6 +39,8 @@
 - [x] Paragraph menu (on click)
 - [x] All components reviewed for style
 - [x] Settings panel with font size control
+- [x] Error boundaries
+- [x] Keyboard shortcut hints modal
 
 ## First Principles
 - Core purpose: Help users UNDERSTAND what they read
