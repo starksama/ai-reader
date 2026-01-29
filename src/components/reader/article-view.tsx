@@ -169,25 +169,7 @@ export function ArticleView({
               tabIndex={0}
               onKeyDown={(e) => e.key === 'Enter' && onParagraphClick(paragraph.index)}
             >
-              {/* Explored indicator */}
-              {isExplored && (
-                <div 
-                  className="absolute -left-6 top-1/2 -translate-y-1/2 w-2 h-2 rounded-full opacity-60"
-                  style={{ backgroundColor: 'var(--accent)' }}
-                />
-              )}
               {paragraph.text}
-              
-              {/* Hover hint */}
-              <span 
-                className="absolute right-0 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity text-xs px-2 py-1 rounded"
-                style={{ 
-                  backgroundColor: 'var(--bg-secondary)',
-                  color: 'var(--text-secondary)',
-                }}
-              >
-                Click to explore
-              </span>
             </div>
           );
         })}
