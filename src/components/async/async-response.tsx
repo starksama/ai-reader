@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { motion } from 'framer-motion';
 
 interface AsyncResponseProps {
   isLoading: boolean;
@@ -34,7 +35,7 @@ export function AsyncResponse({ isLoading, response, onCopy }: AsyncResponseProp
         clearInterval(interval);
         setIsStreaming(false);
       }
-    }, 25); // 25ms per word for faster streaming
+    }, 20);
 
     return () => clearInterval(interval);
   }, [response]);
@@ -53,17 +54,35 @@ export function AsyncResponse({ isLoading, response, onCopy }: AsyncResponseProp
 
   if (isLoading) {
     return (
-      <div 
-        className="p-4 rounded-lg"
+      <motion.div 
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="p-4 rounded-xl"
         style={{ backgroundColor: 'var(--bg-secondary)' }}
       >
         <div className="flex items-center gap-3">
-          <ThinkingDots />
+          <div className="flex gap-1">
+            {[0, 1, 2].map((i) => (
+              <motion.div
+                key={i}
+                className="w-2 h-2 rounded-full"
+                style={{ backgroundColor: 'var(--accent)' }}
+                animate={{ 
+                  y: [0, -4, 0],
+                }}
+                transition={{
+                  duration: 0.6,
+                  repeat: Infinity,
+                  delay: i * 0.1,
+                }}
+              />
+            ))}
+          </div>
           <span className="text-sm" style={{ color: 'var(--text-secondary)' }}>
             Thinking...
           </span>
         </div>
-      </div>
+      </motion.div>
     );
   }
 
@@ -72,17 +91,19 @@ export function AsyncResponse({ isLoading, response, onCopy }: AsyncResponseProp
   }
 
   return (
-    <div 
-      className="p-4 rounded-lg relative group"
+    <motion.div 
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="p-4 rounded-xl relative group"
       style={{ backgroundColor: 'var(--bg-secondary)' }}
     >
       {/* Copy button */}
       {!isStreaming && response && (
         <button
           onClick={handleCopy}
-          className="absolute top-2 right-2 px-2 py-1 rounded text-xs transition-opacity opacity-0 group-hover:opacity-100"
+          className="absolute top-3 right-3 px-2 py-1 rounded-lg text-xs transition-all opacity-0 group-hover:opacity-100"
           style={{
-            backgroundColor: 'var(--bg-primary)',
+            backgroundColor: 'var(--highlight)',
             color: 'var(--text-secondary)',
           }}
         >
@@ -91,44 +112,38 @@ export function AsyncResponse({ isLoading, response, onCopy }: AsyncResponseProp
       )}
       
       <div 
-        className="prose prose-sm max-w-none whitespace-pre-wrap leading-relaxed pr-16"
+        className="prose prose-sm max-w-none leading-relaxed pr-12"
         style={{ color: 'var(--text-primary)' }}
       >
-        {displayedText}
+        {/* Format text with basic markdown support */}
+        {displayedText.split('\n').map((line, i) => {
+          // Bold text
+          const formattedLine = line.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+          
+          // Bullet points
+          if (line.startsWith('•') || line.startsWith('-')) {
+            return (
+              <p key={i} className="ml-4 my-1" dangerouslySetInnerHTML={{ __html: formattedLine }} />
+            );
+          }
+          
+          // Regular paragraph
+          return line ? (
+            <p key={i} className="my-2" dangerouslySetInnerHTML={{ __html: formattedLine }} />
+          ) : (
+            <br key={i} />
+          );
+        })}
+        
         {isStreaming && (
-          <span 
-            className="inline-block w-2 h-4 ml-0.5 animate-pulse"
+          <motion.span 
+            className="inline-block w-0.5 h-4 ml-0.5"
             style={{ backgroundColor: 'var(--accent)' }}
+            animate={{ opacity: [1, 0] }}
+            transition={{ duration: 0.5, repeat: Infinity }}
           />
         )}
       </div>
-    </div>
-  );
-}
-
-function ThinkingDots() {
-  return (
-    <div className="flex gap-1.5">
-      {[0, 1, 2].map((i) => (
-        <div
-          key={i}
-          className="w-2 h-2 rounded-full"
-          style={{
-            backgroundColor: 'var(--accent)',
-            animation: `bounce 1s ease-in-out ${i * 0.15}s infinite`,
-          }}
-        />
-      ))}
-      <style jsx>{`
-        @keyframes bounce {
-          0%, 60%, 100% {
-            transform: translateY(0);
-          }
-          30% {
-            transform: translateY(-4px);
-          }
-        }
-      `}</style>
-    </div>
+    </motion.div>
   );
 }
