@@ -75,6 +75,11 @@ body {
   background-color: var(--highlight);
 }
 
+.paragraph:active {
+  transform: scale(0.995);
+  transition: transform 0.1s ease;
+}
+
 .paragraph.selected {
   background-color: var(--highlight);
   border-left: 3px solid var(--accent);
