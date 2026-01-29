@@ -116,6 +116,18 @@ body {
   background-color: var(--highlight);
 }
 
+/* Safe area for iOS */
+.safe-area-bottom {
+  padding-bottom: env(safe-area-inset-bottom, 0);
+}
+
+/* Prevent text selection highlight from being too bright */
+@media (max-width: 768px) {
+  ::selection {
+    background-color: rgba(var(--accent-rgb, 37, 99, 235), 0.3);
+  }
+}
+
 /* Smooth scrollbar */
 ::-webkit-scrollbar {
   width: 8px;

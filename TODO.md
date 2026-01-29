@@ -2,6 +2,12 @@
 
 ## 🔴 High Priority
 
+### Mobile Selection (Critical)
+- [x] Native browser menu conflicts with custom menu
+- [x] Solution: Bottom sheet on mobile (doesn't conflict)
+- [x] 300ms delay to let native menu appear first
+- [ ] Consider native app for better UX (React Native/Expo)
+
 ### Still Needs Work
 - [ ] Settings panel (theme, font size)
 - [ ] Typography review - ensure consistency
