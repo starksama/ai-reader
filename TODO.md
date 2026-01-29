@@ -21,7 +21,7 @@
 ## 🟡 Medium Priority
 - [ ] Add keyboard shortcut hints
 - [ ] Better loading states
-- [ ] Error boundaries
+- [x] Error boundaries
 - [ ] Empty states
 
 ## 🟢 Done (34 commits)
