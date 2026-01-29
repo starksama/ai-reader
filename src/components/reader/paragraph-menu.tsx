@@ -6,27 +6,24 @@ import { ArrowUpRight, Copy, X } from 'lucide-react';
 
 interface ParagraphMenuProps {
   isOpen: boolean;
-  paragraphIndex: number;
   paragraphText: string;
   position: { x: number; y: number };
   onDiveDeeper: () => void;
-  onCopy: () => void;
   onClose: () => void;
 }
 
 export function ParagraphMenu({
   isOpen,
-  paragraphIndex,
   paragraphText,
   position,
   onDiveDeeper,
-  onCopy,
   onClose,
 }: ParagraphMenuProps) {
   const menuRef = useRef<HTMLDivElement>(null);
   const [copied, setCopied] = useState(false);
   const [adjustedPosition, setAdjustedPosition] = useState(position);
 
+  // Position adjustment requires measuring DOM after render
   useEffect(() => {
     if (isOpen && menuRef.current) {
       const rect = menuRef.current.getBoundingClientRect();
@@ -44,6 +41,7 @@ export function ParagraphMenu({
       }
       if (y < padding) y = padding;
 
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setAdjustedPosition({ x, y });
     }
   }, [isOpen, position]);

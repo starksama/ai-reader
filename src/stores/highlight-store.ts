@@ -52,8 +52,9 @@ export const useHighlightStore = create<HighlightState>()(
 
       clearHighlights: (url) => {
         set((state) => {
-          const { [url]: _, ...rest } = state.highlights;
-          return { highlights: rest };
+          const newHighlights = { ...state.highlights };
+          delete newHighlights[url];
+          return { highlights: newHighlights };
         });
       },
     }),

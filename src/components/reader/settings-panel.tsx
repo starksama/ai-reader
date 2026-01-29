@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { Settings, Sun, Moon, BookOpen, Minus, Plus } from 'lucide-react';
+import { Settings, Sun, Moon, BookOpen } from 'lucide-react';
 import { useThemeStore, type Theme, type FontSize, fontSizeMap } from '@/stores/theme-store';
 
 export function SettingsPanel() {

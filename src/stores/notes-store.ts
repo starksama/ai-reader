@@ -104,8 +104,9 @@ export const useNotesStore = create<NotesState>()(
 
       clearArticleNotes: (url) => {
         set((state) => {
-          const { [url]: _, ...rest } = state.articles;
-          return { articles: rest };
+          const newArticles = { ...state.articles };
+          delete newArticles[url];
+          return { articles: newArticles };
         });
       },
     }),

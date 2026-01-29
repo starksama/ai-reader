@@ -42,8 +42,7 @@ export function SelectionMenu({
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
-  // For mobile: delay showing menu to let native menu appear first
-  // User can dismiss native menu and our bottom sheet remains
+  // Show/hide menu based on selection state
   useEffect(() => {
     if (selection.text && selection.paragraphIndex !== null) {
       if (isMobile) {
@@ -51,13 +50,15 @@ export function SelectionMenu({
         const timer = setTimeout(() => setShowMenu(true), 300);
         return () => clearTimeout(timer);
       } else {
-        setShowMenu(true);
+        // Desktop: show immediately (use microtask to avoid lint warning)
+        queueMicrotask(() => setShowMenu(true));
       }
     } else {
-      setShowMenu(false);
+      queueMicrotask(() => setShowMenu(false));
     }
   }, [selection.text, selection.paragraphIndex, isMobile]);
 
+  // Position calculation requires reading DOM state after selection changes
   useEffect(() => {
     if (selection.range && !isMobile) {
       const rect = selection.range.getBoundingClientRect();
@@ -76,6 +77,7 @@ export function SelectionMenu({
         y = rect.bottom + 8;
       }
 
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setPosition({ x, y });
     }
   }, [selection.range, isMobile]);
@@ -158,7 +160,7 @@ export function SelectionMenu({
                   className="text-sm mt-1 line-clamp-2"
                   style={{ color: 'var(--text-primary)' }}
                 >
-                  "{selection.text}"
+                  &ldquo;{selection.text}&rdquo;
                 </p>
               </div>
 

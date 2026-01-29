@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft } from 'lucide-react';
 import { useLayerStore } from '@/stores/layer-store';
@@ -150,14 +151,14 @@ export function ReadContent() {
             Couldn&apos;t load article
           </h2>
           <p className="mb-6" style={{ color: 'var(--text-secondary)' }}>{error}</p>
-          <a
+          <Link
             href="/"
             className="inline-flex items-center gap-2 px-6 py-3 rounded-sm text-white font-medium transition-opacity hover:opacity-90"
             style={{ backgroundColor: 'var(--accent)' }}
           >
             <ArrowLeft size={14} />
             <span>Try another URL</span>
-          </a>
+          </Link>
         </motion.div>
       </div>
     );
@@ -237,7 +238,6 @@ export function ReadContent() {
                 articleUrl={url || ''}
                 articleTitle={article.title}
                 selectedText={currentLayer.selectedText}
-                totalParagraphs={article.paragraphs.length}
                 exploredParagraphs={Array.from(exploredParagraphs)}
                 onBack={handleBack}
                 onNavigate={(index) => {

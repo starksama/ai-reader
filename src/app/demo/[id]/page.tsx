@@ -1,10 +1,10 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft } from 'lucide-react';
-import { getMockArticle, type MockArticle } from '@/data/mock-articles';
+import { getMockArticle } from '@/data/mock-articles';
 import { useLayerStore } from '@/stores/layer-store';
 import { useThemeStore } from '@/stores/theme-store';
 import { ArticleView } from '@/components/reader/article-view';
@@ -19,7 +19,7 @@ export default function DemoArticlePage() {
   const router = useRouter();
   const id = params.id as string;
   
-  const [article, setArticle] = useState<MockArticle | null>(null);
+  const article = useMemo(() => getMockArticle(id), [id]);
   const [selectedParagraph, setSelectedParagraph] = useState<number | null>(null);
   const [exploredParagraphs, setExploredParagraphs] = useState<Set<number>>(new Set());
   const { layers, currentIndex, push, pop, reset } = useLayerStore();
@@ -43,13 +43,9 @@ export default function DemoArticlePage() {
     },
   });
 
-  // Load mock article
+  // Reset layers when article changes
   useEffect(() => {
-    const mockArticle = getMockArticle(id);
-    if (mockArticle) {
-      setArticle(mockArticle);
-      reset();
-    }
+    reset();
   }, [id, reset]);
 
   const handleParagraphClick = (index: number, selectedText?: string) => {
@@ -159,7 +155,6 @@ export default function DemoArticlePage() {
                 articleUrl={article.url}
                 articleTitle={article.title}
                 selectedText={currentLayer.selectedText}
-                totalParagraphs={article.paragraphs.length}
                 exploredParagraphs={Array.from(exploredParagraphs)}
                 onBack={handleBack}
                 onNavigate={(index) => {

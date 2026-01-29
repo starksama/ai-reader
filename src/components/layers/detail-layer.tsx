@@ -20,7 +20,6 @@ interface DetailLayerProps {
   articleUrl: string;
   articleTitle: string;
   selectedText?: string;
-  totalParagraphs: number;
   exploredParagraphs?: number[];
   onBack: () => void;
   onNavigate?: (index: number) => void;
@@ -52,7 +51,6 @@ export function DetailLayer({
   articleUrl, 
   articleTitle, 
   selectedText, 
-  totalParagraphs,
   exploredParagraphs = [],
   onBack,
   onNavigate,
@@ -190,7 +188,7 @@ export function DetailLayer({
               Selection
             </p>
             <p className="leading-relaxed" style={{ color: 'var(--text-primary)' }}>
-              "{selectedText}"
+              &ldquo;{selectedText}&rdquo;
             </p>
           </motion.div>
         )}

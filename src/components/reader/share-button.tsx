@@ -9,6 +9,7 @@ interface ShareButtonProps {
 
 export function ShareButton({ url, title }: ShareButtonProps) {
   const [copied, setCopied] = useState(false);
+  const shareUrl = typeof window !== 'undefined' ? window.location.href : url;
 
   const handleShare = async () => {
     // Try native share first (mobile)
@@ -16,7 +17,7 @@ export function ShareButton({ url, title }: ShareButtonProps) {
       try {
         await navigator.share({
           title: `AI Reader: ${title}`,
-          url: window.location.href,
+          url: shareUrl,
         });
         return;
       } catch {
@@ -26,7 +27,7 @@ export function ShareButton({ url, title }: ShareButtonProps) {
 
     // Fall back to clipboard copy
     try {
-      await navigator.clipboard.writeText(window.location.href);
+      await navigator.clipboard.writeText(shareUrl);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch {

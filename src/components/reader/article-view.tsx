@@ -167,14 +167,12 @@ export function ArticleView({
       {/* Paragraph Menu */}
       <ParagraphMenu
         isOpen={paragraphMenu.isOpen}
-        paragraphIndex={paragraphMenu.index}
         paragraphText={paragraphMenu.text}
         position={paragraphMenu.position}
         onDiveDeeper={() => {
           onParagraphClick(paragraphMenu.index);
           closeParagraphMenu();
         }}
-        onCopy={() => {}}
         onClose={closeParagraphMenu}
       />
 
