@@ -5,11 +5,13 @@ import { useEffect, useState } from 'react';
 interface AsyncResponseProps {
   isLoading: boolean;
   response: string | null;
+  onCopy?: () => void;
 }
 
-export function AsyncResponse({ isLoading, response }: AsyncResponseProps) {
+export function AsyncResponse({ isLoading, response, onCopy }: AsyncResponseProps) {
   const [displayedText, setDisplayedText] = useState('');
   const [isStreaming, setIsStreaming] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   // Simulate streaming effect
   useEffect(() => {
@@ -37,6 +39,18 @@ export function AsyncResponse({ isLoading, response }: AsyncResponseProps) {
     return () => clearInterval(interval);
   }, [response]);
 
+  const handleCopy = async () => {
+    if (!response) return;
+    try {
+      await navigator.clipboard.writeText(response);
+      setCopied(true);
+      onCopy?.();
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      // Clipboard failed
+    }
+  };
+
   if (isLoading) {
     return (
       <div 
@@ -59,11 +73,25 @@ export function AsyncResponse({ isLoading, response }: AsyncResponseProps) {
 
   return (
     <div 
-      className="p-4 rounded-lg"
+      className="p-4 rounded-lg relative group"
       style={{ backgroundColor: 'var(--bg-secondary)' }}
     >
+      {/* Copy button */}
+      {!isStreaming && response && (
+        <button
+          onClick={handleCopy}
+          className="absolute top-2 right-2 px-2 py-1 rounded text-xs transition-opacity opacity-0 group-hover:opacity-100"
+          style={{
+            backgroundColor: 'var(--bg-primary)',
+            color: 'var(--text-secondary)',
+          }}
+        >
+          {copied ? '✓ Copied' : '📋 Copy'}
+        </button>
+      )}
+      
       <div 
-        className="prose prose-sm max-w-none whitespace-pre-wrap leading-relaxed"
+        className="prose prose-sm max-w-none whitespace-pre-wrap leading-relaxed pr-16"
         style={{ color: 'var(--text-primary)' }}
       >
         {displayedText}

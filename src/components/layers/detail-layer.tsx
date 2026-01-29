@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from 'react';
 import { AsyncResponse } from '@/components/async/async-response';
 import { useNotesStore } from '@/stores/notes-store';
 import { useKeyboardShortcuts } from '@/hooks/use-keyboard-shortcuts';
+import { Toast, useToast } from '@/components/ui/toast';
 
 interface Paragraph {
   id: string;
@@ -74,6 +75,7 @@ export function DetailLayer({
   const [chatHistory, setChatHistory] = useState<Array<{ q: string; a: string }>>([]);
   const inputRef = useRef<HTMLInputElement>(null);
   const { addNote } = useNotesStore();
+  const { toast, show: showToast, hide: hideToast } = useToast();
 
   // Keyboard navigation
   useKeyboardShortcuts({
@@ -119,6 +121,7 @@ export function DetailLayer({
       question: currentQuestion,
       answer: mockResponse,
     });
+    showToast('📝 Note saved!');
     
     setIsAsking(false);
   };
@@ -301,6 +304,13 @@ export function DetailLayer({
           </button>
         </div>
       </div>
+
+      {/* Toast for feedback */}
+      <Toast 
+        message={toast.message} 
+        isVisible={toast.visible} 
+        onHide={hideToast} 
+      />
     </div>
   );
 }
