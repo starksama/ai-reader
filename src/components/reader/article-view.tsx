@@ -16,6 +16,7 @@ interface Article {
   excerpt?: string;
   paragraphs: Paragraph[];
   url: string;
+  wordCount?: number;
 }
 
 interface ArticleViewProps {
@@ -81,19 +82,25 @@ export function ArticleView({ article, selectedParagraph, onParagraphClick }: Ar
 
         {/* Stats */}
         <div 
-          className="flex items-center gap-4 text-sm py-3 px-4 rounded-lg mb-6"
+          className="flex flex-wrap items-center gap-3 md:gap-4 text-sm py-3 px-4 rounded-lg mb-6"
           style={{ backgroundColor: 'var(--bg-secondary)' }}
         >
           <span style={{ color: 'var(--text-secondary)' }}>
             {readProgress}% read
           </span>
-          <span style={{ color: 'var(--border)' }}>|</span>
+          <span className="hidden md:inline" style={{ color: 'var(--border)' }}>|</span>
+          {article.wordCount && (
+            <span style={{ color: 'var(--text-secondary)' }}>
+              ~{Math.ceil(article.wordCount / 200)} min read
+            </span>
+          )}
+          <span className="hidden md:inline" style={{ color: 'var(--border)' }}>|</span>
           <span style={{ color: 'var(--text-secondary)' }}>
             {article.paragraphs.length} paragraphs
           </span>
           {highlightedCount > 0 && (
             <>
-              <span style={{ color: 'var(--border)' }}>|</span>
+              <span className="hidden md:inline" style={{ color: 'var(--border)' }}>|</span>
               <span style={{ color: 'var(--accent)' }}>
                 {highlightedCount} explored
               </span>
