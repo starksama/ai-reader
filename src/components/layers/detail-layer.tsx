@@ -93,7 +93,7 @@ export function DetailLayer({ paragraph, onBack }: DetailLayerProps) {
     <div className="min-h-screen flex flex-col">
       {/* Header with back button */}
       <div 
-        className="sticky top-[53px] z-10 px-4 py-3 border-b"
+        className="sticky top-[97px] z-10 px-4 py-3 border-b"
         style={{ 
           backgroundColor: 'var(--bg-primary)',
           borderColor: 'var(--border)',

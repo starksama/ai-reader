@@ -130,9 +130,9 @@ export function ReadContent() {
 
   return (
     <div className="min-h-screen">
-      {/* Sticky Breadcrumb */}
+      {/* Sticky Breadcrumb - below header */}
       <div 
-        className="sticky top-0 z-20 px-4 py-3 border-b"
+        className="sticky top-[57px] z-20 px-4 py-2 border-b"
         style={{ 
           backgroundColor: 'var(--bg-primary)',
           borderColor: 'var(--border)',
