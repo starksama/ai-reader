@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useRef, useCallback } from 'react';
 import { useTextSelection } from '@/hooks/use-text-selection';
+import { useHighlightStore } from '@/stores/highlight-store';
 import { SelectionMenu } from './selection-menu';
 import { ParagraphMenu } from './paragraph-menu';
 
@@ -39,8 +40,9 @@ export function ArticleView({
 }: ArticleViewProps) {
   const [readProgress, setReadProgress] = useState(0);
   const { selection, clearSelection } = useTextSelection();
+  const { addHighlight, getHighlights } = useHighlightStore();
+  const highlights = getHighlights(article.url);
   
-  // Paragraph menu state
   const [paragraphMenu, setParagraphMenu] = useState<{
     isOpen: boolean;
     index: number;
@@ -53,10 +55,8 @@ export function ArticleView({
     position: { x: 0, y: 0 },
   });
 
-  // Track mouse interaction for click vs select detection
   const mouseDownRef = useRef<{ x: number; y: number; time: number } | null>(null);
 
-  // Track scroll progress
   useEffect(() => {
     const handleScroll = () => {
       const scrollTop = window.scrollY;
@@ -69,7 +69,6 @@ export function ArticleView({
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // Close paragraph menu when selection appears
   useEffect(() => {
     if (selection.text) {
       setParagraphMenu(prev => ({ ...prev, isOpen: false }));
@@ -82,6 +81,15 @@ export function ArticleView({
     } else {
       onParagraphClick(paragraphIndex, text);
     }
+  };
+
+  const handleHighlight = (text: string, paragraphIndex: number) => {
+    addHighlight(article.url, {
+      paragraphIndex,
+      text,
+      startOffset: 0,
+      endOffset: text.length,
+    });
   };
 
   const handleParagraphMouseDown = (e: React.MouseEvent) => {
@@ -99,24 +107,20 @@ export function ArticleView({
     const mouseDown = mouseDownRef.current;
     if (!mouseDown) return;
 
-    // Calculate if this was a click (not a drag)
     const dx = Math.abs(e.clientX - mouseDown.x);
     const dy = Math.abs(e.clientY - mouseDown.y);
     const dt = Date.now() - mouseDown.time;
 
-    // If moved too much or took too long, it's a drag/selection, not a click
     if (dx > 10 || dy > 10 || dt > 300) {
       mouseDownRef.current = null;
       return;
     }
 
-    // Small delay to check if text was selected
     setTimeout(() => {
       const sel = window.getSelection();
       const hasSelection = sel && sel.toString().trim().length > 0;
 
       if (!hasSelection) {
-        // It's a click - show paragraph menu
         setParagraphMenu({
           isOpen: true,
           index: paragraph.index,
@@ -133,12 +137,13 @@ export function ArticleView({
   }, []);
 
   const exploredCount = exploredParagraphs.size;
+  const highlightCount = highlights.length;
 
   return (
     <article className="pb-20">
       {/* Progress Bar */}
       <div 
-        className="fixed top-0 left-0 right-0 h-0.5 z-50"
+        className="fixed top-0 left-0 right-0 h-px z-50"
         style={{ backgroundColor: 'var(--border)' }}
       >
         <div 
@@ -150,15 +155,16 @@ export function ArticleView({
         />
       </div>
 
-      {/* Selection Menu (for text selection) */}
+      {/* Selection Menu */}
       <SelectionMenu
         selection={selection}
         onDiveDeeper={handleDiveDeeper}
+        onHighlight={handleHighlight}
         onCopy={() => {}}
         onClear={clearSelection}
       />
 
-      {/* Paragraph Menu (for paragraph click) */}
+      {/* Paragraph Menu */}
       <ParagraphMenu
         isOpen={paragraphMenu.isOpen}
         paragraphIndex={paragraphMenu.index}
@@ -175,69 +181,53 @@ export function ArticleView({
       {/* Header */}
       <header className="reader-container pt-8 pb-6">
         <h1 
-          className="text-2xl md:text-4xl font-bold mb-4 leading-tight tracking-tight"
+          className="text-2xl md:text-3xl font-semibold mb-4 leading-tight tracking-tight"
           style={{ color: 'var(--text-primary)' }}
         >
           {article.title}
         </h1>
         
-        {/* Meta info */}
+        {/* Meta */}
         <div className="flex flex-wrap items-center gap-3 text-sm" style={{ color: 'var(--text-secondary)' }}>
-          {article.byline && (
-            <span className="font-medium">{article.byline}</span>
-          )}
+          {article.byline && <span>{article.byline}</span>}
           {article.siteName && (
             <>
-              <span className="opacity-40">·</span>
+              <span className="opacity-30">·</span>
               <span>{article.siteName}</span>
             </>
           )}
           {article.wordCount && (
             <>
-              <span className="opacity-40">·</span>
-              <span>{Math.ceil(article.wordCount / 200)} min read</span>
+              <span className="opacity-30">·</span>
+              <span>{Math.ceil(article.wordCount / 200)} min</span>
             </>
           )}
         </div>
 
-        {/* Progress stats */}
-        <div className="flex items-center gap-4 mt-6 text-xs font-medium">
-          <div 
-            className="px-3 py-1.5 rounded-full"
-            style={{ 
-              backgroundColor: 'var(--bg-secondary)',
-              color: 'var(--text-secondary)',
-            }}
-          >
-            {readProgress}% read
-          </div>
+        {/* Stats */}
+        <div className="flex items-center gap-4 mt-4 text-xs" style={{ color: 'var(--text-secondary)' }}>
+          <span>{readProgress}%</span>
           {exploredCount > 0 && (
-            <div 
-              className="px-3 py-1.5 rounded-full"
-              style={{ 
-                backgroundColor: 'var(--accent)',
-                color: '#fff',
-              }}
-            >
-              {exploredCount} explored
-            </div>
+            <>
+              <span className="opacity-30">·</span>
+              <span>{exploredCount} explored</span>
+            </>
+          )}
+          {highlightCount > 0 && (
+            <>
+              <span className="opacity-30">·</span>
+              <span>{highlightCount} highlighted</span>
+            </>
           )}
         </div>
-
-        {/* Hint */}
-        <p 
-          className="mt-6 text-sm flex items-center gap-2"
-          style={{ color: 'var(--text-secondary)' }}
-        >
-          <span>💡</span>
-          <span>Click a paragraph or select text to dive deeper</span>
-        </p>
       </header>
 
       {/* Paragraphs */}
       <div className="reader-container reader-text">
         {article.paragraphs.map((paragraph) => {
           const isExplored = exploredParagraphs.has(paragraph.index);
+          const paragraphHighlights = highlights.filter(h => h.paragraphIndex === paragraph.index);
+          
           return (
             <div
               key={paragraph.id}
@@ -246,7 +236,7 @@ export function ArticleView({
               onMouseUp={(e) => handleParagraphMouseUp(e, paragraph)}
               className={`paragraph ${
                 selectedParagraph === paragraph.index ? 'selected' : ''
-              } ${isExplored ? 'explored' : ''}`}
+              } ${isExplored ? 'explored' : ''} ${paragraphHighlights.length > 0 ? 'has-highlight' : ''}`}
               role="button"
               tabIndex={0}
               onKeyDown={(e) => {
@@ -261,18 +251,11 @@ export function ArticleView({
         })}
       </div>
 
-      {/* End marker */}
+      {/* End */}
       <div className="reader-container text-center py-16">
-        <div 
-          className="inline-flex items-center gap-2 text-sm px-4 py-2 rounded-full"
-          style={{ 
-            backgroundColor: 'var(--bg-secondary)',
-            color: 'var(--text-secondary)',
-          }}
-        >
-          <span>✓</span>
-          <span>End of article</span>
-        </div>
+        <span className="text-xs" style={{ color: 'var(--text-secondary)' }}>
+          End
+        </span>
       </div>
     </article>
   );

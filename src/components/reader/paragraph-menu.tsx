@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { ArrowUpRight, Copy, X } from 'lucide-react';
 
 interface ParagraphMenuProps {
   isOpen: boolean;
@@ -78,7 +79,7 @@ export function ParagraphMenu({
     setTimeout(() => {
       setCopied(false);
       onClose();
-    }, 800);
+    }, 600);
   };
 
   return (
@@ -94,29 +95,20 @@ export function ParagraphMenu({
           style={{ left: adjustedPosition.x, top: adjustedPosition.y }}
         >
           <div
-            className="rounded-md shadow-lg overflow-hidden min-w-[180px]"
+            className="shadow-lg overflow-hidden min-w-[160px]"
             style={{
               backgroundColor: 'var(--bg-secondary)',
               border: '1px solid var(--border)',
             }}
           >
-            {/* Header */}
-            <div 
-              className="px-3 py-2 border-b text-xs"
-              style={{ borderColor: 'var(--border)', color: 'var(--text-secondary)' }}
-            >
-              Paragraph {paragraphIndex + 1}
-            </div>
-
-            {/* Actions */}
             <div className="py-1">
               <button
                 onClick={onDiveDeeper}
                 className="w-full flex items-center gap-3 px-3 py-2 text-sm font-medium transition-colors hover:bg-[var(--highlight)] text-left"
                 style={{ color: 'var(--accent)' }}
               >
-                <span className="text-xs opacity-60">↗</span>
-                <span>Dive Deeper</span>
+                <ArrowUpRight size={14} />
+                <span>Dive deeper</span>
               </button>
 
               <button
@@ -124,7 +116,7 @@ export function ParagraphMenu({
                 className="w-full flex items-center gap-3 px-3 py-2 text-sm transition-colors hover:bg-[var(--highlight)] text-left"
                 style={{ color: 'var(--text-secondary)' }}
               >
-                <span className="text-xs opacity-60">{copied ? '✓' : '⎘'}</span>
+                <Copy size={14} />
                 <span>{copied ? 'Copied' : 'Copy'}</span>
               </button>
 
@@ -135,7 +127,7 @@ export function ParagraphMenu({
                 className="w-full flex items-center gap-3 px-3 py-2 text-sm transition-colors hover:bg-[var(--highlight)] text-left"
                 style={{ color: 'var(--text-secondary)' }}
               >
-                <span className="text-xs opacity-60">✕</span>
+                <X size={14} />
                 <span>Cancel</span>
               </button>
             </div>

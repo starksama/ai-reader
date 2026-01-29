@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { motion } from 'framer-motion';
+import { ArrowLeft, ChevronUp, ChevronDown, Send } from 'lucide-react';
 import { AsyncResponse } from '@/components/async/async-response';
 import { useNotesStore } from '@/stores/notes-store';
 import { useKeyboardShortcuts } from '@/hooks/use-keyboard-shortcuts';
@@ -64,7 +65,6 @@ export function DetailLayer({
   const { addNote } = useNotesStore();
   const { toast, show: showToast, hide: hideToast } = useToast();
 
-  // Find current position in explored paragraphs for branch navigation
   const currentExploredIndex = exploredParagraphs.indexOf(paragraph.index);
   const canGoPrev = currentExploredIndex > 0;
   const canGoNext = currentExploredIndex < exploredParagraphs.length - 1 && currentExploredIndex !== -1;
@@ -96,7 +96,7 @@ export function DetailLayer({
     setIsAsking(true);
     setResponse(null);
     
-    await new Promise(resolve => setTimeout(resolve, 500 + Math.random() * 500));
+    await new Promise(resolve => setTimeout(resolve, 400 + Math.random() * 400));
     
     const mockResponse = mockResponses[Math.floor(Math.random() * mockResponses.length)];
     
@@ -138,49 +138,39 @@ export function DetailLayer({
         <div className="max-w-2xl mx-auto px-4 py-3 flex items-center justify-between">
           <button
             onClick={onBack}
-            className="flex items-center gap-2 text-sm font-medium transition-opacity hover:opacity-70"
+            className="flex items-center gap-2 text-sm transition-opacity hover:opacity-70"
             style={{ color: 'var(--accent)' }}
           >
-            <span>←</span>
+            <ArrowLeft size={14} />
             <span>Back</span>
           </button>
           
           {/* Branch navigation */}
-          <div className="flex items-center gap-2">
-            {exploredParagraphs.length > 1 && (
+          {onNavigate && exploredParagraphs.length > 1 && (
+            <div className="flex items-center gap-2">
               <span className="text-xs tabular-nums" style={{ color: 'var(--text-secondary)' }}>
-                {currentExploredIndex + 1} of {exploredParagraphs.length} branches
+                {currentExploredIndex + 1}/{exploredParagraphs.length}
               </span>
-            )}
-            {onNavigate && exploredParagraphs.length > 1 && (
-              <div className="flex gap-0.5">
+              <div className="flex">
                 <button
                   onClick={() => canGoPrev && onNavigate(exploredParagraphs[currentExploredIndex - 1])}
                   disabled={!canGoPrev}
-                  className="w-7 h-7 rounded flex items-center justify-center text-xs transition-all disabled:opacity-20"
-                  style={{ 
-                    backgroundColor: 'var(--bg-secondary)',
-                    color: 'var(--text-secondary)',
-                  }}
-                  title="Previous branch"
+                  className="w-6 h-6 flex items-center justify-center transition-all disabled:opacity-20"
+                  style={{ color: 'var(--text-secondary)' }}
                 >
-                  ↑
+                  <ChevronUp size={14} />
                 </button>
                 <button
                   onClick={() => canGoNext && onNavigate(exploredParagraphs[currentExploredIndex + 1])}
                   disabled={!canGoNext}
-                  className="w-7 h-7 rounded flex items-center justify-center text-xs transition-all disabled:opacity-20"
-                  style={{ 
-                    backgroundColor: 'var(--bg-secondary)',
-                    color: 'var(--text-secondary)',
-                  }}
-                  title="Next branch"
+                  className="w-6 h-6 flex items-center justify-center transition-all disabled:opacity-20"
+                  style={{ color: 'var(--text-secondary)' }}
                 >
-                  ↓
+                  <ChevronDown size={14} />
                 </button>
               </div>
-            )}
-          </div>
+            </div>
+          )}
         </div>
       </div>
 
@@ -190,13 +180,13 @@ export function DetailLayer({
           <motion.div
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
-            className="mb-4 p-4 rounded"
+            className="mb-4 p-4"
             style={{ backgroundColor: 'var(--accent)', color: '#fff' }}
           >
-            <p className="text-xs uppercase tracking-wider mb-2 opacity-70 font-medium">
+            <p className="text-xs uppercase tracking-wider mb-2 opacity-60">
               Selection
             </p>
-            <p className="font-medium leading-relaxed">
+            <p className="leading-relaxed">
               "{selectedText}"
             </p>
           </motion.div>
@@ -207,10 +197,10 @@ export function DetailLayer({
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.05 }}
-          className="p-4 rounded mb-6"
+          className="p-4 mb-6"
           style={{ backgroundColor: 'var(--bg-secondary)' }}
         >
-          <p className="text-xs uppercase tracking-wider mb-2 font-medium" style={{ color: 'var(--text-secondary)' }}>
+          <p className="text-xs uppercase tracking-wider mb-2" style={{ color: 'var(--text-secondary)' }}>
             {selectedText ? 'Context' : 'Passage'}
           </p>
           <p className="leading-relaxed" style={{ color: 'var(--text-primary)' }}>
@@ -224,27 +214,25 @@ export function DetailLayer({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.1 }}
-            className="mb-6"
+            className="mb-6 flex flex-wrap gap-2"
           >
-            <div className="flex flex-wrap gap-2">
-              {suggestedQuestions.map((q) => (
-                <button
-                  key={q}
-                  onClick={() => {
-                    setQuestion(q);
-                    inputRef.current?.focus();
-                  }}
-                  className="px-3 py-1.5 rounded text-sm transition-all hover:opacity-80"
-                  style={{
-                    backgroundColor: 'var(--bg-secondary)',
-                    color: 'var(--text-secondary)',
-                    border: '1px solid var(--border)',
-                  }}
-                >
-                  {q}
-                </button>
-              ))}
-            </div>
+            {suggestedQuestions.map((q) => (
+              <button
+                key={q}
+                onClick={() => {
+                  setQuestion(q);
+                  inputRef.current?.focus();
+                }}
+                className="px-3 py-1.5 text-sm transition-all hover:opacity-70"
+                style={{
+                  backgroundColor: 'var(--bg-secondary)',
+                  color: 'var(--text-secondary)',
+                  border: '1px solid var(--border)',
+                }}
+              >
+                {q}
+              </button>
+            ))}
           </motion.div>
         )}
 
@@ -259,12 +247,12 @@ export function DetailLayer({
               >
                 <div className="mb-2">
                   <span 
-                    className="text-xs font-medium px-2 py-0.5 rounded"
+                    className="text-xs px-1.5 py-0.5"
                     style={{ backgroundColor: 'var(--bg-secondary)', color: 'var(--text-secondary)' }}
                   >
                     Q
                   </span>
-                  <p className="mt-1.5 font-medium" style={{ color: 'var(--text-primary)' }}>{item.q}</p>
+                  <p className="mt-1.5" style={{ color: 'var(--text-primary)' }}>{item.q}</p>
                 </div>
                 <AsyncResponse isLoading={false} response={item.a} />
               </motion.div>
@@ -287,7 +275,7 @@ export function DetailLayer({
           className="sticky bottom-4 mt-8"
         >
           <div 
-            className="flex gap-2 p-1.5 rounded shadow-lg"
+            className="flex gap-2"
             style={{ 
               backgroundColor: 'var(--bg-primary)',
               border: '1px solid var(--border)',
@@ -307,10 +295,10 @@ export function DetailLayer({
             <button
               onClick={handleAsk}
               disabled={isAsking || !question.trim()}
-              className="px-4 py-2.5 rounded text-sm font-medium text-white transition-all hover:opacity-90 disabled:opacity-40"
+              className="px-4 py-2.5 text-sm text-white transition-all hover:opacity-90 disabled:opacity-40"
               style={{ backgroundColor: 'var(--accent)' }}
             >
-              {isAsking ? '...' : 'Ask'}
+              <Send size={14} />
             </button>
           </div>
         </motion.div>

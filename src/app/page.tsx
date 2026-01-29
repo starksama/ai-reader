@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
+import { ArrowRight } from 'lucide-react';
 import { useThemeStore, type Theme } from '@/stores/theme-store';
 
 export default function Home() {
@@ -30,12 +31,12 @@ export default function Home() {
       <motion.div 
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4 }}
-        className="w-full max-w-md"
+        transition={{ duration: 0.3 }}
+        className="w-full max-w-sm"
       >
         {/* Header */}
         <div className="text-center mb-10">
-          <h1 className="text-2xl font-semibold mb-1 tracking-tight" style={{ color: 'var(--text-primary)' }}>
+          <h1 className="text-xl font-medium mb-1 tracking-tight" style={{ color: 'var(--text-primary)' }}>
             AI Reader
           </h1>
           <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
@@ -46,7 +47,7 @@ export default function Home() {
         {/* URL Input */}
         <form onSubmit={handleSubmit} className="mb-6">
           <div 
-            className="flex gap-2"
+            className="flex"
             style={{ border: '1px solid var(--border)' }}
           >
             <input
@@ -62,10 +63,11 @@ export default function Home() {
             <button
               type="submit"
               disabled={isLoading || !url.trim()}
-              className="px-4 py-2.5 text-sm font-medium text-white transition-all hover:opacity-90 disabled:opacity-40"
+              className="px-4 py-2.5 text-sm text-white transition-all hover:opacity-90 disabled:opacity-40 flex items-center gap-2"
               style={{ backgroundColor: 'var(--accent)' }}
             >
-              {isLoading ? '...' : 'Read'}
+              <span>{isLoading ? '...' : 'Read'}</span>
+              {!isLoading && <ArrowRight size={12} />}
             </button>
           </div>
         </form>
@@ -77,21 +79,20 @@ export default function Home() {
             className="text-sm transition-opacity hover:opacity-70"
             style={{ color: 'var(--accent)' }}
           >
-            Try demo articles →
+            Try demo articles
           </Link>
         </div>
 
         {/* Theme */}
-        <div className="flex justify-center gap-1 mb-12">
+        <div className="flex justify-center gap-px mb-12" style={{ border: '1px solid var(--border)' }}>
           {themes.map((t) => (
             <button
               key={t.key}
               onClick={() => setTheme(t.key)}
-              className="px-3 py-1.5 text-xs transition-all"
+              className="flex-1 px-3 py-1.5 text-xs transition-all"
               style={{
                 backgroundColor: theme === t.key ? 'var(--bg-secondary)' : 'transparent',
                 color: theme === t.key ? 'var(--text-primary)' : 'var(--text-secondary)',
-                border: theme === t.key ? '1px solid var(--border)' : '1px solid transparent',
               }}
             >
               {t.label}
@@ -100,24 +101,10 @@ export default function Home() {
         </div>
 
         {/* Features */}
-        <div className="space-y-3 text-sm">
-          {[
-            { label: 'Select text to dive deeper' },
-            { label: 'Ask questions, get explanations' },
-            { label: 'Export notes as markdown' },
-          ].map((feature, idx) => (
-            <motion.div
-              key={feature.label}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.3, delay: 0.3 + idx * 0.1 }}
-              className="flex items-center gap-3"
-              style={{ color: 'var(--text-secondary)' }}
-            >
-              <span style={{ color: 'var(--accent)' }}>•</span>
-              <span>{feature.label}</span>
-            </motion.div>
-          ))}
+        <div className="space-y-2 text-sm" style={{ color: 'var(--text-secondary)' }}>
+          <p>Select text to dive deeper</p>
+          <p>Ask questions, get explanations</p>
+          <p>Highlight and export notes</p>
         </div>
 
         {/* Footer */}

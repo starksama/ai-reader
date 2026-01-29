@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { ArrowUpRight, Highlighter, Copy, X } from 'lucide-react';
 
 interface SelectionMenuProps {
   selection: {
@@ -10,11 +11,18 @@ interface SelectionMenuProps {
     range: Range | null;
   };
   onDiveDeeper: (text: string, paragraphIndex: number) => void;
+  onHighlight: (text: string, paragraphIndex: number) => void;
   onCopy: (text: string) => void;
   onClear: () => void;
 }
 
-export function SelectionMenu({ selection, onDiveDeeper, onCopy, onClear }: SelectionMenuProps) {
+export function SelectionMenu({ 
+  selection, 
+  onDiveDeeper, 
+  onHighlight,
+  onCopy, 
+  onClear 
+}: SelectionMenuProps) {
   const [position, setPosition] = useState({ x: 0, y: 0, isBelow: false });
   const [isMobile, setIsMobile] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -30,8 +38,8 @@ export function SelectionMenu({ selection, onDiveDeeper, onCopy, onClear }: Sele
   useEffect(() => {
     if (selection.range) {
       const rect = selection.range.getBoundingClientRect();
-      const menuWidth = isMobile ? window.innerWidth - 32 : 220;
-      const menuHeight = 100;
+      const menuWidth = isMobile ? window.innerWidth - 32 : 280;
+      const menuHeight = 80;
       
       let x: number;
       let y: number;
@@ -72,6 +80,13 @@ export function SelectionMenu({ selection, onDiveDeeper, onCopy, onClear }: Sele
     }
   };
 
+  const handleHighlight = () => {
+    if (selection.paragraphIndex !== null) {
+      onHighlight(selection.text, selection.paragraphIndex);
+      onClear();
+    }
+  };
+
   const handleCopy = async () => {
     await navigator.clipboard.writeText(selection.text);
     setCopied(true);
@@ -79,7 +94,7 @@ export function SelectionMenu({ selection, onDiveDeeper, onCopy, onClear }: Sele
     setTimeout(() => {
       setCopied(false);
       onClear();
-    }, 800);
+    }, 600);
   };
 
   return (
@@ -99,51 +114,52 @@ export function SelectionMenu({ selection, onDiveDeeper, onCopy, onClear }: Sele
           }}
         >
           <div 
-            className="rounded-md shadow-lg overflow-hidden"
+            className="flex items-stretch shadow-lg"
             style={{
               backgroundColor: 'var(--bg-secondary)',
               border: '1px solid var(--border)',
             }}
           >
-            {/* Selected text preview */}
-            <div 
-              className="px-3 py-2 border-b text-xs"
-              style={{ borderColor: 'var(--border)', color: 'var(--text-secondary)' }}
+            <button
+              onClick={handleDiveDeeper}
+              className="flex items-center gap-2 px-4 py-3 text-sm font-medium transition-colors hover:bg-[var(--highlight)]"
+              style={{ color: 'var(--accent)' }}
             >
-              "{selection.text.slice(0, 50)}{selection.text.length > 50 ? '...' : ''}"
-            </div>
+              <ArrowUpRight size={14} />
+              <span>Dive deeper</span>
+            </button>
+            
+            <div style={{ width: 1, backgroundColor: 'var(--border)' }} />
+            
+            <button
+              onClick={handleHighlight}
+              className="flex items-center gap-2 px-4 py-3 text-sm transition-colors hover:bg-[var(--highlight)]"
+              style={{ color: 'var(--text-secondary)' }}
+            >
+              <Highlighter size={14} />
+              <span>Highlight</span>
+            </button>
 
-            {/* Actions */}
-            <div className="flex">
-              <button
-                onClick={handleDiveDeeper}
-                className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-medium transition-colors hover:bg-[var(--highlight)]"
-                style={{ color: 'var(--accent)' }}
-              >
-                <span className="text-xs">↗</span>
-                <span>Dive Deeper</span>
-              </button>
-              
-              <div style={{ width: 1, backgroundColor: 'var(--border)' }} />
-              
-              <button
-                onClick={handleCopy}
-                className="px-4 py-2.5 text-sm transition-colors hover:bg-[var(--highlight)]"
-                style={{ color: 'var(--text-secondary)' }}
-              >
-                {copied ? '✓' : 'Copy'}
-              </button>
+            <div style={{ width: 1, backgroundColor: 'var(--border)' }} />
+            
+            <button
+              onClick={handleCopy}
+              className="flex items-center gap-2 px-4 py-3 text-sm transition-colors hover:bg-[var(--highlight)]"
+              style={{ color: 'var(--text-secondary)' }}
+            >
+              <Copy size={14} />
+              <span>{copied ? 'Copied' : 'Copy'}</span>
+            </button>
 
-              <div style={{ width: 1, backgroundColor: 'var(--border)' }} />
+            <div style={{ width: 1, backgroundColor: 'var(--border)' }} />
 
-              <button
-                onClick={onClear}
-                className="px-3 py-2.5 text-sm transition-colors hover:bg-[var(--highlight)]"
-                style={{ color: 'var(--text-secondary)' }}
-              >
-                ✕
-              </button>
-            </div>
+            <button
+              onClick={onClear}
+              className="px-3 py-3 text-sm transition-colors hover:bg-[var(--highlight)]"
+              style={{ color: 'var(--text-secondary)' }}
+            >
+              <X size={14} />
+            </button>
           </div>
         </motion.div>
       )}

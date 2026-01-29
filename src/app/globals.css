@@ -112,17 +112,8 @@ body {
   border-left-color: var(--accent);
 }
 
-.paragraph.explored::before {
-  content: '';
-  position: absolute;
-  left: -12px;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background-color: var(--accent);
-  opacity: 0.6;
+.paragraph.has-highlight {
+  background-color: var(--highlight);
 }
 
 /* Smooth scrollbar */
