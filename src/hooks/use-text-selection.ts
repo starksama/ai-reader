@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 
 interface TextSelection {
   text: string;
@@ -14,39 +14,61 @@ export function useTextSelection() {
     paragraphIndex: null,
     range: null,
   });
+  
+  const isSelectingRef = useRef(false);
 
   const updateSelection = useCallback(() => {
     const sel = window.getSelection();
-    if (!sel || sel.isCollapsed || !sel.toString().trim()) {
-      // Don't clear immediately on mobile to allow for menu interaction
+    
+    // No selection or collapsed (just a cursor)
+    if (!sel || sel.isCollapsed) {
       return;
     }
 
     const text = sel.toString().trim();
-    if (text.length < 3) {
+    
+    // Require minimum length
+    if (text.length < 5) {
       return;
     }
 
     // Find which paragraph the selection is in
-    const range = sel.getRangeAt(0);
-    const container = range.commonAncestorContainer;
-    const paragraphEl = container.nodeType === Node.TEXT_NODE
-      ? container.parentElement?.closest('[data-paragraph-index]')
-      : (container as Element).closest?.('[data-paragraph-index]');
+    try {
+      const range = sel.getRangeAt(0);
+      const container = range.commonAncestorContainer;
+      
+      // Find the paragraph element
+      let element: Element | null = null;
+      if (container.nodeType === Node.TEXT_NODE) {
+        element = container.parentElement;
+      } else {
+        element = container as Element;
+      }
+      
+      const paragraphEl = element?.closest?.('[data-paragraph-index]');
+      
+      if (!paragraphEl) {
+        return;
+      }
 
-    const paragraphIndex = paragraphEl
-      ? parseInt(paragraphEl.getAttribute('data-paragraph-index') || '-1', 10)
-      : null;
+      const paragraphIndex = parseInt(
+        paragraphEl.getAttribute('data-paragraph-index') || '-1',
+        10
+      );
 
-    if (paragraphIndex === -1) {
-      return;
+      if (paragraphIndex === -1) {
+        return;
+      }
+
+      setSelection({
+        text,
+        paragraphIndex,
+        range: range.cloneRange(),
+      });
+    } catch (e) {
+      // Selection API can throw in edge cases
+      console.warn('Selection error:', e);
     }
-
-    setSelection({
-      text,
-      paragraphIndex,
-      range: range.cloneRange(),
-    });
   }, []);
 
   const clearSelection = useCallback(() => {
@@ -55,37 +77,46 @@ export function useTextSelection() {
   }, []);
 
   useEffect(() => {
-    // Handle mouse selection
+    const handleMouseDown = () => {
+      isSelectingRef.current = true;
+    };
+
     const handleMouseUp = () => {
-      // Small delay to allow selection to finalize
-      setTimeout(updateSelection, 10);
+      // Delay to let selection finalize
+      setTimeout(() => {
+        if (isSelectingRef.current) {
+          updateSelection();
+          isSelectingRef.current = false;
+        }
+      }, 10);
     };
 
-    // Handle touch selection (for mobile)
-    const handleTouchEnd = () => {
-      // Longer delay for touch to allow selection handles to appear
-      setTimeout(updateSelection, 100);
-    };
-
-    // Handle selection change (works for both mouse and touch)
     const handleSelectionChange = () => {
+      // If selection is cleared, update state
       const sel = window.getSelection();
       if (sel && sel.isCollapsed && selection.text) {
-        // Selection was cleared by user
+        // Give a small delay before clearing
         setTimeout(() => {
           const currentSel = window.getSelection();
           if (currentSel && currentSel.isCollapsed) {
             setSelection({ text: '', paragraphIndex: null, range: null });
           }
-        }, 200);
+        }, 100);
       }
     };
 
+    // Touch events for mobile
+    const handleTouchEnd = () => {
+      setTimeout(updateSelection, 200);
+    };
+
+    document.addEventListener('mousedown', handleMouseDown);
     document.addEventListener('mouseup', handleMouseUp);
     document.addEventListener('touchend', handleTouchEnd);
     document.addEventListener('selectionchange', handleSelectionChange);
 
     return () => {
+      document.removeEventListener('mousedown', handleMouseDown);
       document.removeEventListener('mouseup', handleMouseUp);
       document.removeEventListener('touchend', handleTouchEnd);
       document.removeEventListener('selectionchange', handleSelectionChange);

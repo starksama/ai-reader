@@ -1,8 +1,9 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef, useCallback } from 'react';
 import { useTextSelection } from '@/hooks/use-text-selection';
 import { SelectionMenu } from './selection-menu';
+import { ParagraphMenu } from './paragraph-menu';
 
 interface Paragraph {
   id: string;
@@ -38,6 +39,22 @@ export function ArticleView({
 }: ArticleViewProps) {
   const [readProgress, setReadProgress] = useState(0);
   const { selection, clearSelection } = useTextSelection();
+  
+  // Paragraph menu state
+  const [paragraphMenu, setParagraphMenu] = useState<{
+    isOpen: boolean;
+    index: number;
+    text: string;
+    position: { x: number; y: number };
+  }>({
+    isOpen: false,
+    index: -1,
+    text: '',
+    position: { x: 0, y: 0 },
+  });
+
+  // Track mouse interaction for click vs select detection
+  const mouseDownRef = useRef<{ x: number; y: number; time: number } | null>(null);
 
   // Track scroll progress
   useEffect(() => {
@@ -52,6 +69,13 @@ export function ArticleView({
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  // Close paragraph menu when selection appears
+  useEffect(() => {
+    if (selection.text) {
+      setParagraphMenu(prev => ({ ...prev, isOpen: false }));
+    }
+  }, [selection.text]);
+
   const handleDiveDeeper = (text: string, paragraphIndex: number) => {
     if (onSelectionAsk) {
       onSelectionAsk(text, paragraphIndex);
@@ -59,6 +83,54 @@ export function ArticleView({
       onParagraphClick(paragraphIndex, text);
     }
   };
+
+  const handleParagraphMouseDown = (e: React.MouseEvent) => {
+    mouseDownRef.current = {
+      x: e.clientX,
+      y: e.clientY,
+      time: Date.now(),
+    };
+  };
+
+  const handleParagraphMouseUp = (
+    e: React.MouseEvent,
+    paragraph: Paragraph
+  ) => {
+    const mouseDown = mouseDownRef.current;
+    if (!mouseDown) return;
+
+    // Calculate if this was a click (not a drag)
+    const dx = Math.abs(e.clientX - mouseDown.x);
+    const dy = Math.abs(e.clientY - mouseDown.y);
+    const dt = Date.now() - mouseDown.time;
+
+    // If moved too much or took too long, it's a drag/selection, not a click
+    if (dx > 10 || dy > 10 || dt > 300) {
+      mouseDownRef.current = null;
+      return;
+    }
+
+    // Small delay to check if text was selected
+    setTimeout(() => {
+      const sel = window.getSelection();
+      const hasSelection = sel && sel.toString().trim().length > 0;
+
+      if (!hasSelection) {
+        // It's a click - show paragraph menu
+        setParagraphMenu({
+          isOpen: true,
+          index: paragraph.index,
+          text: paragraph.text,
+          position: { x: e.clientX, y: e.clientY + 10 },
+        });
+      }
+      mouseDownRef.current = null;
+    }, 50);
+  };
+
+  const closeParagraphMenu = useCallback(() => {
+    setParagraphMenu(prev => ({ ...prev, isOpen: false }));
+  }, []);
 
   const exploredCount = exploredParagraphs.size;
 
@@ -78,12 +150,26 @@ export function ArticleView({
         />
       </div>
 
-      {/* Selection Menu */}
+      {/* Selection Menu (for text selection) */}
       <SelectionMenu
         selection={selection}
         onDiveDeeper={handleDiveDeeper}
         onCopy={() => {}}
         onClear={clearSelection}
+      />
+
+      {/* Paragraph Menu (for paragraph click) */}
+      <ParagraphMenu
+        isOpen={paragraphMenu.isOpen}
+        paragraphIndex={paragraphMenu.index}
+        paragraphText={paragraphMenu.text}
+        position={paragraphMenu.position}
+        onDiveDeeper={() => {
+          onParagraphClick(paragraphMenu.index);
+          closeParagraphMenu();
+        }}
+        onCopy={() => {}}
+        onClose={closeParagraphMenu}
       />
 
       {/* Header */}
@@ -144,7 +230,7 @@ export function ArticleView({
           style={{ color: 'var(--text-secondary)' }}
         >
           <span>💡</span>
-          <span>Select text or tap a paragraph to dive deeper</span>
+          <span>Click a paragraph or select text to dive deeper</span>
         </p>
       </header>
 
@@ -156,18 +242,18 @@ export function ArticleView({
             <div
               key={paragraph.id}
               data-paragraph-index={paragraph.index}
-              onClick={(e) => {
-                // Don't trigger click if user is selecting text
-                const selectedText = window.getSelection()?.toString().trim();
-                if (selectedText && selectedText.length > 3) return;
-                onParagraphClick(paragraph.index);
-              }}
-              className={`paragraph relative group ${
+              onMouseDown={handleParagraphMouseDown}
+              onMouseUp={(e) => handleParagraphMouseUp(e, paragraph)}
+              className={`paragraph ${
                 selectedParagraph === paragraph.index ? 'selected' : ''
               } ${isExplored ? 'explored' : ''}`}
               role="button"
               tabIndex={0}
-              onKeyDown={(e) => e.key === 'Enter' && onParagraphClick(paragraph.index)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  onParagraphClick(paragraph.index);
+                }
+              }}
             >
               {paragraph.text}
             </div>
