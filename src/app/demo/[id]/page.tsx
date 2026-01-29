@@ -139,6 +139,7 @@ export default function DemoArticlePage() {
                 articleTitle={article.title}
                 selectedText={currentLayer.selectedText}
                 totalParagraphs={article.paragraphs.length}
+                exploredParagraphs={Array.from(exploredParagraphs)}
                 onBack={handleBack}
                 onNavigate={(index) => {
                   if (index >= 0 && index < article.paragraphs.length) {

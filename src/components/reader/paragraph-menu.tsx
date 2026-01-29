@@ -26,7 +26,6 @@ export function ParagraphMenu({
   const [copied, setCopied] = useState(false);
   const [adjustedPosition, setAdjustedPosition] = useState(position);
 
-  // Adjust position to stay in viewport
   useEffect(() => {
     if (isOpen && menuRef.current) {
       const rect = menuRef.current.getBoundingClientRect();
@@ -35,13 +34,10 @@ export function ParagraphMenu({
       let x = position.x;
       let y = position.y;
 
-      // Keep within horizontal bounds
       if (x + rect.width > window.innerWidth - padding) {
         x = window.innerWidth - rect.width - padding;
       }
       if (x < padding) x = padding;
-
-      // Keep within vertical bounds
       if (y + rect.height > window.innerHeight - padding) {
         y = position.y - rect.height - 20;
       }
@@ -51,7 +47,6 @@ export function ParagraphMenu({
     }
   }, [isOpen, position]);
 
-  // Close on outside click
   useEffect(() => {
     if (!isOpen) return;
 
@@ -61,7 +56,6 @@ export function ParagraphMenu({
       }
     };
 
-    // Delay to prevent immediate close
     setTimeout(() => {
       document.addEventListener('click', handleClick);
     }, 10);
@@ -69,14 +63,11 @@ export function ParagraphMenu({
     return () => document.removeEventListener('click', handleClick);
   }, [isOpen, onClose]);
 
-  // Close on escape
   useEffect(() => {
     if (!isOpen) return;
-
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose();
     };
-
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [isOpen, onClose]);
@@ -87,7 +78,7 @@ export function ParagraphMenu({
     setTimeout(() => {
       setCopied(false);
       onClose();
-    }, 1000);
+    }, 800);
   };
 
   return (
@@ -95,15 +86,15 @@ export function ParagraphMenu({
       {isOpen && (
         <motion.div
           ref={menuRef}
-          initial={{ opacity: 0, scale: 0.95, y: -5 }}
-          animate={{ opacity: 1, scale: 1, y: 0 }}
-          exit={{ opacity: 0, scale: 0.95, y: -5 }}
-          transition={{ duration: 0.15 }}
+          initial={{ opacity: 0, y: -4 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -4 }}
+          transition={{ duration: 0.1 }}
           className="fixed z-50"
           style={{ left: adjustedPosition.x, top: adjustedPosition.y }}
         >
           <div
-            className="rounded-2xl shadow-2xl overflow-hidden min-w-[200px]"
+            className="rounded-md shadow-lg overflow-hidden min-w-[180px]"
             style={{
               backgroundColor: 'var(--bg-secondary)',
               border: '1px solid var(--border)',
@@ -111,40 +102,40 @@ export function ParagraphMenu({
           >
             {/* Header */}
             <div 
-              className="px-4 py-3 border-b"
-              style={{ borderColor: 'var(--border)' }}
+              className="px-3 py-2 border-b text-xs"
+              style={{ borderColor: 'var(--border)', color: 'var(--text-secondary)' }}
             >
-              <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>
-                Paragraph {paragraphIndex + 1}
-              </p>
+              Paragraph {paragraphIndex + 1}
             </div>
 
             {/* Actions */}
-            <div className="p-2">
+            <div className="py-1">
               <button
                 onClick={onDiveDeeper}
-                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors hover:bg-[var(--highlight)]"
-                style={{ color: 'var(--text-primary)' }}
+                className="w-full flex items-center gap-3 px-3 py-2 text-sm font-medium transition-colors hover:bg-[var(--highlight)] text-left"
+                style={{ color: 'var(--accent)' }}
               >
-                <span>🔍</span>
+                <span className="text-xs opacity-60">↗</span>
                 <span>Dive Deeper</span>
               </button>
 
               <button
                 onClick={handleCopy}
-                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-colors hover:bg-[var(--highlight)]"
+                className="w-full flex items-center gap-3 px-3 py-2 text-sm transition-colors hover:bg-[var(--highlight)] text-left"
                 style={{ color: 'var(--text-secondary)' }}
               >
-                <span>{copied ? '✓' : '📋'}</span>
-                <span>{copied ? 'Copied!' : 'Copy paragraph'}</span>
+                <span className="text-xs opacity-60">{copied ? '✓' : '⎘'}</span>
+                <span>{copied ? 'Copied' : 'Copy'}</span>
               </button>
+
+              <div className="my-1 mx-3" style={{ height: 1, backgroundColor: 'var(--border)' }} />
 
               <button
                 onClick={onClose}
-                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-colors hover:bg-[var(--highlight)]"
+                className="w-full flex items-center gap-3 px-3 py-2 text-sm transition-colors hover:bg-[var(--highlight)] text-left"
                 style={{ color: 'var(--text-secondary)' }}
               >
-                <span>✕</span>
+                <span className="text-xs opacity-60">✕</span>
                 <span>Cancel</span>
               </button>
             </div>

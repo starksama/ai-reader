@@ -22,13 +22,14 @@ export function Toast({ message, isVisible, onHide, duration = 2000 }: ToastProp
     <AnimatePresence>
       {isVisible && (
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: 20 }}
-          className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 px-4 py-2 rounded-lg shadow-lg text-sm font-medium"
+          exit={{ opacity: 0, y: 8 }}
+          transition={{ duration: 0.15 }}
+          className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 px-4 py-2 text-sm"
           style={{
-            backgroundColor: 'var(--accent)',
-            color: '#fff',
+            backgroundColor: 'var(--text-primary)',
+            color: 'var(--bg-primary)',
           }}
         >
           {message}
@@ -38,7 +39,6 @@ export function Toast({ message, isVisible, onHide, duration = 2000 }: ToastProp
   );
 }
 
-// Simple hook for toast state
 export function useToast() {
   const [toast, setToast] = useState<{ message: string; visible: boolean }>({
     message: '',

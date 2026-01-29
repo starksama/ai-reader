@@ -22,7 +22,6 @@ export function SelectionMenu({ selection, onDiveDeeper, onCopy, onClear }: Sele
 
   useEffect(() => {
     setIsMobile(window.innerWidth < 640);
-    
     const handleResize = () => setIsMobile(window.innerWidth < 640);
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
@@ -31,39 +30,31 @@ export function SelectionMenu({ selection, onDiveDeeper, onCopy, onClear }: Sele
   useEffect(() => {
     if (selection.range) {
       const rect = selection.range.getBoundingClientRect();
-      const menuWidth = isMobile ? window.innerWidth - 32 : 200;
-      const menuHeight = 120;
+      const menuWidth = isMobile ? window.innerWidth - 32 : 220;
+      const menuHeight = 100;
       
       let x: number;
       let y: number;
       let isBelow = false;
 
       if (isMobile) {
-        // On mobile, center horizontally and position below selection
         x = 16;
-        y = rect.bottom + 12;
+        y = rect.bottom + 8;
         isBelow = true;
-        
-        // If too close to bottom, show above
         if (y + menuHeight > window.innerHeight - 20) {
-          y = rect.top - menuHeight - 12;
+          y = rect.top - menuHeight - 8;
           isBelow = false;
         }
       } else {
-        // On desktop, position above selection centered
         x = rect.left + rect.width / 2 - menuWidth / 2;
         y = rect.top - menuHeight - 8;
-        
-        // Keep within viewport
         const padding = 12;
         if (x < padding) x = padding;
         if (x + menuWidth > window.innerWidth - padding) {
           x = window.innerWidth - menuWidth - padding;
         }
-        
-        // Show below if not enough space above
         if (y < padding) {
-          y = rect.bottom + 12;
+          y = rect.bottom + 8;
           isBelow = true;
         }
       }
@@ -88,7 +79,7 @@ export function SelectionMenu({ selection, onDiveDeeper, onCopy, onClear }: Sele
     setTimeout(() => {
       setCopied(false);
       onClear();
-    }, 1000);
+    }, 800);
   };
 
   return (
@@ -96,10 +87,10 @@ export function SelectionMenu({ selection, onDiveDeeper, onCopy, onClear }: Sele
       {show && (
         <motion.div
           ref={menuRef}
-          initial={{ opacity: 0, y: position.isBelow ? -8 : 8, scale: 0.96 }}
-          animate={{ opacity: 1, y: 0, scale: 1 }}
-          exit={{ opacity: 0, y: position.isBelow ? -8 : 8, scale: 0.96 }}
-          transition={{ duration: 0.15, ease: 'easeOut' }}
+          initial={{ opacity: 0, y: position.isBelow ? -4 : 4 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: position.isBelow ? -4 : 4 }}
+          transition={{ duration: 0.1 }}
           className="fixed z-50"
           style={{ 
             left: position.x, 
@@ -108,7 +99,7 @@ export function SelectionMenu({ selection, onDiveDeeper, onCopy, onClear }: Sele
           }}
         >
           <div 
-            className="rounded-2xl shadow-2xl overflow-hidden"
+            className="rounded-md shadow-lg overflow-hidden"
             style={{
               backgroundColor: 'var(--bg-secondary)',
               border: '1px solid var(--border)',
@@ -116,49 +107,39 @@ export function SelectionMenu({ selection, onDiveDeeper, onCopy, onClear }: Sele
           >
             {/* Selected text preview */}
             <div 
-              className="px-4 py-3 border-b"
-              style={{ borderColor: 'var(--border)' }}
+              className="px-3 py-2 border-b text-xs"
+              style={{ borderColor: 'var(--border)', color: 'var(--text-secondary)' }}
             >
-              <p className="text-xs mb-1" style={{ color: 'var(--text-secondary)' }}>
-                Selected text
-              </p>
-              <p 
-                className="text-sm font-medium line-clamp-2"
-                style={{ color: 'var(--text-primary)' }}
-              >
-                "{selection.text}"
-              </p>
+              "{selection.text.slice(0, 50)}{selection.text.length > 50 ? '...' : ''}"
             </div>
 
             {/* Actions */}
-            <div className="p-2 flex gap-2">
+            <div className="flex">
               <button
                 onClick={handleDiveDeeper}
-                className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-sm font-medium text-white transition-all active:scale-98"
-                style={{ backgroundColor: 'var(--accent)' }}
+                className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-medium transition-colors hover:bg-[var(--highlight)]"
+                style={{ color: 'var(--accent)' }}
               >
-                <span>🔍</span>
+                <span className="text-xs">↗</span>
                 <span>Dive Deeper</span>
               </button>
               
+              <div style={{ width: 1, backgroundColor: 'var(--border)' }} />
+              
               <button
                 onClick={handleCopy}
-                className="px-4 py-3 rounded-xl text-sm transition-all active:scale-98"
-                style={{ 
-                  backgroundColor: 'var(--highlight)',
-                  color: 'var(--text-secondary)',
-                }}
+                className="px-4 py-2.5 text-sm transition-colors hover:bg-[var(--highlight)]"
+                style={{ color: 'var(--text-secondary)' }}
               >
-                {copied ? '✓' : '📋'}
+                {copied ? '✓' : 'Copy'}
               </button>
+
+              <div style={{ width: 1, backgroundColor: 'var(--border)' }} />
 
               <button
                 onClick={onClear}
-                className="px-4 py-3 rounded-xl text-sm transition-all active:scale-98"
-                style={{ 
-                  backgroundColor: 'var(--highlight)',
-                  color: 'var(--text-secondary)',
-                }}
+                className="px-3 py-2.5 text-sm transition-colors hover:bg-[var(--highlight)]"
+                style={{ color: 'var(--text-secondary)' }}
               >
                 ✕
               </button>
