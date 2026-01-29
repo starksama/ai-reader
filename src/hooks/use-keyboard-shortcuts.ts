@@ -5,9 +5,16 @@ import { useEffect } from 'react';
 interface KeyboardShortcutsOptions {
   onEscape?: () => void;
   onBack?: () => void;
+  onPrev?: () => void;
+  onNext?: () => void;
 }
 
-export function useKeyboardShortcuts({ onEscape, onBack }: KeyboardShortcutsOptions) {
+export function useKeyboardShortcuts({ 
+  onEscape, 
+  onBack,
+  onPrev,
+  onNext,
+}: KeyboardShortcutsOptions) {
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       // Don't trigger if user is typing in an input
@@ -34,10 +41,24 @@ export function useKeyboardShortcuts({ onEscape, onBack }: KeyboardShortcutsOpti
             e.preventDefault();
           }
           break;
+        case 'ArrowUp':
+        case 'k': // vim-style
+          if (onPrev) {
+            onPrev();
+            e.preventDefault();
+          }
+          break;
+        case 'ArrowDown':
+        case 'j': // vim-style
+          if (onNext) {
+            onNext();
+            e.preventDefault();
+          }
+          break;
       }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [onEscape, onBack]);
+  }, [onEscape, onBack, onPrev, onNext]);
 }

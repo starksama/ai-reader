@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { AsyncResponse } from '@/components/async/async-response';
 import { useNotesStore } from '@/stores/notes-store';
+import { useKeyboardShortcuts } from '@/hooks/use-keyboard-shortcuts';
 
 interface Paragraph {
   id: string;
@@ -73,6 +74,21 @@ export function DetailLayer({
   const [chatHistory, setChatHistory] = useState<Array<{ q: string; a: string }>>([]);
   const inputRef = useRef<HTMLInputElement>(null);
   const { addNote } = useNotesStore();
+
+  // Keyboard navigation
+  useKeyboardShortcuts({
+    onEscape: onBack,
+    onPrev: () => {
+      if (onNavigate && paragraph.index > 0) {
+        onNavigate(paragraph.index - 1);
+      }
+    },
+    onNext: () => {
+      if (onNavigate && paragraph.index < totalParagraphs - 1) {
+        onNavigate(paragraph.index + 1);
+      }
+    },
+  });
 
   // Focus input on mount
   useEffect(() => {
