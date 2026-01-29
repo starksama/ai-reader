@@ -24,7 +24,7 @@
 - [x] Error boundaries
 - [ ] Empty states
 
-## 🟢 Done (40 commits)
+## 🟢 Done (43 commits)
 - [x] Click vs selection separation
 - [x] UI Guide document  
 - [x] Mobile selection support
@@ -41,6 +41,8 @@
 - [x] Settings panel with font size control
 - [x] Error boundaries
 - [x] Keyboard shortcut hints modal
+- [x] 404 not-found page
+- [x] Vercel config (hnd1 region)
 
 ## First Principles
 - Core purpose: Help users UNDERSTAND what they read
