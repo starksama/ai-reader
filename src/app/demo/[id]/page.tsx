@@ -6,8 +6,12 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft } from 'lucide-react';
 import { getMockArticle, type MockArticle } from '@/data/mock-articles';
 import { useLayerStore } from '@/stores/layer-store';
+import { useThemeStore } from '@/stores/theme-store';
 import { ArticleView } from '@/components/reader/article-view';
 import { DetailLayer } from '@/components/layers/detail-layer';
+import { LoadingSkeleton } from '@/components/reader/loading-skeleton';
+import { SettingsPanel } from '@/components/reader/settings-panel';
+import { KeyboardHints } from '@/components/reader/keyboard-hints';
 import { useKeyboardShortcuts } from '@/hooks/use-keyboard-shortcuts';
 
 export default function DemoArticlePage() {
@@ -19,6 +23,7 @@ export default function DemoArticlePage() {
   const [selectedParagraph, setSelectedParagraph] = useState<number | null>(null);
   const [exploredParagraphs, setExploredParagraphs] = useState<Set<number>>(new Set());
   const { layers, currentIndex, push, pop, reset } = useLayerStore();
+  const { fontSize } = useThemeStore();
 
   const isDetailView = currentIndex > 0;
 
@@ -64,10 +69,21 @@ export default function DemoArticlePage() {
 
   if (!article) {
     return (
-      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: 'var(--bg-primary)' }}>
-        <div className="text-center">
-          <p className="animate-pulse" style={{ color: 'var(--text-secondary)' }}>Loading...</p>
+      <div className="min-h-screen" style={{ backgroundColor: 'var(--bg-primary)' }}>
+        <div 
+          className="sticky top-0 z-40 border-b backdrop-blur-sm"
+          style={{ 
+            backgroundColor: 'rgba(var(--bg-primary-rgb), 0.9)',
+            borderColor: 'var(--border)',
+          }}
+        >
+          <div className="reader-container py-3">
+            <div className="flex items-center gap-2 text-sm" style={{ color: 'var(--text-secondary)' }}>
+              <span className="animate-pulse">Loading...</span>
+            </div>
+          </div>
         </div>
+        <LoadingSkeleton />
       </div>
     );
   }
@@ -75,7 +91,7 @@ export default function DemoArticlePage() {
   const currentLayer = layers[currentIndex];
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: 'var(--bg-primary)' }}>
+    <div className={`min-h-screen font-${fontSize}`} style={{ backgroundColor: 'var(--bg-primary)' }}>
       <AnimatePresence mode="wait">
         {!isDetailView ? (
           <motion.div
@@ -85,7 +101,7 @@ export default function DemoArticlePage() {
             exit={{ opacity: 0, x: -20 }}
             transition={{ duration: 0.2 }}
           >
-            {/* Simple top bar */}
+            {/* Top bar */}
             <div 
               className="sticky top-0 z-40 border-b backdrop-blur-sm"
               style={{ 
@@ -100,20 +116,24 @@ export default function DemoArticlePage() {
                   style={{ color: 'var(--accent)' }}
                 >
                   <ArrowLeft size={14} />
-                  <span>Back to demos</span>
+                  <span>Back</span>
                 </button>
                 
-                {exploredParagraphs.size > 0 && (
-                  <div 
-                    className="text-xs px-2 py-1 rounded-sm"
-                    style={{ 
-                      backgroundColor: 'var(--accent)',
-                      color: '#fff',
-                    }}
-                  >
-                    {exploredParagraphs.size} explored
-                  </div>
-                )}
+                <div className="flex items-center gap-2">
+                  {exploredParagraphs.size > 0 && (
+                    <div 
+                      className="text-xs px-2 py-1 rounded-sm"
+                      style={{ 
+                        backgroundColor: 'var(--accent)',
+                        color: '#fff',
+                      }}
+                    >
+                      {exploredParagraphs.size} explored
+                    </div>
+                  )}
+                  <KeyboardHints />
+                  <SettingsPanel />
+                </div>
               </div>
             </div>
 

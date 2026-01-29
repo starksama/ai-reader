@@ -20,11 +20,11 @@
 
 ## 🟡 Medium Priority
 - [x] Add keyboard shortcut hints
-- [ ] Better loading states
+- [x] Better loading states
 - [x] Error boundaries
 - [ ] Empty states
 
-## 🟢 Done (43 commits)
+## 🟢 Done (44 commits)
 - [x] Click vs selection separation
 - [x] UI Guide document  
 - [x] Mobile selection support
@@ -43,6 +43,7 @@
 - [x] Keyboard shortcut hints modal
 - [x] 404 not-found page
 - [x] Vercel config (hnd1 region)
+- [x] Demo page: settings, keyboard hints, loading skeleton
 
 ## First Principles
 - Core purpose: Help users UNDERSTAND what they read
