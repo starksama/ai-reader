@@ -1,8 +1,8 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { motion } from 'framer-motion';
-import { ArrowLeft, ChevronUp, ChevronDown, Send } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { ArrowLeft, ChevronUp, ChevronDown, Send, ChevronRight } from 'lucide-react';
 import { ChatBubble } from '@/components/chat/chat-bubble';
 import { useNotesStore } from '@/stores/notes-store';
 import { useKeyboardShortcuts } from '@/hooks/use-keyboard-shortcuts';
@@ -60,6 +60,7 @@ export function DetailLayer({
   const [isAsking, setIsAsking] = useState(false);
   const [response, setResponse] = useState<string | null>(null);
   const [chatHistory, setChatHistory] = useState<Array<{ q: string; a: string }>>([]);
+  const [showContext, setShowContext] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const { addNote } = useNotesStore();
   const { toast, show: showToast, hide: hideToast } = useToast();
@@ -67,6 +68,9 @@ export function DetailLayer({
   const currentExploredIndex = exploredParagraphs.indexOf(paragraph.index);
   const canGoPrev = currentExploredIndex > 0;
   const canGoNext = currentExploredIndex < exploredParagraphs.length - 1 && currentExploredIndex !== -1;
+
+  // Show full context by default only if no selection
+  const hasSelection = !!selectedText;
 
   useKeyboardShortcuts({
     onEscape: onBack,
@@ -120,6 +124,8 @@ export function DetailLayer({
     "Give example",
   ];
 
+  const displayText = selectedText || paragraph.text;
+
   return (
     <motion.div 
       initial={{ opacity: 0 }}
@@ -135,38 +141,38 @@ export function DetailLayer({
           borderColor: 'var(--border)',
         }}
       >
-        <div className="reader-container py-3 flex items-center justify-between">
+        <div className="max-w-2xl mx-auto px-6 py-4 flex items-center justify-between">
           <button
             onClick={onBack}
-            className="flex items-center gap-2 text-sm transition-opacity hover:opacity-70"
+            className="flex items-center gap-2 text-sm font-medium transition-opacity hover:opacity-70 -ml-1"
             style={{ color: 'var(--accent)' }}
           >
-            <ArrowLeft size={14} />
+            <ArrowLeft size={16} />
             <span>Back</span>
           </button>
           
           {/* Branch navigation */}
           {onNavigate && exploredParagraphs.length > 1 && (
             <div className="flex items-center gap-2">
-              <span className="text-xs tabular-nums" style={{ color: 'var(--text-secondary)' }}>
+              <span className="text-xs tabular-nums" style={{ color: 'var(--text-tertiary)' }}>
                 {currentExploredIndex + 1}/{exploredParagraphs.length}
               </span>
               <div className="flex">
                 <button
                   onClick={() => canGoPrev && onNavigate(exploredParagraphs[currentExploredIndex - 1])}
                   disabled={!canGoPrev}
-                  className="w-6 h-6 flex items-center justify-center transition-all disabled:opacity-20"
+                  className="w-7 h-7 flex items-center justify-center transition-all disabled:opacity-20"
                   style={{ color: 'var(--text-secondary)' }}
                 >
-                  <ChevronUp size={14} />
+                  <ChevronUp size={16} />
                 </button>
                 <button
                   onClick={() => canGoNext && onNavigate(exploredParagraphs[currentExploredIndex + 1])}
                   disabled={!canGoNext}
-                  className="w-6 h-6 flex items-center justify-center transition-all disabled:opacity-20"
+                  className="w-7 h-7 flex items-center justify-center transition-all disabled:opacity-20"
                   style={{ color: 'var(--text-secondary)' }}
                 >
-                  <ChevronDown size={14} />
+                  <ChevronDown size={16} />
                 </button>
               </div>
             </div>
@@ -174,45 +180,66 @@ export function DetailLayer({
         </div>
       </div>
 
-      <div className="reader-container py-6">
-        {/* Selected text */}
-        {selectedText && (
-          <motion.div
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="mb-4 p-4 rounded-md"
-            style={{ 
-              backgroundColor: 'var(--accent-subtle)', 
-              borderLeft: '2px solid var(--accent)',
-            }}
-          >
-            <p className="text-xs uppercase tracking-wider mb-2" style={{ color: 'var(--text-tertiary)' }}>
-              Selection
-            </p>
-            <p className="leading-relaxed" style={{ color: 'var(--text-primary)' }}>
-              &ldquo;{selectedText}&rdquo;
-            </p>
-          </motion.div>
-        )}
-
-        {/* Full paragraph */}
+      <div className="max-w-2xl mx-auto px-6 py-8">
+        {/* Main text (selection or passage) */}
         <motion.div
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.05 }}
-          className="p-4 mb-6 rounded-md"
-          style={{ 
-            backgroundColor: 'var(--bg-secondary)',
-            border: '1px solid var(--border-subtle)',
-          }}
+          className="mb-6"
         >
-          <p className="text-xs uppercase tracking-wider mb-2" style={{ color: 'var(--text-tertiary)' }}>
-            {selectedText ? 'Context' : 'Passage'}
-          </p>
-          <p className="leading-relaxed" style={{ color: 'var(--text-primary)' }}>
-            {paragraph.text}
+          <p 
+            className="text-lg leading-relaxed"
+            style={{ color: 'var(--text-primary)' }}
+          >
+            {hasSelection ? `"${displayText}"` : displayText}
           </p>
         </motion.div>
+
+        {/* Collapsible context (only show when there's a selection) */}
+        {hasSelection && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.05 }}
+            className="mb-6"
+          >
+            <button
+              onClick={() => setShowContext(!showContext)}
+              className="flex items-center gap-1 text-xs transition-opacity hover:opacity-70"
+              style={{ color: 'var(--text-tertiary)' }}
+            >
+              <motion.span
+                animate={{ rotate: showContext ? 90 : 0 }}
+                transition={{ duration: 0.15 }}
+              >
+                <ChevronRight size={12} />
+              </motion.span>
+              <span>Full context</span>
+            </button>
+            
+            <AnimatePresence>
+              {showContext && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  exit={{ opacity: 0, height: 0 }}
+                  transition={{ duration: 0.2 }}
+                  className="overflow-hidden"
+                >
+                  <p 
+                    className="mt-3 text-sm leading-relaxed pl-3 border-l-2"
+                    style={{ 
+                      color: 'var(--text-secondary)',
+                      borderColor: 'var(--border)',
+                    }}
+                  >
+                    {paragraph.text}
+                  </p>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </motion.div>
+        )}
 
         {/* Suggested questions */}
         {chatHistory.length === 0 && !isAsking && (
@@ -220,7 +247,7 @@ export function DetailLayer({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.1 }}
-            className="mb-6 flex flex-wrap gap-2"
+            className="mb-8 flex flex-wrap gap-2"
           >
             {suggestedQuestions.map((q) => (
               <button
@@ -229,11 +256,10 @@ export function DetailLayer({
                   setQuestion(q);
                   inputRef.current?.focus();
                 }}
-                className="px-3 py-1.5 text-sm rounded-md transition-all hover:opacity-70"
+                className="px-3 py-2 text-sm rounded-lg transition-all hover:opacity-80"
                 style={{
                   backgroundColor: 'var(--bg-secondary)',
                   color: 'var(--text-secondary)',
-                  border: '1px solid var(--border)',
                 }}
               >
                 {q}
@@ -244,7 +270,7 @@ export function DetailLayer({
 
         {/* Chat history */}
         {chatHistory.length > 0 && (
-          <div className="space-y-4 mb-6">
+          <div className="space-y-4 mb-8">
             {chatHistory.map((item, idx) => (
               <div key={idx} className="space-y-3">
                 <ChatBubble role="user" content={item.q} />
@@ -256,7 +282,7 @@ export function DetailLayer({
 
         {/* Current response */}
         {(isAsking || response) && chatHistory.length === 0 && (
-          <div className="space-y-3 mb-6">
+          <div className="space-y-3 mb-8">
             <ChatBubble role="user" content={pendingQuestion} />
             <ChatBubble 
               role="assistant" 
@@ -272,10 +298,10 @@ export function DetailLayer({
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.15 }}
-          className="sticky bottom-4 mt-8"
+          className="sticky bottom-6"
         >
           <div 
-            className="flex gap-2 rounded-md overflow-hidden"
+            className="flex gap-2 rounded-lg overflow-hidden shadow-sm"
             style={{ 
               backgroundColor: 'var(--bg-primary)',
               border: '1px solid var(--border)',
@@ -288,17 +314,17 @@ export function DetailLayer({
               onChange={(e) => setQuestion(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleAsk()}
               placeholder="Ask about this passage..."
-              className="flex-1 px-3 py-2.5 bg-transparent outline-none text-sm"
+              className="flex-1 px-4 py-3 bg-transparent outline-none text-sm"
               style={{ color: 'var(--text-primary)' }}
               disabled={isAsking}
             />
             <button
               onClick={handleAsk}
               disabled={isAsking || !question.trim()}
-              className="px-4 py-2.5 text-sm text-white transition-all hover:opacity-90 disabled:opacity-40"
+              className="px-4 py-3 text-sm text-white transition-all hover:opacity-90 disabled:opacity-40"
               style={{ backgroundColor: 'var(--accent)' }}
             >
-              <Send size={14} />
+              <Send size={16} />
             </button>
           </div>
         </motion.div>
