@@ -19,7 +19,7 @@ export const useThemeStore = create<ThemeState>()(
     (set) => ({
       theme: 'light',
       fontSize: 'medium',
-      highlightColor: 'yellow',
+      highlightColor: 'green',
       setTheme: (theme) => set({ theme }),
       setFontSize: (fontSize) => set({ fontSize }),
       setHighlightColor: (highlightColor) => set({ highlightColor }),
@@ -36,29 +36,32 @@ export const fontSizeMap: Record<FontSize, { base: number; mobile: number }> = {
   large: { base: 20, mobile: 19 },
 };
 
-// Highlight colors with proper opacity for readability
-// Format: { light: color, dark: color, sepia: color }
+// Highlight colors - sophisticated, muted tones inspired by Greptile's aesthetic
+// Less "highlighter" bright, more elegant and readable
 export const highlightColorMap: Record<Theme, Record<HighlightColor, string>> = {
   light: {
-    yellow: 'rgba(253, 224, 71, 0.4)',  // yellow-300
-    green: 'rgba(134, 239, 172, 0.4)',   // green-300
-    blue: 'rgba(147, 197, 253, 0.4)',    // blue-300
-    pink: 'rgba(249, 168, 212, 0.4)',    // pink-300
-    orange: 'rgba(253, 186, 116, 0.4)',  // orange-300
+    // Muted, sophisticated tones with good readability
+    yellow: 'rgba(234, 197, 95, 0.35)',   // Warm gold, not neon yellow
+    green: 'rgba(76, 140, 87, 0.28)',     // Sage/forest green like Greptile
+    blue: 'rgba(90, 145, 185, 0.30)',     // Muted steel blue
+    pink: 'rgba(195, 125, 145, 0.30)',    // Dusty rose
+    orange: 'rgba(210, 140, 85, 0.32)',   // Warm terracotta
   },
   dark: {
-    yellow: 'rgba(253, 224, 71, 0.25)',  // Less opacity for dark mode
-    green: 'rgba(134, 239, 172, 0.25)',
-    blue: 'rgba(147, 197, 253, 0.25)',
-    pink: 'rgba(249, 168, 212, 0.25)',
-    orange: 'rgba(253, 186, 116, 0.25)',
+    // Slightly more saturated for dark backgrounds
+    yellow: 'rgba(234, 197, 95, 0.25)',   // Warm gold
+    green: 'rgba(86, 160, 100, 0.22)',    // Sage green
+    blue: 'rgba(100, 155, 195, 0.22)',    // Steel blue
+    pink: 'rgba(200, 135, 155, 0.22)',    // Dusty rose
+    orange: 'rgba(215, 150, 95, 0.24)',   // Terracotta
   },
   sepia: {
-    yellow: 'rgba(217, 169, 57, 0.35)',  // Warmer yellow for sepia
-    green: 'rgba(101, 163, 103, 0.35)',  // Muted green
-    blue: 'rgba(122, 158, 189, 0.35)',   // Muted blue
-    pink: 'rgba(199, 139, 156, 0.35)',   // Muted pink
-    orange: 'rgba(210, 150, 94, 0.35)',  // Warmer orange
+    // Warmer, earth tones that complement sepia
+    yellow: 'rgba(195, 165, 75, 0.32)',   // Antique gold
+    green: 'rgba(95, 130, 85, 0.28)',     // Olive sage
+    blue: 'rgba(110, 135, 155, 0.28)',    // Slate blue
+    pink: 'rgba(175, 120, 130, 0.28)',    // Mauve
+    orange: 'rgba(185, 130, 80, 0.30)',   // Burnt sienna
   },
 };
 
