@@ -17,20 +17,20 @@ const sourceSerif = Source_Serif_4({
 });
 
 export const metadata: Metadata = {
-  title: "Mull — Your Second Brain for Complex Ideas",
-  description: "Dive into rabbit holes. Never lose the thread. Mull manages your context tree so you can explore freely without losing your way back.",
-  keywords: ["mull", "second brain", "learning tool", "ai reader", "context management", "research", "understanding", "knowledge"],
+  title: "Mull — Branch Freely, Never Start Over",
+  description: "No more 'let me start a new chat'. Mull lets you explore tangents without polluting your main thread. Branch off, go deep, and always find your way back.",
+  keywords: ["mull", "ai chat", "context management", "branching conversations", "learning tool", "research", "no more new chat"],
   authors: [{ name: "starksama", url: "https://github.com/starksama" }],
   openGraph: {
-    title: "Mull — Your Second Brain for Complex Ideas",
-    description: "Dive into rabbit holes. Never lose the thread. Explore complex content with AI while maintaining perfect context.",
+    title: "Mull — Branch Freely, Never Start Over",
+    description: "No more 'let me start a new chat'. Explore tangents without polluting your context. Branch off, go deep, return cleanly.",
     type: "website",
     locale: "en_US",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Mull — Your Second Brain for Complex Ideas",
-    description: "Dive into rabbit holes. Never lose the thread. Explore complex content with AI while maintaining perfect context.",
+    title: "Mull — Branch Freely, Never Start Over",
+    description: "No more 'let me start a new chat'. Explore tangents without polluting your context. Branch off, go deep, return cleanly.",
   },
 };
 

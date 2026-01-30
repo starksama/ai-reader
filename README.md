@@ -2,83 +2,85 @@
 
 ### Your Second Brain for Complex Ideas
 
-> **Dive into rabbit holes. Never lose the thread.**
+> **Branch freely. Never start over.**
 
-Mull is a thinking tool for autodidacts, researchers, and the endlessly curious. Paste any content, ask questions, branch into tangents—Mull manages your context tree so you can explore freely without losing your way back.
+Mull is a thinking tool that lets you explore tangents without polluting your main thread. Ask follow-ups, go deep into rabbit holes, and always find your way back.
 
 ---
 
 ## The Problem
 
-You're reading something dense. A term catches your eye. You Google it. That leads to three Wikipedia tabs. Now you're watching a YouTube video about a tangentially related concept. An hour later, you can't remember what you were originally trying to understand.
+### Before AI: Tab Explosion
+You're reading something dense. A term catches your eye. You Google it. Three Wikipedia tabs later, you're watching a YouTube video about a tangentially related concept. An hour passes. You forgot what you were originally trying to understand.
 
-**Mull fixes this.**
+### With AI: Chat Pollution
+Now you have ChatGPT. You paste an article and ask "what does X mean in paragraph 2?" Three back-and-forths later, you finally get it. But now your chat is **polluted**:
+
+- The original article is buried under clarifications
+- You want to ask about paragraph 5, but the context is all wrong
+- The AI is still thinking about your tangent, not the main content  
+- You can't easily reference what you were reading
+- Frustrated, you **start a new chat**
+
+And repeat.
+
+### The Real Issue
+AI chats are **single-threaded**. Every question pollutes the same context. There's no way to branch off, explore a tangent, and cleanly return to where you were.
+
+---
 
 ## The Solution
 
-Mull maintains a **context tree** of your exploration:
+Mull gives you **branching conversations**:
 
 ```
 📄 Original Article
  ├── 💭 "What does entropy mean here?"
- │    └── 🤖 AI explanation with examples
+ │    └── 🤖 Explanation
  │         └── 💭 "How does this relate to information theory?"
- │              └── 🤖 Deep dive on Shannon entropy
- ├── 💭 Highlighted: "thermodynamic equilibrium"
- │    └── 🤖 ELI5 breakdown
- └── 💭 "What are the practical applications?"
-      └── 🤖 Real-world examples
+ │              └── 🤖 Deep dive (your tangent lives here)
+ │
+ ├── 💭 "Explain paragraph 5" ← back to clean context
+ │    └── 🤖 Fresh explanation, no tangent pollution
+ │
+ └── 💭 "Summarize the main argument"
+      └── 🤖 Summary with full article context
 ```
 
-**Every branch remembers its parent.** Jump anywhere, the context follows.
+**Every branch remembers its parent.** Your tangent about information theory doesn't pollute your question about paragraph 5. Jump anywhere—the right context follows.
+
+---
+
+## No More...
+
+- 🔄 **"Let me start a new chat"** — Branch instead
+- 📜 **Scrolling up to find the original** — It's always there
+- 🤯 **"Wait, what were we talking about?"** — Context stays clean
+- 😤 **AI stuck on your tangent** — Each branch has its own thread
 
 ---
 
 ## Features
 
-- **🌳 Context Tree** — Branch infinitely, never lose the main thread
-- **💬 AI Conversations** — Ask follow-ups, get explanations, go deeper
-- **✨ Smart Highlights** — Mark what matters, revisit later
-- **📱 Mobile-First** — Touch-native with bottom sheets
-- **🎨 Reading Modes** — Light, dark, sepia with adjustable fonts
-- **⌨️ Keyboard Shortcuts** — Navigate with ↑↓, Escape to go back
-- **📤 Export Notes** — Take your insights with you
+- **🌳 Context Tree** — Branch infinitely, return instantly
+- **💬 Scoped Conversations** — Each tangent is isolated
+- **📍 Always Anchored** — Original content never buried
+- **✨ Smart Highlights** — Mark what matters
+- **📱 Mobile-First** — Touch-native navigation
+- **📤 Export Notes** — Take your insights anywhere
 
 ---
 
 ## Quick Start
 
 ```bash
-# Clone
 git clone https://github.com/starksama/mull.git
 cd mull
-
-# Install
 pnpm install
-
-# Run
 pnpm dev
 ```
 
-Open http://localhost:3000 and paste any URL.
-
----
-
-## Environment Variables
-
-Create a `.env.local` file:
-
-```bash
-# AI Provider (choose one)
-OPENAI_API_KEY=sk-...           # For GPT-4
-ANTHROPIC_API_KEY=sk-ant-...    # For Claude
-GOOGLE_AI_KEY=...               # For Gemini
-
-# Optional
-NEXT_PUBLIC_APP_URL=http://localhost:3000
-```
-
-> **Note:** Currently runs with mock AI responses. Real AI integration coming soon.
+Open http://localhost:3000, paste a URL or content, and start exploring.
 
 ---
 
@@ -86,40 +88,44 @@ NEXT_PUBLIC_APP_URL=http://localhost:3000
 
 ### Why "Mull"?
 
-**mull** /məl/ *verb*  
-To think about something deeply and at length.
+**mull** /məl/ *verb* — to think about carefully; to ponder.
 
-*"She mulled over the implications of quantum mechanics while sipping her coffee."*
+*"She mulled over the implications, branching into tangent after tangent, yet never losing the thread."*
 
-### Design Principles
+### Alternative Names Considered
 
-1. **Reading-first** — UI never distracts from content
-2. **Context is king** — Every question knows its ancestry  
-3. **Branch freely** — Tangents are features, not bugs
-4. **Return safely** — One swipe back to where you were
+| Name | Vibe |
+|------|------|
+| **Mull** | Thoughtful, deliberate pondering |
+| **Delve** | Going deep |
+| **Branch** | The core mechanic |
+| **Tangent** | What you're managing |
+| **Warren** | Network of rabbit holes |
+| **Grok** | Deep understanding (Heinlein) |
+
+We stuck with **Mull** — short, memorable, captures the thoughtful exploration.
 
 ---
 
 ## Tech Stack
 
 - **Next.js 16** — App Router, React 19
-- **Tailwind CSS 4** — Utility-first styling
+- **Tailwind CSS 4** — Utility-first styling  
 - **Framer Motion** — Smooth animations
 - **Zustand** — State management with persistence
-- **Readability.js** — Article extraction (Mozilla)
+- **Readability.js** — Article extraction
 
 ---
 
 ## Roadmap
 
-- [x] Article parsing and clean reader view
+- [x] Article parsing and reader view
 - [x] Highlighting with theme-aware colors
 - [x] Layer-based navigation (context tree)
-- [x] Mock AI responses
+- [x] Paste content support
 - [ ] **Real AI integration** (OpenAI, Anthropic, Google)
-- [ ] Multi-agent system (Explainer, Critic, Researcher)
-- [ ] "Ask anything" mode (no URL needed)
-- [ ] PDF and ePub support
+- [ ] Branch visualization
+- [ ] "Ask anything" mode (no source needed)
 - [ ] Browser extension
 - [ ] Sync across devices
 
@@ -138,5 +144,5 @@ MIT
 ---
 
 <p align="center">
-  <em>Stop skimming. Start understanding.</em>
+  <strong>Branch freely. Never start over.</strong>
 </p>

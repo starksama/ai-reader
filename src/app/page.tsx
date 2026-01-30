@@ -76,10 +76,10 @@ export default function Home() {
             Mull
           </h1>
           <p className="text-base mb-1" style={{ color: 'var(--text-secondary)' }}>
-            Your second brain for complex ideas
+            Branch freely. Never start over.
           </p>
           <p className="text-sm" style={{ color: 'var(--text-tertiary)' }}>
-            Dive into rabbit holes. Never lose the thread.
+            No more &quot;let me start a new chat&quot;
           </p>
         </div>
 
@@ -201,9 +201,9 @@ export default function Home() {
         {/* Features */}
         <div className="grid grid-cols-3 gap-3 mb-8">
           {[
-            { emoji: '🌳', title: 'Context Tree', desc: 'Branch infinitely' },
-            { emoji: '💬', title: 'AI Dialogue', desc: 'Ask & understand' },
-            { emoji: '✨', title: 'Highlights', desc: 'Mark & export' },
+            { emoji: '🌳', title: 'Branch', desc: 'Tangents stay isolated' },
+            { emoji: '📍', title: 'Anchored', desc: 'Source never buried' },
+            { emoji: '🔄', title: 'Return', desc: 'Clean context awaits' },
           ].map((f) => (
             <div 
               key={f.title} 
@@ -237,7 +237,7 @@ export default function Home() {
 
         {/* Footer */}
         <p className="text-center text-xs mt-8" style={{ color: 'var(--text-tertiary)' }}>
-          Stop skimming. Start understanding.
+          Ask tangents. Keep context.
         </p>
       </motion.div>
     </main>
