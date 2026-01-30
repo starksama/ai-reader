@@ -2,13 +2,14 @@
 
 import { useEffect, useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowUpRight, Copy, X } from 'lucide-react';
+import { ArrowUpRight, Copy, X, Highlighter } from 'lucide-react';
 
 interface ParagraphMenuProps {
   isOpen: boolean;
   paragraphText: string;
   position: { x: number; y: number };
   onDiveDeeper: () => void;
+  onHighlight: () => void;
   onClose: () => void;
 }
 
@@ -17,6 +18,7 @@ export function ParagraphMenu({
   paragraphText,
   position,
   onDiveDeeper,
+  onHighlight,
   onClose,
 }: ParagraphMenuProps) {
   const menuRef = useRef<HTMLDivElement>(null);
@@ -115,6 +117,15 @@ export function ParagraphMenu({
               >
                 <ArrowUpRight size={14} />
                 <span>Dive deeper</span>
+              </button>
+
+              <button
+                onClick={onHighlight}
+                className="w-full flex items-center gap-3 px-3 py-2 text-sm transition-colors hover:bg-[var(--highlight)] text-left"
+                style={{ color: 'var(--text-secondary)' }}
+              >
+                <Highlighter size={14} />
+                <span>Highlight</span>
               </button>
 
               <button

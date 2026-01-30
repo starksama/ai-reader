@@ -177,6 +177,15 @@ export function ArticleView({
           onParagraphClick(paragraphMenu.index);
           closeParagraphMenu();
         }}
+        onHighlight={() => {
+          addHighlight(article.url, {
+            paragraphIndex: paragraphMenu.index,
+            text: paragraphMenu.text,
+            startOffset: 0,
+            endOffset: paragraphMenu.text.length,
+          });
+          closeParagraphMenu();
+        }}
         onClose={closeParagraphMenu}
       />
 
