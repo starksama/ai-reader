@@ -4,20 +4,56 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
-import { ArrowRight, Sun, Moon, BookOpen } from 'lucide-react';
+import { ArrowRight, Sun, Moon, BookOpen, Link2, FileText } from 'lucide-react';
 import { useThemeStore, type Theme } from '@/stores/theme-store';
+import { useReaderStore } from '@/stores/reader-store';
+import { parseContent } from '@/utils/parse-content';
+
+type InputMode = 'url' | 'paste';
 
 export default function Home() {
+  const [mode, setMode] = useState<InputMode>('url');
   const [url, setUrl] = useState('');
+  const [pastedContent, setPastedContent] = useState('');
+  const [title, setTitle] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  
   const router = useRouter();
   const { theme, setTheme } = useThemeStore();
+  const { setArticle } = useReaderStore();
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleUrlSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!url.trim()) return;
     setIsLoading(true);
+    setError(null);
     router.push(`/read?url=${encodeURIComponent(url)}`);
+  };
+
+  const handlePasteSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!pastedContent.trim()) return;
+    
+    setIsLoading(true);
+    setError(null);
+    
+    try {
+      const article = parseContent(pastedContent, title || 'Pasted Content');
+      
+      if (!article || article.paragraphs.length === 0) {
+        setError('Could not parse content. Try pasting more text or HTML.');
+        setIsLoading(false);
+        return;
+      }
+      
+      // Store in reader store and navigate
+      setArticle(article);
+      router.push('/read?source=paste');
+    } catch (err) {
+      setError('Failed to parse content. Please try again.');
+      setIsLoading(false);
+    }
   };
 
   const themes: { key: Theme; label: string; icon: React.ReactNode }[] = [
@@ -35,7 +71,7 @@ export default function Home() {
         className="w-full max-w-md"
       >
         {/* Header */}
-        <div className="text-center mb-10">
+        <div className="text-center mb-8">
           <h1 className="text-3xl font-semibold mb-3 tracking-tight" style={{ color: 'var(--text-primary)' }}>
             Mull
           </h1>
@@ -47,36 +83,112 @@ export default function Home() {
           </p>
         </div>
 
-        {/* URL Input */}
-        <form onSubmit={handleSubmit} className="mb-6">
-          <div 
-            className="flex rounded-lg overflow-hidden shadow-sm"
-            style={{ border: '1px solid var(--border)' }}
+        {/* Mode Toggle */}
+        <div className="flex mb-4 rounded-lg overflow-hidden" style={{ border: '1px solid var(--border)' }}>
+          <button
+            onClick={() => { setMode('url'); setError(null); }}
+            className="flex-1 px-4 py-2.5 text-sm flex items-center justify-center gap-2 transition-all"
+            style={{
+              backgroundColor: mode === 'url' ? 'var(--bg-secondary)' : 'transparent',
+              color: mode === 'url' ? 'var(--text-primary)' : 'var(--text-secondary)',
+            }}
           >
+            <Link2 size={14} />
+            <span>URL</span>
+          </button>
+          <button
+            onClick={() => { setMode('paste'); setError(null); }}
+            className="flex-1 px-4 py-2.5 text-sm flex items-center justify-center gap-2 transition-all"
+            style={{
+              backgroundColor: mode === 'paste' ? 'var(--bg-secondary)' : 'transparent',
+              color: mode === 'paste' ? 'var(--text-primary)' : 'var(--text-secondary)',
+            }}
+          >
+            <FileText size={14} />
+            <span>Paste</span>
+          </button>
+        </div>
+
+        {/* Error */}
+        {error && (
+          <motion.div
+            initial={{ opacity: 0, y: -8 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-4 p-3 rounded-lg text-sm"
+            style={{ backgroundColor: 'rgba(239, 68, 68, 0.1)', color: '#ef4444' }}
+          >
+            {error}
+          </motion.div>
+        )}
+
+        {/* URL Input */}
+        {mode === 'url' && (
+          <form onSubmit={handleUrlSubmit} className="mb-6">
+            <div 
+              className="flex rounded-lg overflow-hidden shadow-sm"
+              style={{ border: '1px solid var(--border)' }}
+            >
+              <input
+                type="url"
+                value={url}
+                onChange={(e) => setUrl(e.target.value)}
+                placeholder="Paste any URL..."
+                className="flex-1 px-4 py-3 bg-transparent outline-none text-sm"
+                style={{ color: 'var(--text-primary)' }}
+                disabled={isLoading}
+                autoFocus
+              />
+              <button
+                type="submit"
+                disabled={isLoading || !url.trim()}
+                className="px-5 py-3 text-sm text-white font-medium transition-all hover:opacity-90 disabled:opacity-40 flex items-center gap-2"
+                style={{ backgroundColor: 'var(--accent)' }}
+              >
+                <span>{isLoading ? '...' : 'Mull'}</span>
+                {!isLoading && <ArrowRight size={14} />}
+              </button>
+            </div>
+            <p className="text-xs mt-2 text-center" style={{ color: 'var(--text-tertiary)' }}>
+              Works best with articles, blog posts, documentation
+            </p>
+          </form>
+        )}
+
+        {/* Paste Input */}
+        {mode === 'paste' && (
+          <form onSubmit={handlePasteSubmit} className="mb-6">
             <input
-              type="url"
-              value={url}
-              onChange={(e) => setUrl(e.target.value)}
-              placeholder="Paste any URL to mull over..."
-              className="flex-1 px-4 py-3 bg-transparent outline-none text-sm"
-              style={{ color: 'var(--text-primary)' }}
+              type="text"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder="Title (optional)"
+              className="w-full px-4 py-2.5 mb-2 bg-transparent outline-none text-sm rounded-lg"
+              style={{ color: 'var(--text-primary)', border: '1px solid var(--border)' }}
+              disabled={isLoading}
+            />
+            <textarea
+              value={pastedContent}
+              onChange={(e) => setPastedContent(e.target.value)}
+              placeholder="Paste your content here...&#10;&#10;Supports plain text, HTML, or copied web content."
+              className="w-full px-4 py-3 bg-transparent outline-none text-sm rounded-lg resize-none"
+              style={{ color: 'var(--text-primary)', border: '1px solid var(--border)', minHeight: '150px' }}
               disabled={isLoading}
               autoFocus
             />
             <button
               type="submit"
-              disabled={isLoading || !url.trim()}
-              className="px-5 py-3 text-sm text-white font-medium transition-all hover:opacity-90 disabled:opacity-40 flex items-center gap-2"
+              disabled={isLoading || !pastedContent.trim()}
+              className="w-full mt-2 px-5 py-3 text-sm text-white font-medium transition-all hover:opacity-90 disabled:opacity-40 flex items-center justify-center gap-2 rounded-lg"
               style={{ backgroundColor: 'var(--accent)' }}
             >
-              <span>{isLoading ? '...' : 'Mull'}</span>
+              <span>{isLoading ? 'Parsing...' : 'Mull it over'}</span>
               {!isLoading && <ArrowRight size={14} />}
             </button>
-          </div>
-        </form>
+          </form>
+        )}
 
         {/* Demo link */}
-        <div className="text-center mb-10">
+        <div className="text-center mb-8">
           <Link
             href="/demo"
             className="text-sm transition-opacity hover:opacity-70"
@@ -87,10 +199,10 @@ export default function Home() {
         </div>
 
         {/* Features */}
-        <div className="grid grid-cols-3 gap-4 mb-10">
+        <div className="grid grid-cols-3 gap-3 mb-8">
           {[
             { emoji: '🌳', title: 'Context Tree', desc: 'Branch infinitely' },
-            { emoji: '💬', title: 'AI Dialogue', desc: 'Ask, clarify, understand' },
+            { emoji: '💬', title: 'AI Dialogue', desc: 'Ask & understand' },
             { emoji: '✨', title: 'Highlights', desc: 'Mark & export' },
           ].map((f) => (
             <div 
@@ -98,7 +210,7 @@ export default function Home() {
               className="text-center p-3 rounded-lg"
               style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border)' }}
             >
-              <div className="text-xl mb-1">{f.emoji}</div>
+              <div className="text-lg mb-1">{f.emoji}</div>
               <div className="text-xs font-medium" style={{ color: 'var(--text-primary)' }}>{f.title}</div>
               <div className="text-xs" style={{ color: 'var(--text-tertiary)' }}>{f.desc}</div>
             </div>
@@ -124,7 +236,7 @@ export default function Home() {
         </div>
 
         {/* Footer */}
-        <p className="text-center text-xs mt-10" style={{ color: 'var(--text-tertiary)' }}>
+        <p className="text-center text-xs mt-8" style={{ color: 'var(--text-tertiary)' }}>
           Stop skimming. Start understanding.
         </p>
       </motion.div>

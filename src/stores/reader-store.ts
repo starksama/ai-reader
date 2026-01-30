@@ -1,59 +1,30 @@
 import { create } from 'zustand';
-
-export interface Paragraph {
-  id: string;
-  index: number;
-  text: string;
-  hasHighlight: boolean;
-}
-
-export interface Article {
-  url?: string;
-  title: string;
-  content: string;
-  paragraphs: Paragraph[];
-  readProgress: number;
-}
+import type { ParsedArticle } from '@/utils/parse-content';
 
 interface ReaderState {
-  article: Article | null;
+  // Pasted article (stored in memory, not fetched)
+  pastedArticle: ParsedArticle | null;
+  
+  // Loading state
   isLoading: boolean;
   error: string | null;
-  setArticle: (article: Article) => void;
+  
+  // Actions
+  setArticle: (article: ParsedArticle) => void;
   setLoading: (loading: boolean) => void;
   setError: (error: string | null) => void;
-  updateProgress: (progress: number) => void;
-  markParagraphHighlighted: (index: number) => void;
+  clearPastedArticle: () => void;
   reset: () => void;
 }
 
 export const useReaderStore = create<ReaderState>((set) => ({
-  article: null,
+  pastedArticle: null,
   isLoading: false,
   error: null,
 
-  setArticle: (article) => set({ article, error: null }),
+  setArticle: (article) => set({ pastedArticle: article, error: null }),
   setLoading: (isLoading) => set({ isLoading }),
   setError: (error) => set({ error, isLoading: false }),
-  
-  updateProgress: (progress) =>
-    set((state) => ({
-      article: state.article
-        ? { ...state.article, readProgress: progress }
-        : null,
-    })),
-
-  markParagraphHighlighted: (index) =>
-    set((state) => ({
-      article: state.article
-        ? {
-            ...state.article,
-            paragraphs: state.article.paragraphs.map((p) =>
-              p.index === index ? { ...p, hasHighlight: true } : p
-            ),
-          }
-        : null,
-    })),
-
-  reset: () => set({ article: null, isLoading: false, error: null }),
+  clearPastedArticle: () => set({ pastedArticle: null }),
+  reset: () => set({ pastedArticle: null, isLoading: false, error: null }),
 }));

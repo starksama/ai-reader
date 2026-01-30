@@ -4,9 +4,10 @@ import { useEffect, useState } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, FileText } from 'lucide-react';
 import { useLayerStore } from '@/stores/layer-store';
 import { useThemeStore } from '@/stores/theme-store';
+import { useReaderStore } from '@/stores/reader-store';
 import { ArticleView } from '@/components/reader/article-view';
 import { DetailLayer } from '@/components/layers/detail-layer';
 import { ExportButton } from '@/components/reader/export-button';
@@ -15,26 +16,13 @@ import { useKeyboardShortcuts } from '@/hooks/use-keyboard-shortcuts';
 import { SettingsPanel } from '@/components/reader/settings-panel';
 import { KeyboardHints } from '@/components/reader/keyboard-hints';
 import { FinishButton } from '@/components/reader/finish-button';
-
-interface ParsedArticle {
-  title: string;
-  byline?: string;
-  siteName?: string;
-  excerpt?: string;
-  paragraphs: Array<{
-    id: string;
-    index: number;
-    text: string;
-    html: string;
-  }>;
-  url: string;
-  wordCount?: number;
-}
+import type { ParsedArticle } from '@/utils/parse-content';
 
 export function ReadContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const url = searchParams.get('url');
+  const source = searchParams.get('source');
   
   const [article, setArticle] = useState<ParsedArticle | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -44,6 +32,7 @@ export function ReadContent() {
   
   const { layers, currentIndex, push, pop, reset } = useLayerStore();
   const { fontSize } = useThemeStore();
+  const { pastedArticle, clearPastedArticle } = useReaderStore();
   const isDetailView = currentIndex > 0;
 
   // Keyboard shortcuts
@@ -65,9 +54,24 @@ export function ReadContent() {
   // Reset layers when URL changes
   useEffect(() => {
     reset();
-  }, [url, reset]);
+  }, [url, source, reset]);
 
+  // Load article from URL or pasted content
   useEffect(() => {
+    // If source is paste, use pasted article from store
+    if (source === 'paste') {
+      if (pastedArticle) {
+        setArticle(pastedArticle);
+        setIsLoading(false);
+        setError(null);
+      } else {
+        setError('No pasted content found. Please go back and paste your content.');
+        setIsLoading(false);
+      }
+      return;
+    }
+
+    // Otherwise fetch from URL
     if (!url) {
       setError('No URL provided');
       setIsLoading(false);
@@ -88,7 +92,7 @@ export function ReadContent() {
         // Check if response has content
         const text = await response.text();
         if (!text) {
-          throw new Error('Server returned empty response. Please try again.');
+          throw new Error('Server returned empty response. Try pasting the content instead.');
         }
 
         // Parse JSON
@@ -97,7 +101,7 @@ export function ReadContent() {
           data = JSON.parse(text);
         } catch {
           console.error('Failed to parse response:', text.substring(0, 200));
-          throw new Error('Invalid response from server. Please try again.');
+          throw new Error('Could not fetch article. Try pasting the content instead.');
         }
 
         if (!response.ok) {
@@ -114,7 +118,16 @@ export function ReadContent() {
     }
 
     fetchArticle();
-  }, [url]);
+  }, [url, source, pastedArticle]);
+
+  // Cleanup pasted article when leaving
+  useEffect(() => {
+    return () => {
+      if (source === 'paste') {
+        clearPastedArticle();
+      }
+    };
+  }, [source, clearPastedArticle]);
 
   const handleParagraphClick = (index: number, selectedText?: string) => {
     setSelectedParagraph(index);
@@ -167,14 +180,26 @@ export function ReadContent() {
             Couldn&apos;t load article
           </h2>
           <p className="mb-6" style={{ color: 'var(--text-secondary)' }}>{error}</p>
-          <Link
-            href="/"
-            className="inline-flex items-center gap-2 px-6 py-3 rounded-md text-white font-medium transition-opacity hover:opacity-90"
-            style={{ backgroundColor: 'var(--accent)' }}
-          >
-            <ArrowLeft size={14} />
-            <span>Try another URL</span>
-          </Link>
+          
+          <div className="flex flex-col gap-3">
+            <Link
+              href="/"
+              className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-lg text-white font-medium transition-opacity hover:opacity-90"
+              style={{ backgroundColor: 'var(--accent)' }}
+            >
+              <FileText size={14} />
+              <span>Paste content instead</span>
+            </Link>
+            
+            <Link
+              href="/"
+              className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-lg transition-opacity hover:opacity-70 text-sm"
+              style={{ color: 'var(--text-secondary)' }}
+            >
+              <ArrowLeft size={14} />
+              <span>Try another URL</span>
+            </Link>
+          </div>
         </motion.div>
       </div>
     );
@@ -183,6 +208,7 @@ export function ReadContent() {
   if (!article) return null;
 
   const currentLayer = layers[currentIndex];
+  const articleUrl = source === 'paste' ? 'pasted-content' : (url || '');
 
   return (
     <div className={`min-h-screen font-${fontSize}`} style={{ backgroundColor: 'var(--bg-primary)' }}>
@@ -214,6 +240,19 @@ export function ReadContent() {
                 </button>
                 
                 <div className="flex items-center gap-2">
+                  {source === 'paste' && (
+                    <div 
+                      className="text-xs px-2 py-1 rounded-md flex items-center gap-1"
+                      style={{ 
+                        backgroundColor: 'var(--bg-secondary)',
+                        color: 'var(--text-secondary)',
+                        border: '1px solid var(--border)',
+                      }}
+                    >
+                      <FileText size={10} />
+                      <span>Pasted</span>
+                    </div>
+                  )}
                   {exploredParagraphs.size > 0 && (
                     <div 
                       className="text-xs px-2 py-1 rounded-md"
@@ -225,7 +264,7 @@ export function ReadContent() {
                       {exploredParagraphs.size} explored
                     </div>
                   )}
-                  {url && <ExportButton url={url} />}
+                  {articleUrl && <ExportButton url={articleUrl} />}
                   <KeyboardHints />
                   <SettingsPanel />
                 </div>
@@ -240,9 +279,9 @@ export function ReadContent() {
               onSelectionAsk={(text, index) => handleParagraphClick(index, text)}
             />
             
-            {url && (
+            {articleUrl && (
               <FinishButton 
-                articleUrl={url} 
+                articleUrl={articleUrl} 
                 articleTitle={article.title} 
               />
             )}
@@ -258,7 +297,7 @@ export function ReadContent() {
             {currentLayer?.type === 'paragraph' && article.paragraphs[currentLayer.paragraphIndex!] && (
               <DetailLayer
                 paragraph={article.paragraphs[currentLayer.paragraphIndex!]}
-                articleUrl={url || ''}
+                articleUrl={articleUrl}
                 articleTitle={article.title}
                 selectedText={currentLayer.selectedText}
                 exploredParagraphs={Array.from(exploredParagraphs)}
