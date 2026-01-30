@@ -13,7 +13,7 @@ export interface ParsedArticle {
   }>;
   url: string;
   wordCount?: number;
-  sourceType?: 'url' | 'paste' | 'markdown' | 'html';
+  sourceType?: 'url' | 'paste' | 'markdown' | 'html' | 'pdf' | 'file';
 }
 
 /**
