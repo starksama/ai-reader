@@ -141,7 +141,7 @@ export default function Home() {
               <button
                 type="submit"
                 disabled={isLoading || !url.trim()}
-                className="px-5 py-3 text-sm text-white font-medium transition-all hover:opacity-90 disabled:opacity-40 flex items-center gap-2"
+                className="px-5 py-3 text-sm text-white font-medium transition-all hover:opacity-90 disabled:opacity-40 flex items-center gap-2 outline-none"
                 style={{ backgroundColor: 'var(--accent)' }}
               >
                 <span>{isLoading ? '...' : 'Mull'}</span>
@@ -178,7 +178,7 @@ export default function Home() {
             <button
               type="submit"
               disabled={isLoading || !pastedContent.trim()}
-              className="w-full mt-2 px-5 py-3 text-sm text-white font-medium transition-all hover:opacity-90 disabled:opacity-40 flex items-center justify-center gap-2 rounded-lg"
+              className="w-full mt-2 px-5 py-3 text-sm text-white font-medium transition-all hover:opacity-90 disabled:opacity-40 flex items-center justify-center gap-2 rounded-lg outline-none"
               style={{ backgroundColor: 'var(--accent)' }}
             >
               <span>{isLoading ? 'Parsing...' : 'Mull it over'}</span>

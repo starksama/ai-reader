@@ -205,9 +205,16 @@ body {
 }
 
 /* Focus styles */
+/* Focus styles - only for keyboard navigation, not clicks */
 :focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
+}
+
+/* Remove focus outline on buttons (they have hover states instead) */
+button:focus,
+button:focus-visible {
+  outline: none;
 }
 
 /* Input styles */
