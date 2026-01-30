@@ -17,7 +17,7 @@ export function KeyboardHints() {
     <>
       <button
         onClick={() => setIsOpen(true)}
-        className="w-8 h-8 flex items-center justify-center rounded-sm transition-all"
+        className="w-8 h-8 flex items-center justify-center rounded-md transition-all"
         style={{
           backgroundColor: 'transparent',
           color: 'var(--text-secondary)',
@@ -46,7 +46,7 @@ export function KeyboardHints() {
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
               transition={{ duration: 0.15 }}
-              className="fixed z-50 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[280px] p-5 rounded-sm shadow-xl"
+              className="fixed z-50 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[280px] p-5 rounded-md shadow-xl"
               style={{
                 backgroundColor: 'var(--bg-secondary)',
                 border: '1px solid var(--border)',
@@ -75,7 +75,7 @@ export function KeyboardHints() {
                     className="flex items-center justify-between text-sm"
                   >
                     <kbd 
-                      className="px-2 py-1 text-xs rounded-sm font-mono"
+                      className="px-2 py-1 text-xs rounded-md font-mono"
                       style={{
                         backgroundColor: 'var(--bg-tertiary)',
                         color: 'var(--text-primary)',

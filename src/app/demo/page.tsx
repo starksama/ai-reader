@@ -44,7 +44,7 @@ export default function DemoPage() {
               >
                 <Link
                   href={`/demo/${article.id}`}
-                  className="block p-4 rounded-sm transition-colors hover:bg-[var(--bg-secondary)]"
+                  className="block p-4 rounded-md transition-colors hover:bg-[var(--bg-secondary)]"
                   style={{ border: '1px solid var(--border)' }}
                 >
                   <h2 

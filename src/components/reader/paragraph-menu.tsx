@@ -101,7 +101,7 @@ export function ParagraphMenu({
           style={{ left: adjustedPosition.x, top: adjustedPosition.y }}
         >
           <div
-            className="shadow-lg overflow-hidden min-w-[160px] rounded-sm"
+            className="shadow-lg overflow-hidden min-w-[160px] rounded-md"
             style={{
               backgroundColor: 'var(--bg-secondary)',
               border: '1px solid var(--border)',

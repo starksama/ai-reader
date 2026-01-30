@@ -178,7 +178,7 @@ export function DetailLayer({
           <motion.div
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
-            className="mb-4 p-4 rounded-sm"
+            className="mb-4 p-4 rounded-md"
             style={{ 
               backgroundColor: 'var(--accent-subtle)', 
               borderLeft: '2px solid var(--accent)',
@@ -198,7 +198,7 @@ export function DetailLayer({
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.05 }}
-          className="p-4 mb-6 rounded-sm"
+          className="p-4 mb-6 rounded-md"
           style={{ 
             backgroundColor: 'var(--bg-secondary)',
             border: '1px solid var(--border-subtle)',
@@ -227,7 +227,7 @@ export function DetailLayer({
                   setQuestion(q);
                   inputRef.current?.focus();
                 }}
-                className="px-3 py-1.5 text-sm rounded-sm transition-all hover:opacity-70"
+                className="px-3 py-1.5 text-sm rounded-md transition-all hover:opacity-70"
                 style={{
                   backgroundColor: 'var(--bg-secondary)',
                   color: 'var(--text-secondary)',
@@ -279,7 +279,7 @@ export function DetailLayer({
           className="sticky bottom-4 mt-8"
         >
           <div 
-            className="flex gap-2 rounded-sm overflow-hidden"
+            className="flex gap-2 rounded-md overflow-hidden"
             style={{ 
               backgroundColor: 'var(--bg-primary)',
               border: '1px solid var(--border)',

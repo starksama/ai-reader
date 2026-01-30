@@ -153,7 +153,7 @@ export function ReadContent() {
           <p className="mb-6" style={{ color: 'var(--text-secondary)' }}>{error}</p>
           <Link
             href="/"
-            className="inline-flex items-center gap-2 px-6 py-3 rounded-sm text-white font-medium transition-opacity hover:opacity-90"
+            className="inline-flex items-center gap-2 px-6 py-3 rounded-md text-white font-medium transition-opacity hover:opacity-90"
             style={{ backgroundColor: 'var(--accent)' }}
           >
             <ArrowLeft size={14} />
@@ -200,7 +200,7 @@ export function ReadContent() {
                 <div className="flex items-center gap-2">
                   {exploredParagraphs.size > 0 && (
                     <div 
-                      className="text-xs px-2 py-1 rounded-sm"
+                      className="text-xs px-2 py-1 rounded-md"
                       style={{ 
                         backgroundColor: 'var(--accent)',
                         color: '#fff',

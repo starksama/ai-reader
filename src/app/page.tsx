@@ -47,7 +47,7 @@ export default function Home() {
         {/* URL Input */}
         <form onSubmit={handleSubmit} className="mb-6">
           <div 
-            className="flex rounded-sm overflow-hidden"
+            className="flex rounded-md overflow-hidden"
             style={{ border: '1px solid var(--border)' }}
           >
             <input
@@ -84,7 +84,7 @@ export default function Home() {
         </div>
 
         {/* Theme */}
-        <div className="flex justify-center gap-px rounded-sm overflow-hidden" style={{ border: '1px solid var(--border)' }}>
+        <div className="flex justify-center gap-px rounded-md overflow-hidden" style={{ border: '1px solid var(--border)' }}>
           {themes.map((t) => (
             <button
               key={t.key}

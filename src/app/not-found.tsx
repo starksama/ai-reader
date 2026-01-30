@@ -28,7 +28,7 @@ export default function NotFound() {
         </p>
         <Link
           href="/"
-          className="inline-flex items-center gap-2 px-4 py-2.5 text-sm rounded-sm transition-opacity hover:opacity-80"
+          className="inline-flex items-center gap-2 px-4 py-2.5 text-sm rounded-md transition-opacity hover:opacity-80"
           style={{
             backgroundColor: 'var(--accent)',
             color: '#fff',

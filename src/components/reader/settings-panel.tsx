@@ -38,7 +38,7 @@ export function SettingsPanel() {
     <div className="relative" ref={panelRef}>
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="w-8 h-8 flex items-center justify-center rounded-sm transition-all"
+        className="w-8 h-8 flex items-center justify-center rounded-md transition-all"
         style={{
           backgroundColor: isOpen ? 'var(--bg-secondary)' : 'transparent',
           color: 'var(--text-secondary)',
@@ -51,7 +51,7 @@ export function SettingsPanel() {
 
       {isOpen && (
         <div
-          className="absolute right-0 top-full mt-2 p-4 rounded-sm shadow-lg z-50 min-w-[200px]"
+          className="absolute right-0 top-full mt-2 p-4 rounded-md shadow-lg z-50 min-w-[200px]"
           style={{
             backgroundColor: 'var(--bg-secondary)',
             border: '1px solid var(--border)',
@@ -65,7 +65,7 @@ export function SettingsPanel() {
             >
               Theme
             </label>
-            <div className="flex gap-px rounded-sm overflow-hidden" style={{ border: '1px solid var(--border)' }}>
+            <div className="flex gap-px rounded-md overflow-hidden" style={{ border: '1px solid var(--border)' }}>
               {themes.map((t) => (
                 <button
                   key={t.key}
@@ -91,7 +91,7 @@ export function SettingsPanel() {
             >
               Font Size
             </label>
-            <div className="flex gap-px rounded-sm overflow-hidden" style={{ border: '1px solid var(--border)' }}>
+            <div className="flex gap-px rounded-md overflow-hidden" style={{ border: '1px solid var(--border)' }}>
               {fontSizes.map((f) => (
                 <button
                   key={f.key}

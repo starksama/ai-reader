@@ -146,7 +146,7 @@ export function SelectionMenu({
               {/* Handle */}
               <div className="flex justify-center pt-2 pb-1">
                 <div 
-                  className="w-10 h-1 rounded-sm"
+                  className="w-10 h-1 rounded-md"
                   style={{ backgroundColor: 'var(--border)' }}
                 />
               </div>
@@ -226,7 +226,7 @@ export function SelectionMenu({
           style={{ left: position.x, top: position.y }}
         >
           <div 
-            className="flex items-stretch shadow-lg rounded-sm"
+            className="flex items-stretch shadow-lg rounded-md"
             style={{
               backgroundColor: 'var(--bg-secondary)',
               border: '1px solid var(--border)',

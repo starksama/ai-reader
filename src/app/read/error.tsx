@@ -41,7 +41,7 @@ export default function Error({
         <div className="flex items-center justify-center gap-3">
           <Link
             href="/"
-            className="flex items-center gap-2 px-4 py-2.5 text-sm rounded-sm transition-opacity hover:opacity-80"
+            className="flex items-center gap-2 px-4 py-2.5 text-sm rounded-md transition-opacity hover:opacity-80"
             style={{
               backgroundColor: 'var(--bg-secondary)',
               color: 'var(--text-primary)',
@@ -53,7 +53,7 @@ export default function Error({
           </Link>
           <button
             onClick={reset}
-            className="flex items-center gap-2 px-4 py-2.5 text-sm rounded-sm transition-opacity hover:opacity-80"
+            className="flex items-center gap-2 px-4 py-2.5 text-sm rounded-md transition-opacity hover:opacity-80"
             style={{
               backgroundColor: 'var(--accent)',
               color: '#fff',

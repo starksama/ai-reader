@@ -118,7 +118,7 @@ export default function DemoArticlePage() {
                 <div className="flex items-center gap-2">
                   {exploredParagraphs.size > 0 && (
                     <div 
-                      className="text-xs px-2 py-1 rounded-sm"
+                      className="text-xs px-2 py-1 rounded-md"
                       style={{ 
                         backgroundColor: 'var(--accent)',
                         color: '#fff',

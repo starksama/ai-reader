@@ -60,7 +60,7 @@ export class ErrorBoundary extends Component<Props, State> {
               this.setState({ hasError: false, error: undefined });
               window.location.reload();
             }}
-            className="flex items-center gap-2 px-4 py-2 text-sm rounded-sm transition-opacity hover:opacity-80"
+            className="flex items-center gap-2 px-4 py-2 text-sm rounded-md transition-opacity hover:opacity-80"
             style={{
               backgroundColor: 'var(--accent)',
               color: '#fff',
