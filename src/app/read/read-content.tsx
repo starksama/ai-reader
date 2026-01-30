@@ -58,14 +58,16 @@ export function ReadContent() {
 
   // Load article from URL or pasted content
   useEffect(() => {
-    // If source is paste, use pasted article from store
-    if (source === 'paste') {
+    // If source is paste/pdf/file, use article from store
+    const isLocalSource = source === 'paste' || source === 'pdf' || source === 'file';
+    
+    if (isLocalSource) {
       if (pastedArticle) {
         setArticle(pastedArticle);
         setIsLoading(false);
         setError(null);
       } else {
-        setError('No pasted content found. Please go back and paste your content.');
+        setError('No content found. Please go back and try again.');
         setIsLoading(false);
       }
       return;
@@ -120,10 +122,11 @@ export function ReadContent() {
     fetchArticle();
   }, [url, source, pastedArticle]);
 
-  // Cleanup pasted article when leaving
+  // Cleanup stored article when leaving
   useEffect(() => {
     return () => {
-      if (source === 'paste') {
+      const isLocalSource = source === 'paste' || source === 'pdf' || source === 'file';
+      if (isLocalSource) {
         clearPastedArticle();
       }
     };
@@ -208,7 +211,8 @@ export function ReadContent() {
   if (!article) return null;
 
   const currentLayer = layers[currentIndex];
-  const articleUrl = source === 'paste' ? 'pasted-content' : (url || '');
+  const isLocalSource = source === 'paste' || source === 'pdf' || source === 'file';
+  const articleUrl = isLocalSource ? (article?.url || 'local-content') : (url || '');
 
   return (
     <div className={`min-h-screen font-${fontSize}`} style={{ backgroundColor: 'var(--bg-primary)' }}>
@@ -240,7 +244,7 @@ export function ReadContent() {
                 </button>
                 
                 <div className="flex items-center gap-2">
-                  {source === 'paste' && (
+                  {(source === 'paste' || source === 'pdf' || source === 'file') && (
                     <div 
                       className="text-xs px-2 py-1 rounded-md flex items-center gap-1"
                       style={{ 
@@ -250,7 +254,7 @@ export function ReadContent() {
                       }}
                     >
                       <FileText size={10} />
-                      <span>Pasted</span>
+                      <span>{source === 'pdf' ? 'PDF' : source === 'file' ? 'File' : 'Pasted'}</span>
                     </div>
                   )}
                   {exploredParagraphs.size > 0 && (
