@@ -7,14 +7,23 @@ export interface ParsedPDF extends ParsedArticle {
 
 /**
  * Parse PDF file into paragraphs
+ * Uses pdfjs-dist with dynamic import (client-side only)
  */
 export async function parsePDF(file: File): Promise<ParsedPDF> {
-  // Dynamic import to avoid SSR issues (pdfjs-dist uses browser APIs)
+  // Dynamic import to avoid SSR issues
   const pdfjsLib = await import('pdfjs-dist');
-  pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
+  
+  // Disable worker - runs on main thread (slower but reliable)
+  pdfjsLib.GlobalWorkerOptions.workerSrc = '';
   
   const arrayBuffer = await file.arrayBuffer();
-  const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+  
+  const pdf = await pdfjsLib.getDocument({
+    data: arrayBuffer,
+    useSystemFonts: true,
+    isEvalSupported: false,
+    disableFontFace: true,
+  }).promise;
   
   const textContent: string[] = [];
   
@@ -23,29 +32,52 @@ export async function parsePDF(file: File): Promise<ParsedPDF> {
     const page = await pdf.getPage(i);
     const content = await page.getTextContent();
     
-    const pageText = content.items
-      .map((item) => ('str' in item ? item.str : ''))
-      .join(' ');
+    // Better text extraction - preserve line breaks
+    let lastY: number | null = null;
+    const lines: string[] = [];
+    let currentLine = '';
     
-    textContent.push(pageText);
+    for (const item of content.items) {
+      if (!('str' in item)) continue;
+      
+      // Check if this is a new line (different Y position)
+      const transform = 'transform' in item ? item.transform : null;
+      const y = transform ? transform[5] : null;
+      
+      if (lastY !== null && y !== null && Math.abs(y - lastY) > 5) {
+        if (currentLine.trim()) {
+          lines.push(currentLine.trim());
+        }
+        currentLine = item.str;
+      } else {
+        currentLine += item.str;
+      }
+      
+      lastY = y;
+    }
+    
+    if (currentLine.trim()) {
+      lines.push(currentLine.trim());
+    }
+    
+    textContent.push(lines.join('\n'));
   }
   
-  // Combine all text and split into paragraphs
+  // Combine all text
   const fullText = textContent.join('\n\n');
   
-  // Split by double newlines or sentence boundaries for long text
+  // Split into paragraphs (double newlines or significant gaps)
   const rawParagraphs = fullText
     .split(/\n\s*\n/)
-    .map(p => p.trim())
+    .map(p => p.replace(/\n/g, ' ').trim())
     .filter(p => p.length > 0);
   
   // If we got very few paragraphs, try splitting by sentences
   let paragraphTexts = rawParagraphs;
   if (rawParagraphs.length < 5 && fullText.length > 1000) {
-    // Split long text by sentences (roughly)
     paragraphTexts = fullText
       .split(/(?<=[.!?])\s+(?=[A-Z])/)
-      .reduce((acc: string[], sentence, i) => {
+      .reduce((acc: string[], sentence) => {
         const lastIdx = acc.length - 1;
         if (lastIdx >= 0 && acc[lastIdx].length < 500) {
           acc[lastIdx] += ' ' + sentence;
@@ -64,12 +96,10 @@ export async function parsePDF(file: File): Promise<ParsedPDF> {
       text: text.trim(),
       html: text.trim(),
     }))
-    .filter(p => p.text.length > 30);
+    .filter(p => p.text.length > 20);
   
-  // Try to extract title from filename or first line
-  const title = file.name.replace(/\.pdf$/i, '') || 
-                (paragraphs[0]?.text.slice(0, 100) + '...') || 
-                'PDF Document';
+  // Extract title from filename
+  const title = file.name.replace(/\.pdf$/i, '') || 'PDF Document';
   
   return {
     title,
