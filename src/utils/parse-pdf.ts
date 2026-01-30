@@ -1,12 +1,4 @@
-'use client';
-
-import * as pdfjsLib from 'pdfjs-dist';
 import type { ParsedArticle } from './parse-content';
-
-// Set worker path for PDF.js
-if (typeof window !== 'undefined') {
-  pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
-}
 
 export interface ParsedPDF extends ParsedArticle {
   pageCount: number;
@@ -17,6 +9,10 @@ export interface ParsedPDF extends ParsedArticle {
  * Parse PDF file into paragraphs
  */
 export async function parsePDF(file: File): Promise<ParsedPDF> {
+  // Dynamic import to avoid SSR issues (pdfjs-dist uses browser APIs)
+  const pdfjsLib = await import('pdfjs-dist');
+  pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
+  
   const arrayBuffer = await file.arrayBuffer();
   const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
   
