@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { ArrowLeft, ChevronUp, ChevronDown, Send } from 'lucide-react';
-import { AsyncResponse } from '@/components/async/async-response';
+import { ChatBubble } from '@/components/chat/chat-bubble';
 import { useNotesStore } from '@/stores/notes-store';
 import { useKeyboardShortcuts } from '@/hooks/use-keyboard-shortcuts';
 import { Toast, useToast } from '@/components/ui/toast';
@@ -56,6 +56,7 @@ export function DetailLayer({
   onNavigate,
 }: DetailLayerProps) {
   const [question, setQuestion] = useState('');
+  const [pendingQuestion, setPendingQuestion] = useState('');
   const [isAsking, setIsAsking] = useState(false);
   const [response, setResponse] = useState<string | null>(null);
   const [chatHistory, setChatHistory] = useState<Array<{ q: string; a: string }>>([]);
@@ -90,6 +91,7 @@ export function DetailLayer({
     if (!question.trim() || isAsking) return;
     
     const currentQuestion = question;
+    setPendingQuestion(currentQuestion);
     setQuestion('');
     setIsAsking(true);
     setResponse(null);
@@ -244,30 +246,24 @@ export function DetailLayer({
         {chatHistory.length > 0 && (
           <div className="space-y-4 mb-6">
             {chatHistory.map((item, idx) => (
-              <motion.div 
-                key={idx}
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-              >
-                <div className="mb-2">
-                  <span 
-                    className="text-xs px-1.5 py-0.5"
-                    style={{ backgroundColor: 'var(--bg-secondary)', color: 'var(--text-secondary)' }}
-                  >
-                    Q
-                  </span>
-                  <p className="mt-1.5" style={{ color: 'var(--text-primary)' }}>{item.q}</p>
-                </div>
-                <AsyncResponse isLoading={false} response={item.a} />
-              </motion.div>
+              <div key={idx} className="space-y-3">
+                <ChatBubble role="user" content={item.q} />
+                <ChatBubble role="assistant" content={item.a} />
+              </div>
             ))}
           </div>
         )}
 
         {/* Current response */}
         {(isAsking || response) && chatHistory.length === 0 && (
-          <div className="mb-6">
-            <AsyncResponse isLoading={isAsking} response={response} />
+          <div className="space-y-3 mb-6">
+            <ChatBubble role="user" content={pendingQuestion} />
+            <ChatBubble 
+              role="assistant" 
+              content={response || ''} 
+              isLoading={isAsking} 
+              isStreaming={!!response}
+            />
           </div>
         )}
 
