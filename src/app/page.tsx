@@ -169,7 +169,7 @@ export default function Home() {
             <textarea
               value={pastedContent}
               onChange={(e) => setPastedContent(e.target.value)}
-              placeholder="Paste your content here...&#10;&#10;Supports plain text, HTML, or copied web content."
+              placeholder="Paste your content here...&#10;&#10;Supports: plain text, Markdown, HTML, or copied web content."
               className="w-full px-4 py-3 bg-transparent outline-none text-sm rounded-lg resize-none"
               style={{ color: 'var(--text-primary)', border: '1px solid var(--border)', minHeight: '150px' }}
               disabled={isLoading}
@@ -198,23 +198,21 @@ export default function Home() {
           </Link>
         </div>
 
-        {/* Features */}
-        <div className="grid grid-cols-3 gap-3 mb-8">
-          {[
-            { emoji: '🌳', title: 'Branch', desc: 'Tangents stay isolated' },
-            { emoji: '📍', title: 'Anchored', desc: 'Source never buried' },
-            { emoji: '🔄', title: 'Return', desc: 'Clean context awaits' },
-          ].map((f) => (
-            <div 
-              key={f.title} 
-              className="text-center p-3 rounded-lg"
-              style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border)' }}
-            >
-              <div className="text-lg mb-1">{f.emoji}</div>
-              <div className="text-xs font-medium" style={{ color: 'var(--text-primary)' }}>{f.title}</div>
-              <div className="text-xs" style={{ color: 'var(--text-tertiary)' }}>{f.desc}</div>
-            </div>
-          ))}
+        {/* Core Value Prop */}
+        <div 
+          className="mb-8 p-4 rounded-lg text-sm"
+          style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border)' }}
+        >
+          <div className="space-y-2" style={{ color: 'var(--text-secondary)' }}>
+            <p>
+              <span style={{ color: 'var(--text-tertiary)' }}>With chatbots:</span>{' '}
+              Ask a tangent → whole chat polluted → start over
+            </p>
+            <p>
+              <span style={{ color: 'var(--accent)' }}>With Mull:</span>{' '}
+              Ask a tangent → <strong>branch off</strong> → return to clean context
+            </p>
+          </div>
         </div>
 
         {/* Theme */}
