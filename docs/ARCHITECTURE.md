@@ -1,299 +1,240 @@
-# Mull — Architecture & Data Model
+# Mull Architecture v2 — First Principles
 
-## Overview
+## Core Insight
 
-Mull needs to store **branching conversations** anchored to **source content**. Users should be able to:
-- Resume learning sessions across devices
-- Search/find old notes and insights
-- Export their knowledge
-- Pay based on actual AI usage
+**Any message can branch.**
+
+Not "branches contain messages." The tree IS the messages.
 
 ---
 
-## Auth Strategy
-
-**Simple Google OAuth → Supabase**
+## The Simplest Model
 
 ```
-User clicks "Sign in with Google"
-  → Google OAuth flow
-  → Get Google user ID + email
-  → Upsert into Supabase `users` table
-  → Return session token
-  → Store in localStorage/cookie
-```
-
-Why Google-only (for now):
-- Lowest friction for users
-- No password management
-- Can add more providers later
-
----
-
-## Data Model
-
-### Core Entities
-
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                           users                                  │
-├─────────────────────────────────────────────────────────────────┤
-│ id              UUID PRIMARY KEY                                │
-│ google_id       TEXT UNIQUE                                     │
-│ email           TEXT                                            │
-│ name            TEXT                                            │
-│ avatar_url      TEXT                                            │
-│ created_at      TIMESTAMP                                       │
-│ last_seen_at    TIMESTAMP                                       │
-│ settings        JSONB  -- theme, font size, preferences         │
-└─────────────────────────────────────────────────────────────────┘
-                              │
-                              │ 1:many
-                              ▼
-┌─────────────────────────────────────────────────────────────────┐
-│                          sources                                 │
-├─────────────────────────────────────────────────────────────────┤
-│ id              UUID PRIMARY KEY                                │
-│ user_id         UUID REFERENCES users                           │
-│ type            TEXT  -- 'url', 'paste', 'markdown', 'pdf'      │
-│ title           TEXT                                            │
-│ url             TEXT  -- null if pasted                         │
-│ content_hash    TEXT  -- for deduplication                      │
-│ raw_content     TEXT  -- original content                       │
-│ parsed_content  JSONB -- { paragraphs: [...], metadata: {...} } │
-│ word_count      INT                                             │
-│ created_at      TIMESTAMP                                       │
-│ last_opened_at  TIMESTAMP                                       │
-│ archived        BOOLEAN DEFAULT false                           │
-│ tags            TEXT[]  -- user tags for organization           │
-└─────────────────────────────────────────────────────────────────┘
-                              │
-                              │ 1:many
-                              ▼
-┌─────────────────────────────────────────────────────────────────┐
-│                          branches                                │
-├─────────────────────────────────────────────────────────────────┤
-│ id              UUID PRIMARY KEY                                │
-│ source_id       UUID REFERENCES sources                         │
-│ parent_id       UUID REFERENCES branches (nullable)             │
-│ paragraph_index INT  -- which paragraph this branches from      │
-│ selected_text   TEXT -- specific selection, if any              │
-│ title           TEXT -- auto-generated or user-set              │
-│ created_at      TIMESTAMP                                       │
-│ updated_at      TIMESTAMP                                       │
-│ is_resolved     BOOLEAN DEFAULT false -- user marked as "done"  │
-└─────────────────────────────────────────────────────────────────┘
-                              │
-                              │ 1:many
-                              ▼
 ┌─────────────────────────────────────────────────────────────────┐
 │                          messages                                │
 ├─────────────────────────────────────────────────────────────────┤
-│ id              UUID PRIMARY KEY                                │
-│ branch_id       UUID REFERENCES branches                        │
-│ role            TEXT  -- 'user', 'assistant', 'system'          │
-│ content         TEXT                                            │
-│ tokens_used     INT  -- for billing                             │
-│ model           TEXT  -- 'gpt-4', 'claude-3', etc               │
-│ created_at      TIMESTAMP                                       │
-│ metadata        JSONB -- { latency_ms, stop_reason, etc }       │
-└─────────────────────────────────────────────────────────────────┘
-
-┌─────────────────────────────────────────────────────────────────┐
-│                         highlights                               │
-├─────────────────────────────────────────────────────────────────┤
-│ id              UUID PRIMARY KEY                                │
-│ source_id       UUID REFERENCES sources                         │
-│ paragraph_index INT                                             │
-│ start_offset    INT                                             │
-│ end_offset      INT                                             │
-│ text            TEXT  -- denormalized for easy display          │
-│ color           TEXT  -- 'yellow', 'green', etc                 │
-│ note            TEXT  -- optional user note                     │
-│ created_at      TIMESTAMP                                       │
-└─────────────────────────────────────────────────────────────────┘
-
-┌─────────────────────────────────────────────────────────────────┐
-│                        usage_logs                                │
-├─────────────────────────────────────────────────────────────────┤
-│ id              UUID PRIMARY KEY                                │
-│ user_id         UUID REFERENCES users                           │
-│ message_id      UUID REFERENCES messages                        │
-│ model           TEXT                                            │
-│ input_tokens    INT                                             │
-│ output_tokens   INT                                             │
-│ cost_usd        DECIMAL(10, 6)  -- actual cost                  │
-│ created_at      TIMESTAMP                                       │
+│ id                UUID PRIMARY KEY                              │
+│ parent_id         UUID REFERENCES messages (nullable)           │
+│ user_id           UUID REFERENCES users                         │
+│ role              TEXT  -- 'user' | 'assistant' | 'system'      │
+│ content           TEXT                                          │
+│ source_id         UUID REFERENCES sources (nullable)            │
+│ source_selection  JSONB -- { paragraphIndex, text, offsets }    │
+│ created_at        TIMESTAMP                                     │
+│ tokens_used       INT                                           │
+│ model             TEXT                                          │
 └─────────────────────────────────────────────────────────────────┘
 ```
 
-### Relationships
+**That's it.** The tree structure emerges from `parent_id`.
+
+---
+
+## How It Works
+
+### Starting with a source (article/paste)
 
 ```
-User
- └── Sources (articles/content they've loaded)
-      ├── Highlights (annotations on the source)
-      └── Branches (conversation threads)
-           └── Messages (chat history within branch)
+[Source: "Article about entropy"]
+    │
+    └── User: "What does entropy mean here?" (parent_id=null, source_id=X)
+            │
+            └── Assistant: "Entropy is..." (parent_id=above)
+                    │
+                    ├── User: "How does Shannon relate?" (parent_id=above) ← BRANCH A
+                    │       │
+                    │       └── Assistant: "Shannon defined..."
+                    │               │
+                    │               └── User: "Give me an example" (deeper)
+                    │
+                    └── User: "Explain paragraph 5" (parent_id=assistant) ← BRANCH B
+                            │                         (clean context!)
+                            └── Assistant: "Paragraph 5 says..."
+```
+
+### Starting with just a question (no source)
+
+```
+User: "Explain quantum computing" (parent_id=null, source_id=null)
+    │
+    └── Assistant: "Quantum computing uses..."
+            │
+            ├── User: "What are qubits?" ← BRANCH
+            │       └── ...
+            │
+            └── User: "Who invented it?" ← BRANCH
+                    └── ...
 ```
 
 ---
 
-## Future Compatibility
+## Key Principles
 
-### Flexible Schema Patterns
+### 1. No separate "branches" table
+The tree IS the messages. `parent_id` creates the structure.
 
-1. **JSONB for extensibility** — `settings`, `metadata`, `parsed_content` can evolve without migrations
+### 2. Sources are optional
+A source is just content you might reference. You can start without one.
 
-2. **Soft deletes** — `archived` flag instead of DELETE, preserves history
+### 3. Infinite depth
+Any message can have children. Go as deep as you want.
 
-3. **Content versioning** — Store `content_hash` to detect if source changed
+### 4. Context = path to root
+To get context for a message, walk up `parent_id` until null.
 
-4. **Model-agnostic** — `model` field on messages, not hardcoded
+### 5. A "conversation" is a view
+It's just the path from a leaf to the root. The UI decides what to show.
 
-### Indexes for Search
+---
+
+## Queries
+
+### Get conversation context (for AI)
+```sql
+WITH RECURSIVE context AS (
+  -- Start from current message
+  SELECT * FROM messages WHERE id = $current_message_id
+  UNION ALL
+  -- Walk up the tree
+  SELECT m.* FROM messages m
+  JOIN context c ON m.id = c.parent_id
+)
+SELECT * FROM context ORDER BY created_at ASC;
+```
+
+### Get all branches from a message
+```sql
+SELECT * FROM messages 
+WHERE parent_id = $message_id 
+ORDER BY created_at ASC;
+```
+
+### Get root conversations for a user
+```sql
+SELECT * FROM messages 
+WHERE user_id = $user_id AND parent_id IS NULL 
+ORDER BY created_at DESC;
+```
+
+### Get root conversations for a source
+```sql
+SELECT * FROM messages 
+WHERE source_id = $source_id AND parent_id IS NULL 
+ORDER BY created_at ASC;
+```
+
+---
+
+## Full Schema
 
 ```sql
--- Find user's recent sources
-CREATE INDEX idx_sources_user_last_opened 
-  ON sources(user_id, last_opened_at DESC);
+-- Users (unchanged)
+CREATE TABLE users (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  google_id TEXT UNIQUE,
+  email TEXT,
+  name TEXT,
+  avatar_url TEXT,
+  settings JSONB DEFAULT '{}',
+  created_at TIMESTAMP DEFAULT now(),
+  last_seen_at TIMESTAMP DEFAULT now()
+);
 
--- Full-text search on content
-CREATE INDEX idx_sources_content_search 
-  ON sources USING gin(to_tsvector('english', title || ' ' || raw_content));
+-- Sources (optional content)
+CREATE TABLE sources (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID REFERENCES users ON DELETE CASCADE,
+  type TEXT NOT NULL, -- 'url', 'paste', 'markdown'
+  title TEXT,
+  url TEXT,
+  raw_content TEXT,
+  parsed_content JSONB, -- { paragraphs: [...] }
+  word_count INT,
+  created_at TIMESTAMP DEFAULT now(),
+  last_opened_at TIMESTAMP DEFAULT now()
+);
 
--- Find branches by source
-CREATE INDEX idx_branches_source 
-  ON branches(source_id, created_at DESC);
+-- Messages (THE core table)
+CREATE TABLE messages (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  parent_id UUID REFERENCES messages ON DELETE CASCADE,
+  user_id UUID REFERENCES users ON DELETE CASCADE,
+  source_id UUID REFERENCES sources ON DELETE SET NULL,
+  source_selection JSONB, -- { paragraphIndex, text, startOffset, endOffset }
+  role TEXT NOT NULL, -- 'user', 'assistant', 'system'
+  content TEXT NOT NULL,
+  tokens_used INT DEFAULT 0,
+  model TEXT,
+  created_at TIMESTAMP DEFAULT now()
+);
 
--- Usage reporting
-CREATE INDEX idx_usage_user_date 
-  ON usage_logs(user_id, created_at DESC);
+-- Highlights (annotations on sources)
+CREATE TABLE highlights (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  source_id UUID REFERENCES sources ON DELETE CASCADE,
+  user_id UUID REFERENCES users ON DELETE CASCADE,
+  paragraph_index INT,
+  text TEXT,
+  start_offset INT,
+  end_offset INT,
+  color TEXT DEFAULT 'green',
+  note TEXT,
+  created_at TIMESTAMP DEFAULT now()
+);
+
+-- Indexes
+CREATE INDEX idx_messages_parent ON messages(parent_id);
+CREATE INDEX idx_messages_user ON messages(user_id, created_at DESC);
+CREATE INDEX idx_messages_source ON messages(source_id, created_at ASC);
+CREATE INDEX idx_sources_user ON sources(user_id, last_opened_at DESC);
 ```
 
 ---
 
-## LiteLLM Integration (Billing)
+## UI Implications
 
-### Flow
+### "Current conversation" = path to root
+When viewing a message, show the chain up to root.
 
-```
-User sends message
-  → Mull backend receives request
-  → Backend calls LiteLLM proxy with user's API key
-  → LiteLLM routes to appropriate model
-  → LiteLLM tracks usage per API key
-  → Response returned to user
-  → Mull logs usage for display (not billing)
-```
+### "Branch here" = create child message
+Any message can be a branch point.
 
-### User Setup
+### "Go back" = move to parent
+Pop up the tree.
 
-1. User registers on Mull (Google OAuth)
-2. User goes to Settings → "Get API Key"
-3. Mull generates a unique LiteLLM API key for user
-4. User's usage is tracked by LiteLLM
-5. Billing happens through LiteLLM (prepaid credits or usage-based)
-
-### API Key Storage
-
-```sql
-ALTER TABLE users ADD COLUMN litellm_api_key TEXT;
-ALTER TABLE users ADD COLUMN litellm_key_created_at TIMESTAMP;
-```
+### "See other branches" = sibling messages
+Show other children of the same parent.
 
 ---
 
-## Export Format
+## Why This Is Better
 
-Users can export their learning in multiple formats:
-
-### Markdown Export
-
-```markdown
-# [Article Title]
-
-Source: https://example.com/article
-Date: 2026-01-30
-Words: 2,450
-
-## Highlights
-
-> "Important quote here"
-— Paragraph 3
-
-> "Another highlight"
-Note: My thoughts on this...
-
-## Conversations
-
-### Branch: "What does entropy mean?"
-**Me:** What does entropy mean in this context?
-**AI:** Entropy here refers to...
-
-#### Sub-branch: "Information theory connection"
-**Me:** How does this relate to Shannon?
-**AI:** Claude Shannon defined...
-
-## Summary
-[Auto-generated or user-written summary]
-```
-
-### JSON Export (for power users)
-
-```json
-{
-  "source": { ... },
-  "highlights": [ ... ],
-  "branches": [ ... ],
-  "exportedAt": "2026-01-30T10:00:00Z"
-}
-```
+| Old Model | New Model |
+|-----------|-----------|
+| Source → Branch → Message | Message (with optional source) |
+| Branches are separate entities | Tree emerges from parent_id |
+| Can't branch from AI response | Branch from any message |
+| "Source" required | Start with just a question |
+| Fixed depth | Infinite depth |
+| Complex queries | Simple recursive CTE |
 
 ---
 
-## Migration Path
+## Migration from v1
 
-### Phase 1: Local-first (current)
-- All data in localStorage/IndexedDB
-- No auth required
-- Export to file
+The old `branches` and separate message tables collapse into one.
 
-### Phase 2: Optional sync
-- Add Google auth
-- Sync to Supabase when logged in
-- Local-first still works offline
-
-### Phase 3: Full cloud
-- LiteLLM integration for AI
-- Usage tracking and billing
-- Team features (shared sources)
+1. Keep `sources` as-is
+2. Flatten branches + messages into `messages` with `parent_id`
+3. Delete `branches` table
+4. Done
 
 ---
 
-## Supabase Setup Checklist
+## Decision Log
 
-- [ ] Create project
-- [ ] Enable Google OAuth provider
-- [ ] Create tables (see schema above)
-- [ ] Set up Row Level Security (RLS)
-- [ ] Create API functions for complex queries
-- [ ] Set up realtime subscriptions (optional)
-
----
-
-## Environment Variables (Phase 2+)
-
-```bash
-# Supabase
-NEXT_PUBLIC_SUPABASE_URL=https://xxx.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJ...
-SUPABASE_SERVICE_KEY=eyJ...  # server-side only
-
-# LiteLLM
-LITELLM_API_BASE=https://your-litellm-instance.com
-LITELLM_MASTER_KEY=sk-...  # for creating user keys
-
-# Optional
-NEXT_PUBLIC_GOOGLE_CLIENT_ID=...
-```
+**2026-01-30**: Simplified from Source→Branch→Message to just Messages with parent_id.
+- Insight: Any message should be branchable
+- Insight: Sources are optional, not required
+- This enables "start with a question" flow naturally

@@ -1,57 +1,73 @@
 # Key Decisions
 
-Quick log of architectural and design decisions.
+Concise log of architectural and design choices.
 
 ---
 
 ## 2026-01-30
 
-### Naming: Keep "Mull"
-- Short, memorable, means "to ponder"
-- Alternatives considered: Delve, Branch, Tangent, Warren, Grok
-- Rejected: Branch (too literal), Grok (xAI uses it), Tangent (negative connotation)
+### Product Vision
+- **Core problem:** AI chats are single-threaded. Tangents pollute context.
+- **Solution:** Branching conversations. Any message can spawn a thread.
+- **Tagline:** "Branch freely. Never start over."
 
-### Core Problem Statement
-- **Not** "tab explosion" (old problem)
-- **Yes** "chat pollution" — AI chats are single-threaded, tangents pollute context
-- Key pain: "Let me start a new chat" → Mull fixes this with branching
+### Naming
+- **Product:** Mull (to ponder, think carefully)
+- Alternatives rejected: Branch (too literal), Grok (xAI uses it), Tangent (negative)
+
+### Data Architecture
+- **Tree via parent_id** — Messages table with `parent_id` creates the tree
+- **Sources optional** — Can start with just a question, no article needed
+- **Infinite depth** — Any message can branch, no artificial limits
+- See `ARCHITECTURE.md` for full schema
 
 ### Content Input
-- URL fetch (server-side, can fail on Vercel)
-- **Paste support** (client-side, always works) — primary fallback
-- Markdown auto-detection added
-- Future: PDF, ePub, browser extension
+- **URL fetch:** Jina Reader API (primary), direct fetch (fallback)
+- **Paste:** Client-side parsing (markdown, HTML, plain text)
+- **Why Jina:** Free, handles JS sites, not blocked by most CDNs
 
-### Data Model
-- **Branching tree**: Source → Branches → Messages
-- Each branch has `parent_id` for tree structure
-- `paragraph_index` + `selected_text` anchor branches to source
-- JSONB fields for future extensibility (`settings`, `metadata`, `parsed_content`)
+### UI/UX
+- **Unified action menu** — Same component for selection, paragraph click, highlight
+- **Mobile:** Bottom sheet | **Desktop:** Floating menu
+- **Theme:** Light/dark only (removed sepia)
+- **Typography:** Source Serif 4 (reading), Inter (UI)
+- **Highlights:** Muted colors, theme-aware opacity (Greptile-inspired)
 
-### Auth Strategy
+### Auth Strategy (planned)
 - Google OAuth only (lowest friction)
 - Supabase for storage
-- Can add more providers later
+- Local-first → optional sync migration path
 
-### Billing via LiteLLM
-- User gets unique API key from Mull's LiteLLM instance
-- LiteLLM tracks usage per key
-- Mull doesn't handle payments directly — LiteLLM does
-- `usage_logs` table for user-facing stats only
+### Billing (planned)
+- LiteLLM proxy for AI calls
+- User gets unique API key
+- Usage-based billing via LiteLLM
 
-### Migration Path
-1. **Local-first** (current) — IndexedDB, no auth required
-2. **Optional sync** — Google login, Supabase backup
-3. **Full cloud** — LiteLLM billing, team features
+### Tech Stack
+- **Framework:** Next.js 16 (App Router)
+- **Styling:** Tailwind CSS 4
+- **State:** Zustand (with persistence)
+- **Animation:** Framer Motion
+- **Content extraction:** Jina Reader + Readability.js
 
-### UI Decisions
-- **Unified action menu** — same component for selection, paragraph click, highlight click
-- **Mobile**: bottom sheet | **Desktop**: floating menu
-- **Serif font** for reading (Source Serif 4), **sans-serif** for UI (Inter)
-- Highlight colors: muted/sophisticated, not highlighter-bright (inspired by Greptile)
+---
 
-### Homepage Messaging
-- Don't list generic features (AI, highlights = table stakes)
-- Focus on core differentiator: **branching conversations**
-- Tagline: "Branch freely. Never start over."
-- Comparison: "With chatbots → polluted. With Mull → branch off"
+## Naming Conventions
+
+| Concept | Name | Notes |
+|---------|------|-------|
+| Product | Mull | "To ponder" |
+| Content source | Source | Article, paste, markdown |
+| Conversation | Thread/Branch | Emerges from parent_id |
+| Navigation state | Layer | UI-only, for stack navigation |
+| User annotation | Highlight | With optional note |
+
+---
+
+## What We Explicitly Rejected
+
+- **Sidebar layout** — Felt disconnected. Chose full-screen layers instead.
+- **Separate branches table** — Overcomplicated. Tree IS the messages.
+- **Required source** — Users should be able to just ask a question.
+- **Sepia theme** — Low priority, removed for simplicity.
+- **Complex focus outlines** — Removed all, using hover states instead.

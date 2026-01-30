@@ -1,11 +1,8 @@
-# AI Reader UI Guide
+# Mull — UI Guide
 
-## Design Principles
+Quick reference for styling and components.
 
-1. **Reading-first** — UI should never distract from content
-2. **Progressive disclosure** — Show options only when needed
-3. **Consistent interactions** — Same gestures = same results
-4. **Mobile-native** — Touch-first, mouse second
+---
 
 ## Color System
 
@@ -13,10 +10,10 @@
 /* Light Mode */
 --bg-primary: #fafafa
 --bg-secondary: #ffffff
---text-primary: #1a1a1a
---text-secondary: #666666
---accent: #2563eb
---highlight: rgba(37, 99, 235, 0.08)
+--text-primary: #171717
+--text-secondary: #525252
+--accent: #166534 (green)
+--highlight: rgba(22, 101, 52, 0.06)
 --border: #e5e5e5
 
 /* Dark Mode */
@@ -24,70 +21,74 @@
 --bg-secondary: #171717
 --text-primary: #fafafa
 --text-secondary: #a3a3a3
---accent: #3b82f6
---highlight: rgba(59, 130, 246, 0.12)
+--accent: #22c55e
+--highlight: rgba(34, 197, 94, 0.08)
 --border: #262626
 ```
 
+---
+
 ## Typography
 
-- **Body text:** 17-18px, line-height 1.7
-- **Headings:** Bold, tracking-tight
-- **UI text:** 12-14px, medium weight
+| Element | Font | Size | Weight |
+|---------|------|------|--------|
+| Reading content | Source Serif 4 | 17-20px | 400 |
+| UI text | Inter | 12-14px | 400-500 |
+| Headings | Inter | 20-32px | 600 |
+
+---
 
 ## Spacing
 
 - **Container max-width:** 640px
-- **Horizontal padding:** 16px (mobile), 24px (desktop)
-- **Section spacing:** 24-32px
-- **Element spacing:** 8-16px
+- **Horizontal padding:** 24px
+- **Paragraph margin:** 1.25em
+
+---
 
 ## Components
 
+### Action Menu
+Single component for all interactions (selection, paragraph click, highlight).
+- **Mobile:** Bottom sheet (slides up)
+- **Desktop:** Floating menu near click
+
 ### Paragraph
-- Rounded corners: 12px
-- Padding: 12px 16px
-- Border-left: 3px (shows explored state)
-- Hover: Highlight + translate right
+- Border-left indicates explored state
+- Hover shows subtle highlight
+- Click opens action menu
 
-### Menu (Selection/Click)
-- Rounded corners: 16px
-- Shadow: Large (shadow-2xl)
-- Animation: Scale + fade (0.15s)
+### Highlights
+Muted, theme-aware colors:
+- Green (default): `rgba(76, 140, 87, 0.28)`
+- Yellow, blue, pink, orange variants
+- Lower opacity in dark mode
 
-### Buttons
-- Primary: Accent color, white text
-- Secondary: Highlight color, secondary text
-- Rounded: 8-12px
-- Padding: 12px 16px
+---
 
-## Interactions
+## Animation
 
-### Click on Paragraph
-- Shows contextual menu
-- Options: "Dive Deeper", "Copy", "Cancel"
-- Does NOT navigate directly
+| Type | Duration | Easing |
+|------|----------|--------|
+| Menu appear | 100-150ms | ease-out |
+| Page transition | 200ms | ease-in-out |
+| Expand/collapse | 200ms | ease |
 
-### Select Text
-- Shows selection menu above/below selection
-- Options: "Dive Deeper", "Copy", "Cancel"
-- Mobile: Full-width menu below selection
+---
 
-### Navigate to Detail
-- Only happens when user clicks "Dive Deeper"
-- Animated slide transition (x: 20px)
+## Z-Index
 
-## Animation Timing
+| Element | Z-Index |
+|---------|---------|
+| Progress bar | 50 |
+| Top bar | 40 |
+| Action menu | 50 |
+| Toast | 50 |
+| Modal | 60 |
 
-- **Fast:** 0.15s (menus, tooltips)
-- **Normal:** 0.2s (page transitions)
-- **Slow:** 0.3s (loading states)
-- **Easing:** cubic-bezier(0.4, 0, 0.2, 1)
+---
 
-## Z-Index Scale
+## Focus States
 
-- Progress bar: 50
-- Top bar: 40
-- Selection menu: 50
-- Toast: 50
-- Modal: 60
+**Removed all focus outlines.** Using hover/active states instead.
+Buttons and inputs have `outline: none` globally.
