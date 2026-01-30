@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
-import { ArrowRight, Sun, Moon, BookOpen, Link2, FileText } from 'lucide-react';
+import { ArrowRight, Sun, Moon, BookOpen, Link2, FileText, GitBranch, Anchor, RotateCcw, ChevronDown } from 'lucide-react';
 import { useThemeStore, type Theme } from '@/stores/theme-store';
 import { useReaderStore } from '@/stores/reader-store';
 import { parseContent } from '@/utils/parse-content';
@@ -18,6 +18,7 @@ export default function Home() {
   const [title, setTitle] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [expandedFeature, setExpandedFeature] = useState<string | null>(null);
   
   const router = useRouter();
   const { theme, setTheme } = useThemeStore();
@@ -200,7 +201,7 @@ export default function Home() {
 
         {/* Core Value Prop */}
         <div 
-          className="mb-8 p-4 rounded-lg text-sm"
+          className="mb-6 p-4 rounded-lg text-sm"
           style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border)' }}
         >
           <div className="space-y-2" style={{ color: 'var(--text-secondary)' }}>
@@ -213,6 +214,73 @@ export default function Home() {
               Ask a tangent → <strong>branch off</strong> → return to clean context
             </p>
           </div>
+        </div>
+
+        {/* Expandable Features */}
+        <div className="mb-8 space-y-2">
+          {[
+            { 
+              id: 'branch',
+              icon: GitBranch, 
+              title: 'Branch', 
+              short: 'Tangents stay isolated',
+              detail: 'Every question spawns its own thread. Dive three levels deep into entropy, and your question about paragraph 5 stays pristine. No more scrolling up to find what you were reading.'
+            },
+            { 
+              id: 'anchor',
+              icon: Anchor, 
+              title: 'Anchored', 
+              short: 'Source never buried',
+              detail: 'Your original content is always one tap away. Each branch knows exactly which paragraph (and which selection) it came from. Context travels with you.'
+            },
+            { 
+              id: 'return',
+              icon: RotateCcw, 
+              title: 'Return', 
+              short: 'Clean context awaits',
+              detail: 'Done with a tangent? Pop back. The AI picks up right where you left off—no confusion, no "wait, what were we discussing?" Each branch has its own memory.'
+            },
+          ].map((f) => (
+            <motion.div 
+              key={f.id}
+              className="rounded-lg overflow-hidden"
+              style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border)' }}
+            >
+              <button
+                onClick={() => setExpandedFeature(expandedFeature === f.id ? null : f.id)}
+                className="w-full px-4 py-3 flex items-center gap-3 text-left outline-none"
+              >
+                <f.icon size={18} style={{ color: 'var(--accent)' }} />
+                <div className="flex-1">
+                  <span className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>{f.title}</span>
+                  <span className="text-sm ml-2" style={{ color: 'var(--text-tertiary)' }}>— {f.short}</span>
+                </div>
+                <motion.div
+                  animate={{ rotate: expandedFeature === f.id ? 180 : 0 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  <ChevronDown size={16} style={{ color: 'var(--text-tertiary)' }} />
+                </motion.div>
+              </button>
+              
+              <motion.div
+                initial={false}
+                animate={{ 
+                  height: expandedFeature === f.id ? 'auto' : 0,
+                  opacity: expandedFeature === f.id ? 1 : 0
+                }}
+                transition={{ duration: 0.2 }}
+                className="overflow-hidden"
+              >
+                <p 
+                  className="px-4 pb-4 text-sm leading-relaxed"
+                  style={{ color: 'var(--text-secondary)' }}
+                >
+                  {f.detail}
+                </p>
+              </motion.div>
+            </motion.div>
+          ))}
         </div>
 
         {/* Theme */}
