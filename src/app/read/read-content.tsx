@@ -14,6 +14,7 @@ import { LoadingSkeleton } from '@/components/reader/loading-skeleton';
 import { useKeyboardShortcuts } from '@/hooks/use-keyboard-shortcuts';
 import { SettingsPanel } from '@/components/reader/settings-panel';
 import { KeyboardHints } from '@/components/reader/keyboard-hints';
+import { FinishButton } from '@/components/reader/finish-button';
 
 interface ParsedArticle {
   title: string;
@@ -223,6 +224,13 @@ export function ReadContent() {
               onParagraphClick={handleParagraphClick}
               onSelectionAsk={(text, index) => handleParagraphClick(index, text)}
             />
+            
+            {url && (
+              <FinishButton 
+                articleUrl={url} 
+                articleTitle={article.title} 
+              />
+            )}
           </motion.div>
         ) : (
           <motion.div
