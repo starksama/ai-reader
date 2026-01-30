@@ -5,6 +5,7 @@ import { useTextSelection } from '@/hooks/use-text-selection';
 import { useHighlightStore } from '@/stores/highlight-store';
 import { SelectionMenu } from './selection-menu';
 import { ParagraphMenu } from './paragraph-menu';
+import { HighlightedText } from './highlighted-text';
 
 interface Paragraph {
   id: string;
@@ -40,8 +41,11 @@ export function ArticleView({
 }: ArticleViewProps) {
   const [readProgress, setReadProgress] = useState(0);
   const { selection, clearSelection } = useTextSelection();
-  const { addHighlight, getHighlights } = useHighlightStore();
+  const { addHighlight, getHighlights, removeHighlight } = useHighlightStore();
   const highlights = getHighlights(article.url);
+  
+  // State for editing highlights
+  const [editingHighlight, setEditingHighlight] = useState<string | null>(null);
   
   const [paragraphMenu, setParagraphMenu] = useState<{
     isOpen: boolean;
@@ -243,7 +247,24 @@ export function ArticleView({
                 }
               }}
             >
-              {paragraph.text}
+              <HighlightedText
+                text={paragraph.text}
+                highlights={paragraphHighlights}
+                onDiveDeeper={(text) => {
+                  if (onSelectionAsk) {
+                    onSelectionAsk(text, paragraph.index);
+                  } else {
+                    onParagraphClick(paragraph.index, text);
+                  }
+                }}
+                onEditHighlight={(highlight) => {
+                  // For now, just allow re-selecting - TODO: implement proper edit
+                  setEditingHighlight(highlight.id);
+                }}
+                onDeleteHighlight={(highlightId) => {
+                  removeHighlight(article.url, highlightId);
+                }}
+              />
             </div>
           );
         })}
