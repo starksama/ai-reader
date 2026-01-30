@@ -32,7 +32,7 @@ export function ReadContent() {
   
   const { layers, currentIndex, push, pop, reset } = useLayerStore();
   const { fontSize } = useThemeStore();
-  const { pastedArticle, clearPastedArticle } = useReaderStore();
+  const { loadArticle } = useReaderStore();
   const isDetailView = currentIndex > 0;
 
   // Keyboard shortcuts
@@ -58,12 +58,13 @@ export function ReadContent() {
 
   // Load article from URL or pasted content
   useEffect(() => {
-    // If source is paste/pdf/file, use article from store
+    // If source is paste/pdf/file, use article from store/sessionStorage
     const isLocalSource = source === 'paste' || source === 'pdf' || source === 'file';
     
     if (isLocalSource) {
-      if (pastedArticle) {
-        setArticle(pastedArticle);
+      const storedArticle = loadArticle();
+      if (storedArticle) {
+        setArticle(storedArticle);
         setIsLoading(false);
         setError(null);
       } else {
@@ -120,17 +121,10 @@ export function ReadContent() {
     }
 
     fetchArticle();
-  }, [url, source, pastedArticle]);
+  }, [url, source, loadArticle]);
 
-  // Cleanup stored article when leaving
-  useEffect(() => {
-    return () => {
-      const isLocalSource = source === 'paste' || source === 'pdf' || source === 'file';
-      if (isLocalSource) {
-        clearPastedArticle();
-      }
-    };
-  }, [source, clearPastedArticle]);
+  // Article cleanup is handled by setArticle overwriting the old one
+  // Don't cleanup on unmount - it causes race conditions with strict mode
 
   const handleParagraphClick = (index: number, selectedText?: string) => {
     setSelectedParagraph(index);
