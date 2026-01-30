@@ -32,6 +32,17 @@ export const metadata: Metadata = {
     title: "Mull — Branch Freely, Never Start Over",
     description: "No more 'let me start a new chat'. Explore tangents without polluting your context. Branch off, go deep, return cleanly.",
   },
+  viewport: {
+    width: "device-width",
+    initialScale: 1,
+    maximumScale: 1,
+    userScalable: false,
+  },
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "Mull",
+  },
 };
 
 export default function RootLayout({
