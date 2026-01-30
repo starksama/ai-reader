@@ -36,10 +36,33 @@ export const fontSizeMap: Record<FontSize, { base: number; mobile: number }> = {
   large: { base: 20, mobile: 19 },
 };
 
-export const highlightColorMap: Record<HighlightColor, string> = {
-  yellow: '#fef08a',
-  green: '#bbf7d0',
-  blue: '#bfdbfe',
-  pink: '#fbcfe8',
-  orange: '#fed7aa',
+// Highlight colors with proper opacity for readability
+// Format: { light: color, dark: color, sepia: color }
+export const highlightColorMap: Record<Theme, Record<HighlightColor, string>> = {
+  light: {
+    yellow: 'rgba(253, 224, 71, 0.4)',  // yellow-300
+    green: 'rgba(134, 239, 172, 0.4)',   // green-300
+    blue: 'rgba(147, 197, 253, 0.4)',    // blue-300
+    pink: 'rgba(249, 168, 212, 0.4)',    // pink-300
+    orange: 'rgba(253, 186, 116, 0.4)',  // orange-300
+  },
+  dark: {
+    yellow: 'rgba(253, 224, 71, 0.25)',  // Less opacity for dark mode
+    green: 'rgba(134, 239, 172, 0.25)',
+    blue: 'rgba(147, 197, 253, 0.25)',
+    pink: 'rgba(249, 168, 212, 0.25)',
+    orange: 'rgba(253, 186, 116, 0.25)',
+  },
+  sepia: {
+    yellow: 'rgba(217, 169, 57, 0.35)',  // Warmer yellow for sepia
+    green: 'rgba(101, 163, 103, 0.35)',  // Muted green
+    blue: 'rgba(122, 158, 189, 0.35)',   // Muted blue
+    pink: 'rgba(199, 139, 156, 0.35)',   // Muted pink
+    orange: 'rgba(210, 150, 94, 0.35)',  // Warmer orange
+  },
 };
+
+// Helper to get highlight color for current theme
+export function getHighlightColor(theme: Theme, color: HighlightColor): string {
+  return highlightColorMap[theme][color];
+}

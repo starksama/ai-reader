@@ -1,30 +1,22 @@
 'use client';
 
-import { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowUpRight, Pencil, Trash2 } from 'lucide-react';
+import { useCallback } from 'react';
 import type { Highlight } from '@/stores/highlight-store';
-import { useThemeStore, highlightColorMap } from '@/stores/theme-store';
+import { useThemeStore, getHighlightColor } from '@/stores/theme-store';
 
 interface HighlightedTextProps {
   text: string;
   highlights: Highlight[];
-  onDiveDeeper: (text: string) => void;
-  onEditHighlight: (highlight: Highlight) => void;
-  onDeleteHighlight: (highlightId: string) => void;
+  onHighlightClick: (highlight: Highlight, position: { x: number; y: number }) => void;
 }
 
 export function HighlightedText({ 
   text, 
-  highlights, 
-  onDiveDeeper, 
-  onEditHighlight,
-  onDeleteHighlight 
+  highlights,
+  onHighlightClick,
 }: HighlightedTextProps) {
-  const [activeHighlight, setActiveHighlight] = useState<Highlight | null>(null);
-  const [menuPosition, setMenuPosition] = useState({ x: 0, y: 0 });
-  const { highlightColor } = useThemeStore();
-  const bgColor = highlightColorMap[highlightColor];
+  const { theme, highlightColor } = useThemeStore();
+  const bgColor = getHighlightColor(theme, highlightColor);
 
   // If no highlights, just return the text
   if (highlights.length === 0) {
@@ -61,17 +53,15 @@ export function HighlightedText({
     segments.push({ text: text.slice(lastIndex) });
   }
 
-  const handleHighlightClick = (e: React.MouseEvent, highlight: Highlight) => {
+  const handleHighlightClick = useCallback((e: React.MouseEvent, highlight: Highlight) => {
     e.stopPropagation();
     const rect = (e.target as HTMLElement).getBoundingClientRect();
-    setMenuPosition({ 
+    // Position below the highlight, centered
+    onHighlightClick(highlight, { 
       x: rect.left + rect.width / 2, 
       y: rect.bottom + 8 
     });
-    setActiveHighlight(highlight);
-  };
-
-  const closeMenu = () => setActiveHighlight(null);
+  }, [onHighlightClick]);
 
   return (
     <>
@@ -92,72 +82,6 @@ export function HighlightedText({
           <span key={i}>{segment.text}</span>
         )
       )}
-
-      {/* Highlight Menu */}
-      <AnimatePresence>
-        {activeHighlight && (
-          <>
-            <div 
-              className="fixed inset-0 z-40" 
-              onClick={closeMenu}
-            />
-            <motion.div
-              initial={{ opacity: 0, y: -4 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -4 }}
-              className="fixed z-50 shadow-lg rounded-md overflow-hidden"
-              style={{ 
-                left: menuPosition.x,
-                top: menuPosition.y,
-                transform: 'translateX(-50%)',
-                backgroundColor: 'var(--bg-secondary)',
-                border: '1px solid var(--border)',
-              }}
-            >
-              <div className="flex">
-                <button
-                  onClick={() => {
-                    onDiveDeeper(activeHighlight.text);
-                    closeMenu();
-                  }}
-                  className="flex items-center gap-2 px-3 py-2 text-sm transition-colors hover:bg-[var(--highlight)]"
-                  style={{ color: 'var(--accent)' }}
-                >
-                  <ArrowUpRight size={14} />
-                  <span>Dive deeper</span>
-                </button>
-                
-                <div style={{ width: 1, backgroundColor: 'var(--border)' }} />
-                
-                <button
-                  onClick={() => {
-                    onEditHighlight(activeHighlight);
-                    closeMenu();
-                  }}
-                  className="flex items-center gap-2 px-3 py-2 text-sm transition-colors hover:bg-[var(--highlight)]"
-                  style={{ color: 'var(--text-secondary)' }}
-                >
-                  <Pencil size={14} />
-                  <span>Edit</span>
-                </button>
-                
-                <div style={{ width: 1, backgroundColor: 'var(--border)' }} />
-                
-                <button
-                  onClick={() => {
-                    onDeleteHighlight(activeHighlight.id);
-                    closeMenu();
-                  }}
-                  className="px-3 py-2 text-sm transition-colors hover:bg-[var(--highlight)]"
-                  style={{ color: 'var(--text-secondary)' }}
-                >
-                  <Trash2 size={14} />
-                </button>
-              </div>
-            </motion.div>
-          </>
-        )}
-      </AnimatePresence>
     </>
   );
 }

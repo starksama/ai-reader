@@ -2,9 +2,8 @@
 
 import { useEffect, useState, useRef, useCallback } from 'react';
 import { useTextSelection } from '@/hooks/use-text-selection';
-import { useHighlightStore } from '@/stores/highlight-store';
-import { SelectionMenu } from './selection-menu';
-import { ParagraphMenu } from './paragraph-menu';
+import { useHighlightStore, type Highlight } from '@/stores/highlight-store';
+import { ActionMenu, type ActionMenuMode } from './action-menu';
 import { HighlightedText } from './highlighted-text';
 
 interface Paragraph {
@@ -32,6 +31,24 @@ interface ArticleViewProps {
   onSelectionAsk?: (text: string, paragraphIndex: number) => void;
 }
 
+// Unified menu state
+interface MenuState {
+  isOpen: boolean;
+  mode: ActionMenuMode;
+  text: string;
+  paragraphIndex: number;
+  position: { x: number; y: number };
+  highlight?: Highlight; // Only for highlight mode
+}
+
+const initialMenuState: MenuState = {
+  isOpen: false,
+  mode: 'selection',
+  text: '',
+  paragraphIndex: -1,
+  position: { x: 0, y: 0 },
+};
+
 export function ArticleView({ 
   article, 
   selectedParagraph, 
@@ -44,23 +61,26 @@ export function ArticleView({
   const { addHighlight, getHighlights, removeHighlight } = useHighlightStore();
   const highlights = getHighlights(article.url);
   
-  // State for editing highlights
-  const [editingHighlight, setEditingHighlight] = useState<string | null>(null);
-  
-  const [paragraphMenu, setParagraphMenu] = useState<{
-    isOpen: boolean;
-    index: number;
-    text: string;
-    position: { x: number; y: number };
-  }>({
-    isOpen: false,
-    index: -1,
-    text: '',
-    position: { x: 0, y: 0 },
-  });
+  // Unified menu state
+  const [menu, setMenu] = useState<MenuState>(initialMenuState);
+  const [isMobile, setIsMobile] = useState(false);
 
   const mouseDownRef = useRef<{ x: number; y: number; time: number } | null>(null);
 
+  // Detect mobile
+  useEffect(() => {
+    const checkMobile = () => {
+      const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+      const isSmallScreen = window.innerWidth < 768;
+      setIsMobile(isTouchDevice && isSmallScreen);
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  // Track scroll progress
   useEffect(() => {
     const handleScroll = () => {
       const scrollTop = window.scrollY;
@@ -73,28 +93,89 @@ export function ArticleView({
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  // Handle text selection -> show selection menu
   useEffect(() => {
-    if (selection.text) {
-      setParagraphMenu(prev => ({ ...prev, isOpen: false }));
-    }
-  }, [selection.text]);
+    if (selection.text && selection.paragraphIndex !== null && selection.range) {
+      const rect = selection.range.getBoundingClientRect();
+      const menuWidth = 300;
+      const menuHeight = 60;
+      
+      let x = rect.left + rect.width / 2 - menuWidth / 2;
+      let y = rect.top - menuHeight - 8;
+      
+      const padding = 12;
+      if (x < padding) x = padding;
+      if (x + menuWidth > window.innerWidth - padding) {
+        x = window.innerWidth - menuWidth - padding;
+      }
+      if (y < padding) {
+        y = rect.bottom + 8;
+      }
 
-  const handleDiveDeeper = (text: string, paragraphIndex: number) => {
+      // Delay slightly on mobile to let native selection menu appear first
+      const delay = isMobile ? 100 : 0;
+      const timer = setTimeout(() => {
+        setMenu({
+          isOpen: true,
+          mode: 'selection',
+          text: selection.text,
+          paragraphIndex: selection.paragraphIndex!,
+          position: { x, y },
+        });
+      }, delay);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [selection.text, selection.paragraphIndex, selection.range, isMobile]);
+
+  const closeMenu = useCallback(() => {
+    setMenu(initialMenuState);
+    clearSelection();
+  }, [clearSelection]);
+
+  const handleDiveDeeper = useCallback(() => {
     if (onSelectionAsk) {
-      onSelectionAsk(text, paragraphIndex);
+      onSelectionAsk(menu.text, menu.paragraphIndex);
     } else {
-      onParagraphClick(paragraphIndex, text);
+      onParagraphClick(menu.paragraphIndex, menu.text);
     }
-  };
+  }, [menu.text, menu.paragraphIndex, onSelectionAsk, onParagraphClick]);
 
-  const handleHighlight = (text: string, paragraphIndex: number) => {
+  const handleHighlight = useCallback(() => {
     addHighlight(article.url, {
-      paragraphIndex,
-      text,
+      paragraphIndex: menu.paragraphIndex,
+      text: menu.text,
       startOffset: 0,
-      endOffset: text.length,
+      endOffset: menu.text.length,
     });
-  };
+  }, [addHighlight, article.url, menu.paragraphIndex, menu.text]);
+
+  const handleCopy = useCallback(() => {
+    // Copy is handled in ActionMenu, this is just a callback
+  }, []);
+
+  const handleEditHighlight = useCallback(() => {
+    // For now, just log - TODO: implement proper edit
+    console.log('Edit highlight:', menu.highlight?.id);
+  }, [menu.highlight]);
+
+  const handleDeleteHighlight = useCallback(() => {
+    if (menu.highlight) {
+      removeHighlight(article.url, menu.highlight.id);
+    }
+  }, [menu.highlight, removeHighlight, article.url]);
+
+  // Handle highlight click
+  const handleHighlightClick = useCallback((highlight: Highlight, position: { x: number; y: number }) => {
+    setMenu({
+      isOpen: true,
+      mode: 'highlight',
+      text: highlight.text,
+      paragraphIndex: highlight.paragraphIndex,
+      position,
+      highlight,
+    });
+  }, []);
 
   const handleParagraphMouseDown = (e: React.MouseEvent) => {
     mouseDownRef.current = {
@@ -125,20 +206,17 @@ export function ArticleView({
       const hasSelection = sel && sel.toString().trim().length > 0;
 
       if (!hasSelection) {
-        setParagraphMenu({
+        setMenu({
           isOpen: true,
-          index: paragraph.index,
+          mode: 'paragraph',
           text: paragraph.text,
+          paragraphIndex: paragraph.index,
           position: { x: e.clientX, y: e.clientY + 10 },
         });
       }
       mouseDownRef.current = null;
     }, 50);
   };
-
-  const closeParagraphMenu = useCallback(() => {
-    setParagraphMenu(prev => ({ ...prev, isOpen: false }));
-  }, []);
 
   const exploredCount = exploredParagraphs.size;
   const highlightCount = highlights.length;
@@ -159,34 +237,19 @@ export function ArticleView({
         />
       </div>
 
-      {/* Selection Menu */}
-      <SelectionMenu
-        selection={selection}
+      {/* Unified Action Menu */}
+      <ActionMenu
+        isOpen={menu.isOpen}
+        mode={menu.mode}
+        text={menu.text}
+        position={menu.position}
+        isMobile={isMobile}
         onDiveDeeper={handleDiveDeeper}
-        onHighlight={handleHighlight}
-        onCopy={() => {}}
-        onClear={clearSelection}
-      />
-
-      {/* Paragraph Menu */}
-      <ParagraphMenu
-        isOpen={paragraphMenu.isOpen}
-        paragraphText={paragraphMenu.text}
-        position={paragraphMenu.position}
-        onDiveDeeper={() => {
-          onParagraphClick(paragraphMenu.index);
-          closeParagraphMenu();
-        }}
-        onHighlight={() => {
-          addHighlight(article.url, {
-            paragraphIndex: paragraphMenu.index,
-            text: paragraphMenu.text,
-            startOffset: 0,
-            endOffset: paragraphMenu.text.length,
-          });
-          closeParagraphMenu();
-        }}
-        onClose={closeParagraphMenu}
+        onHighlight={menu.mode !== 'highlight' ? handleHighlight : undefined}
+        onCopy={handleCopy}
+        onEdit={menu.mode === 'highlight' ? handleEditHighlight : undefined}
+        onDelete={menu.mode === 'highlight' ? handleDeleteHighlight : undefined}
+        onClose={closeMenu}
       />
 
       {/* Header */}
@@ -259,20 +322,7 @@ export function ArticleView({
               <HighlightedText
                 text={paragraph.text}
                 highlights={paragraphHighlights}
-                onDiveDeeper={(text) => {
-                  if (onSelectionAsk) {
-                    onSelectionAsk(text, paragraph.index);
-                  } else {
-                    onParagraphClick(paragraph.index, text);
-                  }
-                }}
-                onEditHighlight={(highlight) => {
-                  // For now, just allow re-selecting - TODO: implement proper edit
-                  setEditingHighlight(highlight.id);
-                }}
-                onDeleteHighlight={(highlightId) => {
-                  removeHighlight(article.url, highlightId);
-                }}
+                onHighlightClick={handleHighlightClick}
               />
             </div>
           );
