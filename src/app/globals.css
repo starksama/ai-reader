@@ -1,6 +1,6 @@
 @import "tailwindcss";
 
-/* Design System Colors */
+/* Design System Colors - Dark Green Theme */
 :root {
   /* Light Mode (Default) */
   --bg-primary: #fafafa;
@@ -10,26 +10,30 @@
   --text-primary: #171717;
   --text-secondary: #525252;
   --text-tertiary: #a3a3a3;
-  --accent: #2563eb;
-  --accent-subtle: #dbeafe;
-  --highlight: rgba(37, 99, 235, 0.06);
+  --accent: #166534;
+  --accent-rgb: 22, 101, 52;
+  --accent-subtle: #dcfce7;
+  --highlight: rgba(22, 101, 52, 0.06);
+  --highlight-color: #fef08a;
   --border: #e5e5e5;
   --border-subtle: #f0f0f0;
 }
 
 .dark {
-  --bg-primary: #09090b;
-  --bg-primary-rgb: 9, 9, 11;
-  --bg-secondary: #18181b;
-  --bg-tertiary: #27272a;
+  --bg-primary: #0a0a0a;
+  --bg-primary-rgb: 10, 10, 10;
+  --bg-secondary: #171717;
+  --bg-tertiary: #262626;
   --text-primary: #fafafa;
-  --text-secondary: #a1a1aa;
-  --text-tertiary: #71717a;
-  --accent: #3b82f6;
-  --accent-subtle: rgba(59, 130, 246, 0.15);
-  --highlight: rgba(59, 130, 246, 0.08);
-  --border: #27272a;
-  --border-subtle: #3f3f46;
+  --text-secondary: #a3a3a3;
+  --text-tertiary: #737373;
+  --accent: #22c55e;
+  --accent-rgb: 34, 197, 94;
+  --accent-subtle: rgba(34, 197, 94, 0.15);
+  --highlight: rgba(34, 197, 94, 0.08);
+  --highlight-color: rgba(254, 240, 138, 0.3);
+  --border: #262626;
+  --border-subtle: #404040;
 }
 
 .sepia {
@@ -40,9 +44,11 @@
   --text-primary: #292524;
   --text-secondary: #57534e;
   --text-tertiary: #a8a29e;
-  --accent: #b45309;
-  --accent-subtle: #fef3c7;
-  --highlight: rgba(180, 83, 9, 0.08);
+  --accent: #166534;
+  --accent-rgb: 22, 101, 52;
+  --accent-subtle: #dcfce7;
+  --highlight: rgba(22, 101, 52, 0.08);
+  --highlight-color: #fef08a;
   --border: #e7e5e4;
   --border-subtle: #f5f5f4;
 }
@@ -63,6 +69,11 @@ body {
   transition: background-color 0.2s ease, color 0.2s ease;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  /* Subtle grid texture */
+  background-image: 
+    linear-gradient(var(--border-subtle) 1px, transparent 1px),
+    linear-gradient(90deg, var(--border-subtle) 1px, transparent 1px);
+  background-size: 24px 24px;
 }
 
 /* Selection styling */

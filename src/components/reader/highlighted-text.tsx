@@ -2,8 +2,9 @@
 
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowUpRight, Pencil, Trash2, X } from 'lucide-react';
+import { ArrowUpRight, Pencil, Trash2 } from 'lucide-react';
 import type { Highlight } from '@/stores/highlight-store';
+import { useThemeStore, highlightColorMap } from '@/stores/theme-store';
 
 interface HighlightedTextProps {
   text: string;
@@ -22,6 +23,8 @@ export function HighlightedText({
 }: HighlightedTextProps) {
   const [activeHighlight, setActiveHighlight] = useState<Highlight | null>(null);
   const [menuPosition, setMenuPosition] = useState({ x: 0, y: 0 });
+  const { highlightColor } = useThemeStore();
+  const bgColor = highlightColorMap[highlightColor];
 
   // If no highlights, just return the text
   if (highlights.length === 0) {
@@ -79,7 +82,7 @@ export function HighlightedText({
             onClick={(e) => handleHighlightClick(e, segment.highlight!)}
             className="cursor-pointer px-0.5 -mx-0.5 rounded transition-all hover:opacity-80"
             style={{ 
-              backgroundColor: 'var(--accent-subtle)',
+              backgroundColor: bgColor,
               color: 'inherit',
             }}
           >

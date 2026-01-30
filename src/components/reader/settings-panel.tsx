@@ -1,26 +1,21 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
-import { Settings, Sun, Moon, BookOpen } from 'lucide-react';
-import { useThemeStore, type Theme, type FontSize, fontSizeMap } from '@/stores/theme-store';
+import { useState } from 'react';
+import { Settings, Sun, Moon, BookOpen, Check } from 'lucide-react';
+import { Popup } from '@/components/ui/popup';
+import { useThemeStore, type Theme, type FontSize, type HighlightColor } from '@/stores/theme-store';
+
+const highlightColors: { id: HighlightColor; color: string; label: string }[] = [
+  { id: 'yellow', color: '#fef08a', label: 'Yellow' },
+  { id: 'green', color: '#bbf7d0', label: 'Green' },
+  { id: 'blue', color: '#bfdbfe', label: 'Blue' },
+  { id: 'pink', color: '#fbcfe8', label: 'Pink' },
+  { id: 'orange', color: '#fed7aa', label: 'Orange' },
+];
 
 export function SettingsPanel() {
   const [isOpen, setIsOpen] = useState(false);
-  const { theme, fontSize, setTheme, setFontSize } = useThemeStore();
-  const panelRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    function handleClickOutside(e: MouseEvent) {
-      if (panelRef.current && !panelRef.current.contains(e.target as Node)) {
-        setIsOpen(false);
-      }
-    }
-    
-    if (isOpen) {
-      document.addEventListener('mousedown', handleClickOutside);
-      return () => document.removeEventListener('mousedown', handleClickOutside);
-    }
-  }, [isOpen]);
+  const { theme, fontSize, highlightColor, setTheme, setFontSize, setHighlightColor } = useThemeStore();
 
   const themes: { key: Theme; label: string; icon: React.ReactNode }[] = [
     { key: 'light', label: 'Light', icon: <Sun size={14} /> },
@@ -35,86 +30,105 @@ export function SettingsPanel() {
   ];
 
   return (
-    <div className="relative" ref={panelRef}>
+    <>
       <button
-        onClick={() => setIsOpen(!isOpen)}
-        className="w-8 h-8 flex items-center justify-center rounded-md transition-all"
+        onClick={() => setIsOpen(true)}
+        className="w-9 h-9 flex items-center justify-center rounded-lg transition-all"
         style={{
-          backgroundColor: isOpen ? 'var(--bg-secondary)' : 'transparent',
+          backgroundColor: 'var(--bg-secondary)',
           color: 'var(--text-secondary)',
           border: '1px solid var(--border)',
         }}
         title="Settings"
       >
-        <Settings size={14} />
+        <Settings size={16} />
       </button>
 
-      {isOpen && (
-        <div
-          className="absolute right-0 top-full mt-2 p-4 rounded-md shadow-lg z-50 min-w-[200px]"
-          style={{
-            backgroundColor: 'var(--bg-secondary)',
-            border: '1px solid var(--border)',
-          }}
-        >
-          {/* Theme */}
-          <div className="mb-4">
-            <label 
-              className="block text-xs font-medium mb-2"
-              style={{ color: 'var(--text-secondary)' }}
-            >
-              Theme
-            </label>
-            <div className="flex gap-px rounded-md overflow-hidden" style={{ border: '1px solid var(--border)' }}>
-              {themes.map((t) => (
-                <button
-                  key={t.key}
-                  onClick={() => setTheme(t.key)}
-                  className="flex-1 h-8 flex items-center justify-center gap-1.5 text-xs transition-all"
-                  style={{
-                    backgroundColor: theme === t.key ? 'var(--bg-tertiary)' : 'transparent',
-                    color: theme === t.key ? 'var(--text-primary)' : 'var(--text-secondary)',
-                  }}
-                >
-                  {t.icon}
-                  <span className="hidden sm:inline">{t.label}</span>
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Font Size */}
-          <div>
-            <label 
-              className="block text-xs font-medium mb-2"
-              style={{ color: 'var(--text-secondary)' }}
-            >
-              Font Size
-            </label>
-            <div className="flex gap-px rounded-md overflow-hidden" style={{ border: '1px solid var(--border)' }}>
-              {fontSizes.map((f) => (
-                <button
-                  key={f.key}
-                  onClick={() => setFontSize(f.key)}
-                  className="flex-1 h-8 flex items-center justify-center text-xs font-medium transition-all"
-                  style={{
-                    backgroundColor: fontSize === f.key ? 'var(--bg-tertiary)' : 'transparent',
-                    color: fontSize === f.key ? 'var(--text-primary)' : 'var(--text-secondary)',
-                  }}
-                >
-                  {f.label}
-                </button>
-              ))}
-            </div>
-            <p 
-              className="text-xs mt-2 text-center"
-              style={{ color: 'var(--text-tertiary)' }}
-            >
-              {fontSizeMap[fontSize].base}px
-            </p>
+      <Popup 
+        isOpen={isOpen} 
+        onClose={() => setIsOpen(false)} 
+        title="Settings"
+        position="top-right"
+      >
+        {/* Theme */}
+        <div className="mb-5">
+          <label 
+            className="block text-xs font-medium mb-2 uppercase tracking-wider"
+            style={{ color: 'var(--text-tertiary)' }}
+          >
+            Theme
+          </label>
+          <div className="flex gap-1">
+            {themes.map((t) => (
+              <button
+                key={t.key}
+                onClick={() => setTheme(t.key)}
+                className="flex-1 h-9 flex items-center justify-center gap-1.5 text-xs rounded-lg transition-all"
+                style={{
+                  backgroundColor: theme === t.key ? 'var(--accent)' : 'var(--bg-tertiary)',
+                  color: theme === t.key ? '#fff' : 'var(--text-secondary)',
+                }}
+              >
+                {t.icon}
+                <span>{t.label}</span>
+              </button>
+            ))}
           </div>
         </div>
-      )}
-    </div>
+
+        {/* Font Size */}
+        <div className="mb-5">
+          <label 
+            className="block text-xs font-medium mb-2 uppercase tracking-wider"
+            style={{ color: 'var(--text-tertiary)' }}
+          >
+            Font Size
+          </label>
+          <div className="flex gap-1">
+            {fontSizes.map((f) => (
+              <button
+                key={f.key}
+                onClick={() => setFontSize(f.key)}
+                className="flex-1 h-9 flex items-center justify-center text-sm font-medium rounded-lg transition-all"
+                style={{
+                  backgroundColor: fontSize === f.key ? 'var(--accent)' : 'var(--bg-tertiary)',
+                  color: fontSize === f.key ? '#fff' : 'var(--text-secondary)',
+                }}
+              >
+                {f.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Highlight Color */}
+        <div>
+          <label 
+            className="block text-xs font-medium mb-2 uppercase tracking-wider"
+            style={{ color: 'var(--text-tertiary)' }}
+          >
+            Highlight Color
+          </label>
+          <div className="flex gap-2">
+            {highlightColors.map((c) => (
+              <button
+                key={c.id}
+                onClick={() => setHighlightColor(c.id)}
+                className="w-8 h-8 rounded-full flex items-center justify-center transition-transform hover:scale-110"
+                style={{ 
+                  backgroundColor: c.color,
+                  border: highlightColor === c.id ? '2px solid var(--accent)' : '2px solid transparent',
+                }}
+                title={c.label}
+              >
+                {highlightColor === c.id && (
+                  <Check size={14} style={{ color: 'var(--text-primary)' }} />
+                )}
+              </button>
+            ))}
+          </div>
+        </div>
+      </Popup>
+    </>
   );
 }

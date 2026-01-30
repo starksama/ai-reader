@@ -191,7 +191,7 @@ export function ReadContent() {
               <div className="reader-container py-3 flex items-center justify-between">
                 <button
                   onClick={() => router.push('/')}
-                  className="flex items-center gap-1.5 text-sm font-medium transition-opacity hover:opacity-70"
+                  className="flex items-center gap-1.5 text-sm font-medium transition-opacity hover:opacity-70 -ml-1"
                   style={{ color: 'var(--accent)' }}
                 >
                   <ArrowLeft size={14} />
