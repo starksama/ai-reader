@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
-import { ArrowRight, Sun, Moon, BookOpen, Link2, FileText, GitBranch, Anchor, RotateCcw, ChevronDown } from 'lucide-react';
+import { ArrowRight, Sun, Moon, Link2, FileText, GitBranch, Anchor, RotateCcw, ChevronDown } from 'lucide-react';
 import { useThemeStore, type Theme } from '@/stores/theme-store';
 import { useReaderStore } from '@/stores/reader-store';
 import { parseContent } from '@/utils/parse-content';
@@ -60,11 +60,10 @@ export default function Home() {
   const themes: { key: Theme; label: string; icon: React.ReactNode }[] = [
     { key: 'light', label: 'Light', icon: <Sun size={12} /> },
     { key: 'dark', label: 'Dark', icon: <Moon size={12} /> },
-    { key: 'sepia', label: 'Sepia', icon: <BookOpen size={12} /> },
   ];
 
   return (
-    <main className="min-h-screen flex flex-col items-center justify-center p-6" style={{ backgroundColor: 'var(--bg-primary)' }}>
+    <main className="min-h-screen flex flex-col items-center justify-center p-6 pb-20" style={{ backgroundColor: 'var(--bg-primary)' }}>
       <motion.div 
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
@@ -283,15 +282,25 @@ export default function Home() {
           ))}
         </div>
 
-        {/* Theme */}
-        <div className="flex justify-center gap-px rounded-lg overflow-hidden" style={{ border: '1px solid var(--border)' }}>
+        {/* Footer */}
+        <p className="text-center text-xs" style={{ color: 'var(--text-tertiary)' }}>
+          Ask tangents. Keep context.
+        </p>
+      </motion.div>
+
+      {/* Theme Toggle - Fixed at bottom */}
+      <div className="fixed bottom-6 left-1/2 -translate-x-1/2">
+        <div 
+          className="flex gap-px rounded-lg overflow-hidden shadow-lg"
+          style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border)' }}
+        >
           {themes.map((t) => (
             <button
               key={t.key}
               onClick={() => setTheme(t.key)}
-              className="flex-1 px-4 py-2 text-xs transition-all flex items-center justify-center gap-1.5"
+              className="px-4 py-2 text-xs transition-all flex items-center justify-center gap-1.5 outline-none"
               style={{
-                backgroundColor: theme === t.key ? 'var(--bg-secondary)' : 'transparent',
+                backgroundColor: theme === t.key ? 'var(--highlight)' : 'transparent',
                 color: theme === t.key ? 'var(--text-primary)' : 'var(--text-secondary)',
               }}
             >
@@ -300,12 +309,7 @@ export default function Home() {
             </button>
           ))}
         </div>
-
-        {/* Footer */}
-        <p className="text-center text-xs mt-8" style={{ color: 'var(--text-tertiary)' }}>
-          Ask tangents. Keep context.
-        </p>
-      </motion.div>
+      </div>
     </main>
   );
 }
