@@ -205,15 +205,22 @@ body {
 }
 
 /* Focus styles */
-/* Focus styles - only for keyboard navigation, not clicks */
-:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
+/* Remove default focus outlines - we use custom styling */
+:focus {
+  outline: none;
 }
 
-/* Remove focus outline on buttons (they have hover states instead) */
+:focus-visible {
+  outline: none;
+}
+
+/* Inputs and buttons don't need outlines - they have borders/hover states */
 button:focus,
-button:focus-visible {
+button:focus-visible,
+input:focus,
+input:focus-visible,
+textarea:focus,
+textarea:focus-visible {
   outline: none;
 }
 
