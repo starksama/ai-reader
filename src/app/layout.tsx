@@ -17,20 +17,20 @@ const sourceSerif = Source_Serif_4({
 });
 
 export const metadata: Metadata = {
-  title: "Mull — Think Deeper",
-  description: "Mull it over. Paste any URL or ask anything, dive deep with AI, highlight key ideas, export your notes.",
-  keywords: ["mull", "think deeper", "ai reader", "reading tool", "ai assistant", "note taking", "understanding"],
+  title: "Mull — Your Second Brain for Complex Ideas",
+  description: "Dive into rabbit holes. Never lose the thread. Mull manages your context tree so you can explore freely without losing your way back.",
+  keywords: ["mull", "second brain", "learning tool", "ai reader", "context management", "research", "understanding", "knowledge"],
   authors: [{ name: "starksama", url: "https://github.com/starksama" }],
   openGraph: {
-    title: "Mull — Think Deeper",
-    description: "Mull it over. Paste any URL or ask anything, dive deep with AI, highlight key ideas, export your notes.",
+    title: "Mull — Your Second Brain for Complex Ideas",
+    description: "Dive into rabbit holes. Never lose the thread. Explore complex content with AI while maintaining perfect context.",
     type: "website",
     locale: "en_US",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Mull — Think Deeper",
-    description: "Mull it over. Paste any URL or ask anything, dive deep with AI, highlight key ideas, export your notes.",
+    title: "Mull — Your Second Brain for Complex Ideas",
+    description: "Dive into rabbit holes. Never lose the thread. Explore complex content with AI while maintaining perfect context.",
   },
 };
 

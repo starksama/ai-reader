@@ -32,30 +32,33 @@ export default function Home() {
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3 }}
-        className="w-full max-w-sm"
+        className="w-full max-w-md"
       >
         {/* Header */}
         <div className="text-center mb-10">
-          <h1 className="text-2xl font-semibold mb-2 tracking-tight" style={{ color: 'var(--text-primary)' }}>
+          <h1 className="text-3xl font-semibold mb-3 tracking-tight" style={{ color: 'var(--text-primary)' }}>
             Mull
           </h1>
-          <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
-            Think deeper
+          <p className="text-base mb-1" style={{ color: 'var(--text-secondary)' }}>
+            Your second brain for complex ideas
+          </p>
+          <p className="text-sm" style={{ color: 'var(--text-tertiary)' }}>
+            Dive into rabbit holes. Never lose the thread.
           </p>
         </div>
 
         {/* URL Input */}
         <form onSubmit={handleSubmit} className="mb-6">
           <div 
-            className="flex rounded-md overflow-hidden"
+            className="flex rounded-lg overflow-hidden shadow-sm"
             style={{ border: '1px solid var(--border)' }}
           >
             <input
               type="url"
               value={url}
               onChange={(e) => setUrl(e.target.value)}
-              placeholder="Paste a URL to mull over..."
-              className="flex-1 px-3 py-2.5 bg-transparent outline-none text-sm"
+              placeholder="Paste any URL to mull over..."
+              className="flex-1 px-4 py-3 bg-transparent outline-none text-sm"
               style={{ color: 'var(--text-primary)' }}
               disabled={isLoading}
               autoFocus
@@ -63,11 +66,11 @@ export default function Home() {
             <button
               type="submit"
               disabled={isLoading || !url.trim()}
-              className="px-4 py-2.5 text-sm text-white transition-all hover:opacity-90 disabled:opacity-40 flex items-center gap-2"
+              className="px-5 py-3 text-sm text-white font-medium transition-all hover:opacity-90 disabled:opacity-40 flex items-center gap-2"
               style={{ backgroundColor: 'var(--accent)' }}
             >
               <span>{isLoading ? '...' : 'Mull'}</span>
-              {!isLoading && <ArrowRight size={12} />}
+              {!isLoading && <ArrowRight size={14} />}
             </button>
           </div>
         </form>
@@ -79,17 +82,36 @@ export default function Home() {
             className="text-sm transition-opacity hover:opacity-70"
             style={{ color: 'var(--accent)' }}
           >
-            Try demo articles
+            Try demo articles →
           </Link>
         </div>
 
+        {/* Features */}
+        <div className="grid grid-cols-3 gap-4 mb-10">
+          {[
+            { emoji: '🌳', title: 'Context Tree', desc: 'Branch infinitely' },
+            { emoji: '💬', title: 'AI Dialogue', desc: 'Ask, clarify, understand' },
+            { emoji: '✨', title: 'Highlights', desc: 'Mark & export' },
+          ].map((f) => (
+            <div 
+              key={f.title} 
+              className="text-center p-3 rounded-lg"
+              style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border)' }}
+            >
+              <div className="text-xl mb-1">{f.emoji}</div>
+              <div className="text-xs font-medium" style={{ color: 'var(--text-primary)' }}>{f.title}</div>
+              <div className="text-xs" style={{ color: 'var(--text-tertiary)' }}>{f.desc}</div>
+            </div>
+          ))}
+        </div>
+
         {/* Theme */}
-        <div className="flex justify-center gap-px rounded-md overflow-hidden" style={{ border: '1px solid var(--border)' }}>
+        <div className="flex justify-center gap-px rounded-lg overflow-hidden" style={{ border: '1px solid var(--border)' }}>
           {themes.map((t) => (
             <button
               key={t.key}
               onClick={() => setTheme(t.key)}
-              className="flex-1 px-3 py-1.5 text-xs transition-all flex items-center justify-center gap-1.5"
+              className="flex-1 px-4 py-2 text-xs transition-all flex items-center justify-center gap-1.5"
               style={{
                 backgroundColor: theme === t.key ? 'var(--bg-secondary)' : 'transparent',
                 color: theme === t.key ? 'var(--text-primary)' : 'var(--text-secondary)',
@@ -101,16 +123,9 @@ export default function Home() {
           ))}
         </div>
 
-        {/* Features */}
-        <div className="space-y-2 text-sm mt-12 text-center" style={{ color: 'var(--text-secondary)' }}>
-          <p>Select text → dive deeper</p>
-          <p>Ask anything → get clarity</p>
-          <p>Highlight → export notes</p>
-        </div>
-
         {/* Footer */}
-        <p className="text-center text-xs mt-12" style={{ color: 'var(--text-tertiary)' }}>
-          Mull it over
+        <p className="text-center text-xs mt-10" style={{ color: 'var(--text-tertiary)' }}>
+          Stop skimming. Start understanding.
         </p>
       </motion.div>
     </main>

@@ -1,56 +1,135 @@
 # Mull
 
-**Think deeper** — Your AI thinking companion for any content.
+### Your Second Brain for Complex Ideas
 
-Paste a URL or ask anything, mull it over with AI, highlight key ideas, export your notes.
+> **Dive into rabbit holes. Never lose the thread.**
+
+Mull is a thinking tool for autodidacts, researchers, and the endlessly curious. Paste any content, ask questions, branch into tangents—Mull manages your context tree so you can explore freely without losing your way back.
+
+---
+
+## The Problem
+
+You're reading something dense. A term catches your eye. You Google it. That leads to three Wikipedia tabs. Now you're watching a YouTube video about a tangentially related concept. An hour later, you can't remember what you were originally trying to understand.
+
+**Mull fixes this.**
+
+## The Solution
+
+Mull maintains a **context tree** of your exploration:
+
+```
+📄 Original Article
+ ├── 💭 "What does entropy mean here?"
+ │    └── 🤖 AI explanation with examples
+ │         └── 💭 "How does this relate to information theory?"
+ │              └── 🤖 Deep dive on Shannon entropy
+ ├── 💭 Highlighted: "thermodynamic equilibrium"
+ │    └── 🤖 ELI5 breakdown
+ └── 💭 "What are the practical applications?"
+      └── 🤖 Real-world examples
+```
+
+**Every branch remembers its parent.** Jump anywhere, the context follows.
+
+---
 
 ## Features
 
-- **Dive Deeper** — Select any text to explore with AI
-- **Chat Interface** — Conversational AI with chat bubbles
-- **Pure Highlighting** — Mark important passages
-- **Follow-up Questions** — Continue exploring at article end
-- **Finish & Summarize** — Session summary with export
-- **Themes** — Light, dark, and sepia with font size control
-- **Mobile-First** — Touch-friendly bottom sheet for actions
-- **Keyboard Shortcuts** — Navigate with ↑↓, Escape to go back
+- **🌳 Context Tree** — Branch infinitely, never lose the main thread
+- **💬 AI Conversations** — Ask follow-ups, get explanations, go deeper
+- **✨ Smart Highlights** — Mark what matters, revisit later
+- **📱 Mobile-First** — Touch-native with bottom sheets
+- **🎨 Reading Modes** — Light, dark, sepia with adjustable fonts
+- **⌨️ Keyboard Shortcuts** — Navigate with ↑↓, Escape to go back
+- **📤 Export Notes** — Take your insights with you
 
-## How It Works
+---
 
-1. **Paste any URL** or try the demo articles
-2. **Read** in a clean, focused environment
-3. **Select text** and dive deeper with AI
-4. **Chat** — ask follow-up questions
-5. **Finish** — get a summary and export notes
-
-## Tech Stack
-
-- **Next.js 16** — App Router, React Server Components
-- **Tailwind CSS 4** — Utility-first styling
-- **Framer Motion** — Smooth animations
-- **Zustand** — State management with IndexedDB persistence
-- **Readability.js** — Article parsing (Mozilla)
-
-## Getting Started
+## Quick Start
 
 ```bash
+# Clone
+git clone https://github.com/starksama/mull.git
+cd mull
+
 # Install
 pnpm install
 
-# Development
+# Run
 pnpm dev
-
-# Build
-pnpm build
 ```
+
+Open http://localhost:3000 and paste any URL.
+
+---
+
+## Environment Variables
+
+Create a `.env.local` file:
+
+```bash
+# AI Provider (choose one)
+OPENAI_API_KEY=sk-...           # For GPT-4
+ANTHROPIC_API_KEY=sk-ant-...    # For Claude
+GOOGLE_AI_KEY=...               # For Gemini
+
+# Optional
+NEXT_PUBLIC_APP_URL=http://localhost:3000
+```
+
+> **Note:** Currently runs with mock AI responses. Real AI integration coming soon.
+
+---
+
+## Philosophy
+
+### Why "Mull"?
+
+**mull** /məl/ *verb*  
+To think about something deeply and at length.
+
+*"She mulled over the implications of quantum mechanics while sipping her coffee."*
+
+### Design Principles
+
+1. **Reading-first** — UI never distracts from content
+2. **Context is king** — Every question knows its ancestry  
+3. **Branch freely** — Tangents are features, not bugs
+4. **Return safely** — One swipe back to where you were
+
+---
+
+## Tech Stack
+
+- **Next.js 16** — App Router, React 19
+- **Tailwind CSS 4** — Utility-first styling
+- **Framer Motion** — Smooth animations
+- **Zustand** — State management with persistence
+- **Readability.js** — Article extraction (Mozilla)
+
+---
 
 ## Roadmap
 
-- [ ] Real AI integration (Gemini/Claude)
-- [ ] Multiple AI agents (Reader, Researcher, Critic, Summarizer)
-- [ ] Ask anything mode (start without URL)
-- [ ] Text-to-speech
+- [x] Article parsing and clean reader view
+- [x] Highlighting with theme-aware colors
+- [x] Layer-based navigation (context tree)
+- [x] Mock AI responses
+- [ ] **Real AI integration** (OpenAI, Anthropic, Google)
+- [ ] Multi-agent system (Explainer, Critic, Researcher)
+- [ ] "Ask anything" mode (no URL needed)
+- [ ] PDF and ePub support
 - [ ] Browser extension
+- [ ] Sync across devices
+
+---
+
+## Contributing
+
+See [CONTRIBUTING.md](./CONTRIBUTING.md) for architecture and guidelines.
+
+---
 
 ## License
 
@@ -58,4 +137,6 @@ MIT
 
 ---
 
-*Mull it over.*
+<p align="center">
+  <em>Stop skimming. Start understanding.</em>
+</p>
