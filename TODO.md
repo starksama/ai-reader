@@ -24,7 +24,7 @@
 - [x] Error boundaries
 - [ ] Empty states
 
-## 🟢 Done (45 commits)
+## 🟢 Done (46 commits)
 - [x] Click vs selection separation
 - [x] UI Guide document  
 - [x] Mobile selection support
@@ -45,6 +45,7 @@
 - [x] Vercel config (hnd1 region)
 - [x] Demo page: settings, keyboard hints, loading skeleton
 - [x] All lint errors fixed (0 errors, 0 warnings)
+- [x] README updated (features, tech stack, no emojis)
 
 ## First Principles
 - Core purpose: Help users UNDERSTAND what they read
