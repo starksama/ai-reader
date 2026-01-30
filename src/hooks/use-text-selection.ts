@@ -5,24 +5,52 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 interface TextSelection {
   text: string;
   paragraphIndex: number | null;
-  range: Range | null;
 }
 
+/**
+ * Hook to track text selection within paragraph elements.
+ * 
+ * Design decisions:
+ * - Only tracks selections within single paragraphs (multi-paragraph selections are ignored)
+ * - Minimum 5 characters required to trigger selection
+ * - Uses selectionchange event for cross-browser/device compatibility
+ * - Debounces selection processing (longer delay on touch devices)
+ * - Does NOT store Range objects (they can become stale/corrupted)
+ * 
+ * Position calculation is done separately when needed via getSelectionRect()
+ */
 export function useTextSelection() {
   const [selection, setSelection] = useState<TextSelection>({
     text: '',
     paragraphIndex: null,
-    range: null,
   });
   
   const debounceRef = useRef<NodeJS.Timeout | null>(null);
   const isTouchRef = useRef(false);
 
+  /**
+   * Get the current selection's bounding rect.
+   * Called on-demand rather than storing stale range objects.
+   */
+  const getSelectionRect = useCallback((): DOMRect | null => {
+    const sel = window.getSelection();
+    if (!sel || sel.isCollapsed || sel.rangeCount === 0) {
+      return null;
+    }
+    
+    try {
+      const range = sel.getRangeAt(0);
+      return range.getBoundingClientRect();
+    } catch {
+      return null;
+    }
+  }, []);
+
   const processSelection = useCallback(() => {
     const sel = window.getSelection();
     
     // No selection or collapsed (just a cursor)
-    if (!sel || sel.isCollapsed) {
+    if (!sel || sel.isCollapsed || sel.rangeCount === 0) {
       return;
     }
 
@@ -76,7 +104,6 @@ export function useTextSelection() {
       setSelection({
         text,
         paragraphIndex,
-        range: range.cloneRange(),
       });
     } catch (e) {
       // Selection API can throw in edge cases
@@ -86,7 +113,7 @@ export function useTextSelection() {
 
   const clearSelection = useCallback(() => {
     window.getSelection()?.removeAllRanges();
-    setSelection({ text: '', paragraphIndex: null, range: null });
+    setSelection({ text: '', paragraphIndex: null });
   }, []);
 
   useEffect(() => {
@@ -95,42 +122,55 @@ export function useTextSelection() {
       isTouchRef.current = true;
     };
 
-    // Main selection handler using selectionchange event
-    // This is the most reliable cross-browser/device approach
-    const handleSelectionChange = () => {
+    // Listen for mouse up to process selection (more reliable than selectionchange for drag-select)
+    const handleMouseUp = () => {
       // Clear any pending debounce
       if (debounceRef.current) {
         clearTimeout(debounceRef.current);
       }
+      
+      // Small delay to let selection finalize
+      debounceRef.current = setTimeout(() => {
+        processSelection();
+      }, 50);
+    };
 
+    // Handle selection change for clearing and touch devices
+    const handleSelectionChange = () => {
       const sel = window.getSelection();
       
-      // If selection is cleared
+      // If selection is cleared, update state
       if (!sel || sel.isCollapsed) {
-        // Small delay before clearing to avoid flicker
+        if (debounceRef.current) {
+          clearTimeout(debounceRef.current);
+        }
         debounceRef.current = setTimeout(() => {
           const currentSel = window.getSelection();
           if (!currentSel || currentSel.isCollapsed) {
-            setSelection({ text: '', paragraphIndex: null, range: null });
+            setSelection({ text: '', paragraphIndex: null });
           }
         }, 100);
         return;
       }
 
-      // For touch devices, use a longer delay to let native menu appear/dismiss
-      // For mouse, process quickly
-      const delay = isTouchRef.current ? 600 : 50;
-      
-      debounceRef.current = setTimeout(() => {
-        processSelection();
-      }, delay);
+      // For touch devices, also process on selectionchange (after delay)
+      if (isTouchRef.current) {
+        if (debounceRef.current) {
+          clearTimeout(debounceRef.current);
+        }
+        debounceRef.current = setTimeout(() => {
+          processSelection();
+        }, 600);
+      }
     };
 
     document.addEventListener('touchstart', handleTouchStart, { passive: true });
+    document.addEventListener('mouseup', handleMouseUp);
     document.addEventListener('selectionchange', handleSelectionChange);
 
     return () => {
       document.removeEventListener('touchstart', handleTouchStart);
+      document.removeEventListener('mouseup', handleMouseUp);
       document.removeEventListener('selectionchange', handleSelectionChange);
       if (debounceRef.current) {
         clearTimeout(debounceRef.current);
@@ -142,5 +182,6 @@ export function useTextSelection() {
     selection,
     hasSelection: selection.text.length > 0,
     clearSelection,
+    getSelectionRect,
   };
 }

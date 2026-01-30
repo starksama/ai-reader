@@ -6,6 +6,10 @@ import { useHighlightStore, type Highlight } from '@/stores/highlight-store';
 import { ActionMenu, type ActionMenuMode } from './action-menu';
 import { HighlightedText } from './highlighted-text';
 
+// ============================================================================
+// Types
+// ============================================================================
+
 interface Paragraph {
   id: string;
   index: number;
@@ -31,14 +35,19 @@ interface ArticleViewProps {
   onSelectionAsk?: (text: string, paragraphIndex: number) => void;
 }
 
-// Unified menu state
+/**
+ * Unified menu state for all interaction types:
+ * - selection: User selected text
+ * - paragraph: User clicked on a paragraph (no selection)
+ * - highlight: User clicked on an existing highlight
+ */
 interface MenuState {
   isOpen: boolean;
   mode: ActionMenuMode;
   text: string;
   paragraphIndex: number;
   position: { x: number; y: number };
-  highlight?: Highlight; // Only for highlight mode
+  highlight?: Highlight;
 }
 
 const initialMenuState: MenuState = {
@@ -49,6 +58,10 @@ const initialMenuState: MenuState = {
   position: { x: 0, y: 0 },
 };
 
+// ============================================================================
+// Component
+// ============================================================================
+
 export function ArticleView({ 
   article, 
   selectedParagraph, 
@@ -56,18 +69,25 @@ export function ArticleView({
   onParagraphClick,
   onSelectionAsk,
 }: ArticleViewProps) {
+  // ---------------------------------------------------------------------------
+  // State & Hooks
+  // ---------------------------------------------------------------------------
+  
   const [readProgress, setReadProgress] = useState(0);
-  const { selection, clearSelection } = useTextSelection();
+  const [menu, setMenu] = useState<MenuState>(initialMenuState);
+  const [isMobile, setIsMobile] = useState(false);
+  
+  const { selection, clearSelection, getSelectionRect } = useTextSelection();
   const { addHighlight, getHighlights, removeHighlight } = useHighlightStore();
   const highlights = getHighlights(article.url);
   
-  // Unified menu state
-  const [menu, setMenu] = useState<MenuState>(initialMenuState);
-  const [isMobile, setIsMobile] = useState(false);
-
+  // Track mouse position for paragraph click detection
   const mouseDownRef = useRef<{ x: number; y: number; time: number } | null>(null);
 
-  // Detect mobile
+  // ---------------------------------------------------------------------------
+  // Device Detection
+  // ---------------------------------------------------------------------------
+
   useEffect(() => {
     const checkMobile = () => {
       const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
@@ -80,7 +100,10 @@ export function ArticleView({
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
-  // Track scroll progress
+  // ---------------------------------------------------------------------------
+  // Scroll Progress
+  // ---------------------------------------------------------------------------
+
   useEffect(() => {
     const handleScroll = () => {
       const scrollTop = window.scrollY;
@@ -93,40 +116,54 @@ export function ArticleView({
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // Handle text selection -> show selection menu
-  useEffect(() => {
-    if (selection.text && selection.paragraphIndex !== null && selection.range) {
-      const rect = selection.range.getBoundingClientRect();
-      const menuWidth = 300;
-      const menuHeight = 60;
-      
-      let x = rect.left + rect.width / 2 - menuWidth / 2;
-      let y = rect.top - menuHeight - 8;
-      
-      const padding = 12;
-      if (x < padding) x = padding;
-      if (x + menuWidth > window.innerWidth - padding) {
-        x = window.innerWidth - menuWidth - padding;
-      }
-      if (y < padding) {
-        y = rect.bottom + 8;
-      }
+  // ---------------------------------------------------------------------------
+  // Text Selection → Menu
+  // ---------------------------------------------------------------------------
 
-      // Delay slightly on mobile to let native selection menu appear first
-      const delay = isMobile ? 100 : 0;
-      const timer = setTimeout(() => {
-        setMenu({
-          isOpen: true,
-          mode: 'selection',
-          text: selection.text,
-          paragraphIndex: selection.paragraphIndex!,
-          position: { x, y },
-        });
-      }, delay);
-      
-      return () => clearTimeout(timer);
+  useEffect(() => {
+    if (!selection.text || selection.paragraphIndex === null) {
+      return;
     }
-  }, [selection.text, selection.paragraphIndex, selection.range, isMobile]);
+
+    // Get fresh rect from current selection (not stored range)
+    const rect = getSelectionRect();
+    if (!rect) return;
+
+    // Calculate menu position
+    const menuWidth = 300;
+    const menuHeight = 60;
+    const padding = 12;
+    
+    let x = rect.left + rect.width / 2 - menuWidth / 2;
+    let y = rect.top - menuHeight - 8;
+    
+    // Keep within viewport
+    if (x < padding) x = padding;
+    if (x + menuWidth > window.innerWidth - padding) {
+      x = window.innerWidth - menuWidth - padding;
+    }
+    if (y < padding) {
+      y = rect.bottom + 8;
+    }
+
+    // Slight delay on mobile to let native selection UI settle
+    const delay = isMobile ? 100 : 0;
+    const timer = setTimeout(() => {
+      setMenu({
+        isOpen: true,
+        mode: 'selection',
+        text: selection.text,
+        paragraphIndex: selection.paragraphIndex!,
+        position: { x, y },
+      });
+    }, delay);
+    
+    return () => clearTimeout(timer);
+  }, [selection.text, selection.paragraphIndex, getSelectionRect, isMobile]);
+
+  // ---------------------------------------------------------------------------
+  // Menu Actions
+  // ---------------------------------------------------------------------------
 
   const closeMenu = useCallback(() => {
     setMenu(initialMenuState);
@@ -151,11 +188,11 @@ export function ArticleView({
   }, [addHighlight, article.url, menu.paragraphIndex, menu.text]);
 
   const handleCopy = useCallback(() => {
-    // Copy is handled in ActionMenu, this is just a callback
+    // Actual copy is handled in ActionMenu
   }, []);
 
   const handleEditHighlight = useCallback(() => {
-    // For now, just log - TODO: implement proper edit
+    // TODO: Implement highlight editing
     console.log('Edit highlight:', menu.highlight?.id);
   }, [menu.highlight]);
 
@@ -165,7 +202,10 @@ export function ArticleView({
     }
   }, [menu.highlight, removeHighlight, article.url]);
 
-  // Handle highlight click
+  // ---------------------------------------------------------------------------
+  // Highlight Click → Menu
+  // ---------------------------------------------------------------------------
+
   const handleHighlightClick = useCallback((highlight: Highlight, position: { x: number; y: number }) => {
     setMenu({
       isOpen: true,
@@ -177,35 +217,40 @@ export function ArticleView({
     });
   }, []);
 
-  const handleParagraphMouseDown = (e: React.MouseEvent) => {
+  // ---------------------------------------------------------------------------
+  // Paragraph Click Detection
+  // ---------------------------------------------------------------------------
+
+  const handleParagraphMouseDown = useCallback((e: React.MouseEvent) => {
     mouseDownRef.current = {
       x: e.clientX,
       y: e.clientY,
       time: Date.now(),
     };
-  };
+  }, []);
 
-  const handleParagraphMouseUp = (
-    e: React.MouseEvent,
-    paragraph: Paragraph
-  ) => {
+  const handleParagraphMouseUp = useCallback((e: React.MouseEvent, paragraph: Paragraph) => {
     const mouseDown = mouseDownRef.current;
     if (!mouseDown) return;
 
+    // Check if this was a click (not a drag)
     const dx = Math.abs(e.clientX - mouseDown.x);
     const dy = Math.abs(e.clientY - mouseDown.y);
     const dt = Date.now() - mouseDown.time;
 
+    // If user dragged or held too long, it's not a click
     if (dx > 10 || dy > 10 || dt > 300) {
       mouseDownRef.current = null;
       return;
     }
 
+    // Delay to check if text was selected
     setTimeout(() => {
       const sel = window.getSelection();
       const hasSelection = sel && sel.toString().trim().length > 0;
 
       if (!hasSelection) {
+        // Pure click on paragraph (no selection)
         setMenu({
           isOpen: true,
           mode: 'paragraph',
@@ -216,7 +261,11 @@ export function ArticleView({
       }
       mouseDownRef.current = null;
     }, 50);
-  };
+  }, []);
+
+  // ---------------------------------------------------------------------------
+  // Render
+  // ---------------------------------------------------------------------------
 
   const exploredCount = exploredParagraphs.size;
   const highlightCount = highlights.length;
@@ -261,7 +310,6 @@ export function ArticleView({
           {article.title}
         </h1>
         
-        {/* Meta */}
         <div className="flex flex-wrap items-center gap-3 text-sm" style={{ color: 'var(--text-secondary)' }}>
           {article.byline && <span>{article.byline}</span>}
           {article.siteName && (
@@ -278,7 +326,6 @@ export function ArticleView({
           )}
         </div>
 
-        {/* Stats */}
         <div className="flex items-center gap-4 mt-4 text-xs" style={{ color: 'var(--text-secondary)' }}>
           <span>{readProgress}%</span>
           {exploredCount > 0 && (
@@ -296,7 +343,7 @@ export function ArticleView({
         </div>
       </header>
 
-      {/* Paragraphs */}
+      {/* Article Content */}
       <div className="reader-container reader-text">
         {article.paragraphs.map((paragraph) => {
           const isExplored = exploredParagraphs.has(paragraph.index);
@@ -314,9 +361,7 @@ export function ArticleView({
               role="button"
               tabIndex={0}
               onKeyDown={(e) => {
-                if (e.key === 'Enter') {
-                  onParagraphClick(paragraph.index);
-                }
+                if (e.key === 'Enter') onParagraphClick(paragraph.index);
               }}
             >
               <HighlightedText
@@ -329,23 +374,17 @@ export function ArticleView({
         })}
       </div>
 
-      {/* End + Follow-up Questions */}
+      {/* End Card */}
       <div className="reader-container py-12">
         <div 
           className="p-6 rounded-xl text-center"
           style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border)' }}
         >
-          <p 
-            className="text-sm font-medium mb-4"
-            style={{ color: 'var(--text-primary)' }}
-          >
+          <p className="text-sm font-medium mb-4" style={{ color: 'var(--text-primary)' }}>
             Finished reading
           </p>
           
-          <p 
-            className="text-xs mb-6"
-            style={{ color: 'var(--text-secondary)' }}
-          >
+          <p className="text-xs mb-6" style={{ color: 'var(--text-secondary)' }}>
             Continue exploring with these questions:
           </p>
           
@@ -357,12 +396,7 @@ export function ArticleView({
             ].map((q) => (
               <button
                 key={q}
-                onClick={() => {
-                  // Find the first paragraph and ask about the whole article
-                  if (onSelectionAsk) {
-                    onSelectionAsk(q, 0);
-                  }
-                }}
+                onClick={() => onSelectionAsk?.(q, 0)}
                 className="px-4 py-2 text-sm rounded-full transition-all hover:scale-105"
                 style={{
                   backgroundColor: 'var(--accent-subtle)',
@@ -377,18 +411,8 @@ export function ArticleView({
 
           <div className="flex items-center justify-center gap-4 text-xs" style={{ color: 'var(--text-secondary)' }}>
             <span>{readProgress}% read</span>
-            {exploredCount > 0 && (
-              <>
-                <span>·</span>
-                <span>{exploredCount} explored</span>
-              </>
-            )}
-            {highlightCount > 0 && (
-              <>
-                <span>·</span>
-                <span>{highlightCount} highlights</span>
-              </>
-            )}
+            {exploredCount > 0 && <><span>·</span><span>{exploredCount} explored</span></>}
+            {highlightCount > 0 && <><span>·</span><span>{highlightCount} highlights</span></>}
           </div>
         </div>
       </div>
