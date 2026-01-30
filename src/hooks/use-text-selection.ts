@@ -15,9 +15,10 @@ export function useTextSelection() {
     range: null,
   });
   
-  const mouseDownPosRef = useRef<{ x: number; y: number } | null>(null);
+  const debounceRef = useRef<NodeJS.Timeout | null>(null);
+  const isTouchRef = useRef(false);
 
-  const updateSelection = useCallback(() => {
+  const processSelection = useCallback(() => {
     const sel = window.getSelection();
     
     // No selection or collapsed (just a cursor)
@@ -89,57 +90,53 @@ export function useTextSelection() {
   }, []);
 
   useEffect(() => {
-    const handleMouseDown = (e: MouseEvent) => {
-      mouseDownPosRef.current = { x: e.clientX, y: e.clientY };
+    // Detect if device supports touch
+    const handleTouchStart = () => {
+      isTouchRef.current = true;
     };
 
-    const handleMouseUp = (e: MouseEvent) => {
-      const startPos = mouseDownPosRef.current;
-      if (!startPos) return;
-      
-      // Only process as selection if mouse moved significantly (not a click)
-      const dx = Math.abs(e.clientX - startPos.x);
-      const dy = Math.abs(e.clientY - startPos.y);
-      
-      if (dx > 5 || dy > 5) {
-        // Delay to let selection finalize
-        setTimeout(updateSelection, 10);
-      }
-      
-      mouseDownPosRef.current = null;
-    };
-
+    // Main selection handler using selectionchange event
+    // This is the most reliable cross-browser/device approach
     const handleSelectionChange = () => {
-      // If selection is cleared, update state
+      // Clear any pending debounce
+      if (debounceRef.current) {
+        clearTimeout(debounceRef.current);
+      }
+
       const sel = window.getSelection();
-      if (sel && sel.isCollapsed && selection.text) {
-        // Give a small delay before clearing
-        setTimeout(() => {
+      
+      // If selection is cleared
+      if (!sel || sel.isCollapsed) {
+        // Small delay before clearing to avoid flicker
+        debounceRef.current = setTimeout(() => {
           const currentSel = window.getSelection();
-          if (currentSel && currentSel.isCollapsed) {
+          if (!currentSel || currentSel.isCollapsed) {
             setSelection({ text: '', paragraphIndex: null, range: null });
           }
         }, 100);
+        return;
       }
+
+      // For touch devices, use a longer delay to let native menu appear/dismiss
+      // For mouse, process quickly
+      const delay = isTouchRef.current ? 600 : 50;
+      
+      debounceRef.current = setTimeout(() => {
+        processSelection();
+      }, delay);
     };
 
-    // Touch events for mobile
-    const handleTouchEnd = () => {
-      setTimeout(updateSelection, 200);
-    };
-
-    document.addEventListener('mousedown', handleMouseDown);
-    document.addEventListener('mouseup', handleMouseUp);
-    document.addEventListener('touchend', handleTouchEnd);
+    document.addEventListener('touchstart', handleTouchStart, { passive: true });
     document.addEventListener('selectionchange', handleSelectionChange);
 
     return () => {
-      document.removeEventListener('mousedown', handleMouseDown);
-      document.removeEventListener('mouseup', handleMouseUp);
-      document.removeEventListener('touchend', handleTouchEnd);
+      document.removeEventListener('touchstart', handleTouchStart);
       document.removeEventListener('selectionchange', handleSelectionChange);
+      if (debounceRef.current) {
+        clearTimeout(debounceRef.current);
+      }
     };
-  }, [updateSelection, selection.text]);
+  }, [processSelection]);
 
   return {
     selection,

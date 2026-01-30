@@ -43,14 +43,17 @@ export function SelectionMenu({
   }, []);
 
   // Show/hide menu based on selection state
+  // On mobile, we wait for native selection menu to appear first, then show our bottom sheet
+  // User can dismiss native menu and use our actions, or use native copy then our sheet
   useEffect(() => {
     if (selection.text && selection.paragraphIndex !== null) {
       if (isMobile) {
-        // On mobile, show after a delay so native menu can appear/be dismissed
-        const timer = setTimeout(() => setShowMenu(true), 300);
+        // On mobile, show after native menu has time to appear
+        // User will see native menu first, then our bottom sheet slides up
+        const timer = setTimeout(() => setShowMenu(true), 100);
         return () => clearTimeout(timer);
       } else {
-        // Desktop: show immediately (use microtask to avoid lint warning)
+        // Desktop: show immediately
         queueMicrotask(() => setShowMenu(true));
       }
     } else {
