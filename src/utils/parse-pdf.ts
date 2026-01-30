@@ -13,8 +13,8 @@ export async function parsePDF(file: File): Promise<ParsedPDF> {
   // Dynamic import to avoid SSR issues
   const pdfjsLib = await import('pdfjs-dist');
   
-  // Disable worker - runs on main thread (slower but reliable)
-  pdfjsLib.GlobalWorkerOptions.workerSrc = '';
+  // Use local worker file (copied from node_modules)
+  pdfjsLib.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.mjs';
   
   const arrayBuffer = await file.arrayBuffer();
   
