@@ -198,23 +198,6 @@ export default function Home() {
           </Link>
         </div>
 
-        {/* Core Value Prop */}
-        <div 
-          className="mb-6 p-4 rounded-lg text-sm"
-          style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border)' }}
-        >
-          <div className="space-y-2" style={{ color: 'var(--text-secondary)' }}>
-            <p>
-              <span style={{ color: 'var(--text-tertiary)' }}>With chatbots:</span>{' '}
-              Ask a tangent → whole chat polluted → start over
-            </p>
-            <p>
-              <span style={{ color: 'var(--accent)' }}>With Mull:</span>{' '}
-              Ask a tangent → <strong>branch off</strong> → return to clean context
-            </p>
-          </div>
-        </div>
-
         {/* Expandable Features */}
         <div className="mb-8 space-y-2">
           {[
@@ -222,22 +205,22 @@ export default function Home() {
               id: 'branch',
               icon: GitBranch, 
               title: 'Branch', 
-              short: 'Tangents stay isolated',
-              detail: 'Every question spawns its own thread. Dive three levels deep into entropy, and your question about paragraph 5 stays pristine. No more scrolling up to find what you were reading.'
+              short: 'Every question can spawn a thread',
+              detail: 'Ask a follow-up, go three levels deep—your other questions stay untouched. No more "let me start a new chat" when you want to explore something else.'
             },
             { 
               id: 'anchor',
               icon: Anchor, 
               title: 'Anchored', 
-              short: 'Source never buried',
-              detail: 'Your original content is always one tap away. Each branch knows exactly which paragraph (and which selection) it came from. Context travels with you.'
+              short: 'Always know where you came from',
+              detail: 'Each conversation knows which paragraph or selection started it. Jump anywhere in your exploration—the source is always one tap away.'
             },
             { 
               id: 'return',
               icon: RotateCcw, 
               title: 'Return', 
-              short: 'Clean context awaits',
-              detail: 'Done with a tangent? Pop back. The AI picks up right where you left off—no confusion, no "wait, what were we discussing?" Each branch has its own memory.'
+              short: 'Pop back to clean context',
+              detail: 'Done exploring? Go back. The AI remembers exactly where you were—no confusion, no context pollution. Each thread has its own memory.'
             },
           ].map((f) => (
             <motion.div 
@@ -284,7 +267,7 @@ export default function Home() {
 
         {/* Footer */}
         <p className="text-center text-xs" style={{ color: 'var(--text-tertiary)' }}>
-          Ask tangents. Keep context.
+          Explore freely. Return cleanly.
         </p>
       </motion.div>
 
