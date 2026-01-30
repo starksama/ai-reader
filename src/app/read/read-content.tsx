@@ -78,13 +78,27 @@ export function ReadContent() {
       try {
         setIsLoading(true);
         setError(null);
+        
         const response = await fetch('/api/parse', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ url }),
         });
 
-        const data = await response.json();
+        // Check if response has content
+        const text = await response.text();
+        if (!text) {
+          throw new Error('Server returned empty response. Please try again.');
+        }
+
+        // Parse JSON
+        let data;
+        try {
+          data = JSON.parse(text);
+        } catch {
+          console.error('Failed to parse response:', text.substring(0, 200));
+          throw new Error('Invalid response from server. Please try again.');
+        }
 
         if (!response.ok) {
           throw new Error(data.error || 'Failed to parse article');
@@ -92,6 +106,7 @@ export function ReadContent() {
 
         setArticle(data);
       } catch (err) {
+        console.error('Fetch error:', err);
         setError(err instanceof Error ? err.message : 'Failed to load article');
       } finally {
         setIsLoading(false);
