@@ -249,11 +249,68 @@ export function ArticleView({
         })}
       </div>
 
-      {/* End */}
-      <div className="reader-container text-center py-16">
-        <span className="text-xs" style={{ color: 'var(--text-secondary)' }}>
-          End
-        </span>
+      {/* End + Follow-up Questions */}
+      <div className="reader-container py-12">
+        <div 
+          className="p-6 rounded-xl text-center"
+          style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border)' }}
+        >
+          <p 
+            className="text-sm font-medium mb-4"
+            style={{ color: 'var(--text-primary)' }}
+          >
+            Finished reading
+          </p>
+          
+          <p 
+            className="text-xs mb-6"
+            style={{ color: 'var(--text-secondary)' }}
+          >
+            Continue exploring with these questions:
+          </p>
+          
+          <div className="flex flex-wrap justify-center gap-2 mb-6">
+            {[
+              "What's the main takeaway?",
+              "How does this apply to me?",
+              "What questions remain?",
+            ].map((q) => (
+              <button
+                key={q}
+                onClick={() => {
+                  // Find the first paragraph and ask about the whole article
+                  if (onSelectionAsk) {
+                    onSelectionAsk(q, 0);
+                  }
+                }}
+                className="px-4 py-2 text-sm rounded-full transition-all hover:scale-105"
+                style={{
+                  backgroundColor: 'var(--accent-subtle)',
+                  color: 'var(--accent)',
+                  border: '1px solid var(--accent)',
+                }}
+              >
+                {q}
+              </button>
+            ))}
+          </div>
+
+          <div className="flex items-center justify-center gap-4 text-xs" style={{ color: 'var(--text-secondary)' }}>
+            <span>{readProgress}% read</span>
+            {exploredCount > 0 && (
+              <>
+                <span>·</span>
+                <span>{exploredCount} explored</span>
+              </>
+            )}
+            {highlightCount > 0 && (
+              <>
+                <span>·</span>
+                <span>{highlightCount} highlights</span>
+              </>
+            )}
+          </div>
+        </div>
       </div>
     </article>
   );
