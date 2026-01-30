@@ -9,20 +9,20 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "AI Reader — Explainpaper for Everything",
-  description: "A reading-first AI tool. Paste any URL, highlight paragraphs, ask questions, export notes. Clean reader view with no distractions.",
-  keywords: ["ai reader", "article reader", "explainpaper", "reading tool", "ai assistant", "note taking"],
+  title: "Mull — Think Deeper",
+  description: "Mull it over. Paste any URL or ask anything, dive deep with AI, highlight key ideas, export your notes.",
+  keywords: ["mull", "think deeper", "ai reader", "reading tool", "ai assistant", "note taking", "understanding"],
   authors: [{ name: "starksama", url: "https://github.com/starksama" }],
   openGraph: {
-    title: "AI Reader — Explainpaper for Everything",
-    description: "A reading-first AI tool. Paste any URL, highlight paragraphs, ask questions, export notes.",
+    title: "Mull — Think Deeper",
+    description: "Mull it over. Paste any URL or ask anything, dive deep with AI, highlight key ideas, export your notes.",
     type: "website",
     locale: "en_US",
   },
   twitter: {
     card: "summary_large_image",
-    title: "AI Reader — Explainpaper for Everything",
-    description: "A reading-first AI tool. Paste any URL, highlight paragraphs, ask questions, export notes.",
+    title: "Mull — Think Deeper",
+    description: "Mull it over. Paste any URL or ask anything, dive deep with AI, highlight key ideas, export your notes.",
   },
 };
 

@@ -16,7 +16,7 @@ export function ShareButton({ url, title }: ShareButtonProps) {
     if (navigator.share) {
       try {
         await navigator.share({
-          title: `AI Reader: ${title}`,
+          title: `Mull: ${title}`,
           url: shareUrl,
         });
         return;

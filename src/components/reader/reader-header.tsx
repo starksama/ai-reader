@@ -24,7 +24,7 @@ export function ReaderHeader({ articleUrl }: ReaderHeaderProps) {
           className="flex items-center gap-2 font-medium transition-opacity hover:opacity-70"
           style={{ color: 'var(--text-primary)' }}
         >
-          <span className="hidden sm:inline">AI Reader</span>
+          <span className="hidden sm:inline">Mull</span>
         </Link>
 
         {/* Actions */}

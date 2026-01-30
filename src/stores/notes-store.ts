@@ -111,7 +111,7 @@ export const useNotesStore = create<NotesState>()(
       },
     }),
     {
-      name: 'ai-reader-notes',
+      name: 'mull-notes',
     }
   )
 );

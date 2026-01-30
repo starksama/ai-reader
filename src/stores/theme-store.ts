@@ -20,7 +20,7 @@ export const useThemeStore = create<ThemeState>()(
       setFontSize: (fontSize) => set({ fontSize }),
     }),
     {
-      name: 'ai-reader-theme',
+      name: 'mull-theme',
     }
   )
 );

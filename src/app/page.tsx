@@ -36,11 +36,11 @@ export default function Home() {
       >
         {/* Header */}
         <div className="text-center mb-10">
-          <h1 className="text-xl font-medium mb-1 tracking-tight" style={{ color: 'var(--text-primary)' }}>
-            AI Reader
+          <h1 className="text-2xl font-semibold mb-2 tracking-tight" style={{ color: 'var(--text-primary)' }}>
+            Mull
           </h1>
           <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
-            Understand anything deeper
+            Think deeper
           </p>
         </div>
 
@@ -54,7 +54,7 @@ export default function Home() {
               type="url"
               value={url}
               onChange={(e) => setUrl(e.target.value)}
-              placeholder="Paste article URL"
+              placeholder="Paste a URL to mull over..."
               className="flex-1 px-3 py-2.5 bg-transparent outline-none text-sm"
               style={{ color: 'var(--text-primary)' }}
               disabled={isLoading}
@@ -66,7 +66,7 @@ export default function Home() {
               className="px-4 py-2.5 text-sm text-white transition-all hover:opacity-90 disabled:opacity-40 flex items-center gap-2"
               style={{ backgroundColor: 'var(--accent)' }}
             >
-              <span>{isLoading ? '...' : 'Read'}</span>
+              <span>{isLoading ? '...' : 'Mull'}</span>
               {!isLoading && <ArrowRight size={12} />}
             </button>
           </div>
@@ -102,22 +102,15 @@ export default function Home() {
         </div>
 
         {/* Features */}
-        <div className="space-y-2 text-sm mt-12" style={{ color: 'var(--text-secondary)' }}>
-          <p>Select text to dive deeper</p>
-          <p>Ask questions, get explanations</p>
-          <p>Highlight and export notes</p>
+        <div className="space-y-2 text-sm mt-12 text-center" style={{ color: 'var(--text-secondary)' }}>
+          <p>Select text → dive deeper</p>
+          <p>Ask anything → get clarity</p>
+          <p>Highlight → export notes</p>
         </div>
 
         {/* Footer */}
-        <p className="text-center text-xs mt-12" style={{ color: 'var(--text-secondary)' }}>
-          <a 
-            href="https://github.com/starksama/ai-reader" 
-            target="_blank" 
-            rel="noopener noreferrer"
-            className="hover:opacity-70"
-          >
-            GitHub
-          </a>
+        <p className="text-center text-xs mt-12" style={{ color: 'var(--text-tertiary)' }}>
+          Mull it over
         </p>
       </motion.div>
     </main>

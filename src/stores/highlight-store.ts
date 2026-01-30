@@ -59,7 +59,7 @@ export const useHighlightStore = create<HighlightState>()(
       },
     }),
     {
-      name: 'ai-reader-highlights',
+      name: 'mull-highlights',
     }
   )
 );

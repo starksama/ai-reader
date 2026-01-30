@@ -29,7 +29,7 @@ export default function DemoPage() {
               Demo Articles
             </h1>
             <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
-              Try the reader with sample content
+              Try Mull with sample content
             </p>
           </div>
 

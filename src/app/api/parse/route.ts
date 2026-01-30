@@ -32,7 +32,7 @@ export async function POST(request: NextRequest) {
     try {
       response = await fetch(url, {
         headers: {
-          'User-Agent': 'Mozilla/5.0 (compatible; AI-Reader/1.0; +https://github.com/starksama/ai-reader)',
+          'User-Agent': 'Mozilla/5.0 (compatible; Mull/1.0; +https://github.com/starksama/mull)',
           'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
           'Accept-Language': 'en-US,en;q=0.5',
         },
