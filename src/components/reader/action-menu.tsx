@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowUpRight, Highlighter, Copy, X, Pencil, Trash2 } from 'lucide-react';
 
@@ -22,6 +22,32 @@ interface ActionMenuProps {
   onClose: () => void;
 }
 
+// Compute adjusted position to keep menu within viewport bounds
+function computeAdjustedPosition(
+  position: { x: number; y: number },
+  rect: DOMRect | null,
+  padding = 16
+): { x: number; y: number } {
+  if (!rect) return position;
+  
+  let x = position.x;
+  let y = position.y;
+
+  // Horizontal bounds
+  if (x + rect.width > window.innerWidth - padding) {
+    x = window.innerWidth - rect.width - padding;
+  }
+  if (x < padding) x = padding;
+  
+  // Vertical bounds
+  if (y + rect.height > window.innerHeight - padding) {
+    y = position.y - rect.height - 20;
+  }
+  if (y < padding) y = padding;
+
+  return { x, y };
+}
+
 export function ActionMenu({
   isOpen,
   mode,
@@ -37,39 +63,22 @@ export function ActionMenu({
 }: ActionMenuProps) {
   const menuRef = useRef<HTMLDivElement>(null);
   const [copied, setCopied] = useState(false);
-  const [adjustedPosition, setAdjustedPosition] = useState(position);
+  const [menuRect, setMenuRect] = useState<DOMRect | null>(null);
 
-  // Position adjustment for desktop floating menu
-  useEffect(() => {
+  // Measure menu after render (useLayoutEffect runs before paint)
+  useLayoutEffect(() => {
     if (isOpen && !isMobile && menuRef.current) {
-      const rect = menuRef.current.getBoundingClientRect();
-      const padding = 16;
-      
-      let x = position.x;
-      let y = position.y;
-
-      // Horizontal bounds
-      if (x + rect.width > window.innerWidth - padding) {
-        x = window.innerWidth - rect.width - padding;
-      }
-      if (x < padding) x = padding;
-      
-      // Vertical bounds
-      if (y + rect.height > window.innerHeight - padding) {
-        y = position.y - rect.height - 20;
-      }
-      if (y < padding) y = padding;
-
-      setAdjustedPosition({ x, y });
+      setMenuRect(menuRef.current.getBoundingClientRect());
+    } else {
+      setMenuRect(null);
     }
-  }, [isOpen, position, isMobile]);
+  }, [isOpen, isMobile]);
 
-  // Update position when props change
-  useEffect(() => {
-    if (!isMobile) {
-      setAdjustedPosition(position);
-    }
-  }, [position, isMobile]);
+  // Compute adjusted position from current position and measured rect
+  const adjustedPosition = useMemo(
+    () => computeAdjustedPosition(position, menuRect),
+    [position, menuRect]
+  );
 
   // Close on escape
   useEffect(() => {

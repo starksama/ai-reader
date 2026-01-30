@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback } from 'react';
+import { useCallback, useMemo } from 'react';
 import type { Highlight } from '@/stores/highlight-store';
 import { useThemeStore, getHighlightColor } from '@/stores/theme-store';
 
@@ -18,41 +18,7 @@ export function HighlightedText({
   const { theme, highlightColor } = useThemeStore();
   const bgColor = getHighlightColor(theme, highlightColor);
 
-  // If no highlights, just return the text
-  if (highlights.length === 0) {
-    return <>{text}</>;
-  }
-
-  // Sort highlights by their position in text
-  const sortedHighlights = [...highlights].sort((a, b) => {
-    const aIndex = text.indexOf(a.text);
-    const bIndex = text.indexOf(b.text);
-    return aIndex - bIndex;
-  });
-
-  // Build segments of text with highlights
-  const segments: Array<{ text: string; highlight?: Highlight }> = [];
-  let lastIndex = 0;
-
-  for (const highlight of sortedHighlights) {
-    const startIndex = text.indexOf(highlight.text, lastIndex);
-    if (startIndex === -1) continue;
-
-    // Add non-highlighted text before this highlight
-    if (startIndex > lastIndex) {
-      segments.push({ text: text.slice(lastIndex, startIndex) });
-    }
-
-    // Add highlighted text
-    segments.push({ text: highlight.text, highlight });
-    lastIndex = startIndex + highlight.text.length;
-  }
-
-  // Add remaining text after last highlight
-  if (lastIndex < text.length) {
-    segments.push({ text: text.slice(lastIndex) });
-  }
-
+  // Must call all hooks before any conditional returns
   const handleHighlightClick = useCallback((e: React.MouseEvent, highlight: Highlight) => {
     e.stopPropagation();
     const rect = (e.target as HTMLElement).getBoundingClientRect();
@@ -62,6 +28,47 @@ export function HighlightedText({
       y: rect.bottom + 8 
     });
   }, [onHighlightClick]);
+
+  // Build segments of text with highlights
+  const segments = useMemo(() => {
+    if (highlights.length === 0) return null;
+
+    // Sort highlights by their position in text
+    const sortedHighlights = [...highlights].sort((a, b) => {
+      const aIndex = text.indexOf(a.text);
+      const bIndex = text.indexOf(b.text);
+      return aIndex - bIndex;
+    });
+
+    const result: Array<{ text: string; highlight?: Highlight }> = [];
+    let lastIndex = 0;
+
+    for (const highlight of sortedHighlights) {
+      const startIndex = text.indexOf(highlight.text, lastIndex);
+      if (startIndex === -1) continue;
+
+      // Add non-highlighted text before this highlight
+      if (startIndex > lastIndex) {
+        result.push({ text: text.slice(lastIndex, startIndex) });
+      }
+
+      // Add highlighted text
+      result.push({ text: highlight.text, highlight });
+      lastIndex = startIndex + highlight.text.length;
+    }
+
+    // Add remaining text after last highlight
+    if (lastIndex < text.length) {
+      result.push({ text: text.slice(lastIndex) });
+    }
+
+    return result;
+  }, [text, highlights]);
+
+  // If no highlights, just return the text
+  if (!segments) {
+    return <>{text}</>;
+  }
 
   return (
     <>
