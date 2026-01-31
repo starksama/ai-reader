@@ -1,8 +1,18 @@
 # NOW.md — Mull Status
 
-**Last updated:** 2026-01-31 10:00 (deadline)
+**Last updated:** 2026-02-01 04:00 (night shift)
 
 ## Current State: ✅ Ready for Testing (Deadline Met)
+
+### 🔍 Night Shift Code Review (04:00)
+First principles audit complete:
+- Architecture: Clean Zustand stores, proper SSR guards ✅
+- Branching: Push/pop layer pattern works well ✅
+- State: No prop drilling, focused stores ✅
+- Error handling: Loading states, graceful fallbacks ✅
+- Mobile: Selection handling + PWA manifest ✅
+- Build: Passing (Next.js 16, Turbopack) ✅
+- Minor: `goTo()` in layer-store is unused (future breadcrumbs?)
 
 ### Night Shift Progress (4am-10am)
 - Fixed React hooks lint violations
