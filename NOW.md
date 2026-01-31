@@ -1,13 +1,18 @@
 # NOW.md — Mull Status
 
-**Last updated:** 2026-01-31 04:00 (night shift)
+**Last updated:** 2026-01-31 10:00 (deadline)
 
-## Current State: ✅ Ready for Testing
+## Current State: ✅ Ready for Testing (Deadline Met)
+
+### Night Shift Progress (4am-10am)
+- Fixed React hooks lint violations
+- Added PWA manifest + mobile app metadata
+- Verified codebase clean (~4800 LOC)
 
 - **Build:** Passing (Next.js 16, Turbopack)
 - **Lint:** Clean (0 errors)
 - **Dev server:** Works locally
-- **Commits:** 53+ commits
+- **Commits:** 55+ commits
 
 ## Blocking for "Testable"
 
