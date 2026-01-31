@@ -167,26 +167,103 @@ Rejected alternatives:
 
 ---
 
-## What's Next (Planned)
+## Roadmap & Product Direction
 
-### Immediate
-- [ ] Vercel deployment
-- [ ] Real AI integration (Anthropic/OpenAI via AI SDK)
+### Phase 1: MVP (Current)
+**Goal:** Testable prototype with mock AI
 
-### Auth & Persistence
-- [ ] Google OAuth (Supabase)
-- [ ] Save conversations to database
+- ✅ Content input (URL, paste, PDF)
+- ✅ Reader view with paragraph selection
+- ✅ "Dive deeper" → branching chat UI
+- ✅ Highlights with notes
+- ✅ Branch navigation (↑↓ keys)
+- ✅ Session summary + markdown export
+- ⏳ Vercel deployment (blocked on credentials)
+
+### Phase 2: Real AI Integration
+**Goal:** Actually useful product
+
+- [ ] AI SDK integration (Anthropic Claude / OpenAI)
+- [ ] Streaming responses
+- [ ] Context management (walk tree for prompt)
+- [ ] Model selection (fast vs smart)
+
+**Key question:** How much context to include?
+- Option A: Full path to root (expensive, complete)
+- Option B: Summarized ancestors (cheaper, lossy)
+- Option C: User controls depth (flexible, complex UI)
+
+### Phase 3: Auth & Persistence
+**Goal:** Users can save and return
+
+- [ ] Google OAuth (lowest friction)
+- [ ] Supabase for database
+- [ ] Save conversation trees
 - [ ] Sync across devices
 
-### Monetization
-- [ ] LiteLLM proxy for AI calls
-- [ ] Usage-based billing
-- [ ] User API keys
+**Migration path:** Local-first → optional cloud sync
+- Don't force accounts on first use
+- Prompt to save after meaningful session
 
-### Features
-- [ ] Highlight editing (currently stubbed)
-- [ ] Share specific branches
+### Phase 4: Monetization
+**Goal:** Sustainable business
+
+**Strategy: Usage-based billing via LiteLLM**
+1. User gets unique API key
+2. All AI calls go through LiteLLM proxy
+3. Track tokens per user
+4. Bill based on usage (not subscription)
+
+**Why not subscription?**
+- Usage varies wildly per user
+- Fair pricing = pay for what you use
+- Lower barrier to try
+
+**Pricing thoughts:**
+- Free tier: X tokens/month
+- Pay-as-you-go after that
+- Maybe: BYO API key option for power users
+
+### Phase 5: Growth Features
+**Goal:** Viral loops, retention
+
+- [ ] Share specific branches (public links)
 - [ ] Collaborative reading sessions
+- [ ] Import from Pocket/Instapaper
+- [ ] Browser extension for "Save to Mull"
+- [ ] Mobile app (React Native?)
+
+### Open Questions
+
+1. **Offline support?**
+   - PWA already added
+   - But AI requires network
+   - Maybe: queue questions for later?
+
+2. **Source types beyond articles?**
+   - YouTube transcripts
+   - Podcast transcripts
+   - Book chapters (epub)
+   - Academic papers (special formatting)
+
+3. **Multi-source sessions?**
+   - Currently: one source per session
+   - Future: pull in multiple sources?
+   - Risk: scope creep, complexity
+
+4. **Team/enterprise?**
+   - Shared knowledge bases
+   - Team highlights/annotations
+   - Too early to think about this
+
+### What We're NOT Building
+
+- ❌ General chat interface (use ChatGPT)
+- ❌ Note-taking app (use Obsidian)
+- ❌ Read-later service (use Pocket)
+- ❌ AI writing assistant (use Claude)
+
+**Mull's focus:** Deep reading with AI branching. That's it.
 
 ---
 
