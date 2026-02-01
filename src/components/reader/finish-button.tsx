@@ -24,10 +24,11 @@ export function FinishButton({ articleUrl, articleTitle }: FinishButtonProps) {
   const highlights = getHighlights(articleUrl);
   
   // Count threads with messages (questions explored)
+  const articleThreads = article?.threads;
   const threads = useMemo(() => {
-    if (!article?.threads) return [];
-    return Object.values(article.threads).filter(t => t.messages.length > 0);
-  }, [article?.threads]);
+    if (!articleThreads) return [];
+    return Object.values(articleThreads).filter(t => t.messages.length > 0);
+  }, [articleThreads]);
   
   const questionCount = threads.length;
   const highlightCount = highlights.length;

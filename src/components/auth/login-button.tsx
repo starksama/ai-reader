@@ -218,7 +218,7 @@ export function LoginButton() {
                   </button>
                   
                   <p className="mt-3 text-xs text-center" style={{ color: 'var(--text-tertiary)' }}>
-                    No password needed — we'll email you a link
+                    No password needed — we&apos;ll email you a link
                   </p>
                 </form>
               )}

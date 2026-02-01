@@ -18,10 +18,11 @@ export function ExportButton({ url }: ExportButtonProps) {
   const highlights = getHighlights(url);
   
   // Count threads with messages
+  const threads = articleNotes?.threads;
   const threadCount = useMemo(() => {
-    if (!articleNotes?.threads) return 0;
-    return Object.values(articleNotes.threads).filter(t => t.messages.length > 0).length;
-  }, [articleNotes?.threads]);
+    if (!threads) return 0;
+    return Object.values(threads).filter(t => t.messages.length > 0).length;
+  }, [threads]);
   
   const highlightCount = highlights.length;
   const totalCount = threadCount + highlightCount;
