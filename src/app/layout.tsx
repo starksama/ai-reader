@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Inter, Source_Serif_4 } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
@@ -16,6 +16,17 @@ const sourceSerif = Source_Serif_4({
   weight: ["400", "500", "600"],
 });
 
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#fafafa" },
+    { media: "(prefers-color-scheme: dark)", color: "#0a0a0a" },
+  ],
+};
+
 export const metadata: Metadata = {
   title: "Mull — Branch Freely, Never Start Over",
   description: "No more 'let me start a new chat'. Mull lets you explore tangents without polluting your main thread. Branch off, go deep, and always find your way back.",
@@ -31,12 +42,6 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Mull — Branch Freely, Never Start Over",
     description: "No more 'let me start a new chat'. Explore tangents without polluting your context. Branch off, go deep, return cleanly.",
-  },
-  viewport: {
-    width: "device-width",
-    initialScale: 1,
-    maximumScale: 1,
-    userScalable: false,
   },
   appleWebApp: {
     capable: true,
