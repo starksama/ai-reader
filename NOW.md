@@ -1,6 +1,6 @@
 # NOW.md — Mull Status
 
-**Last updated:** 2026-02-02 06:00 (night shift)
+**Last updated:** 2026-02-02 07:00 (night shift)
 
 ## Current State: ✅ Deployed & Refactored
 
@@ -23,6 +23,7 @@ Major refactor based on Gemini + manual code review:
 - Non-streaming responses (fixes blinking)
 
 ### Commits Tonight
+- `63374d4` docs: update roadmap to reflect current state
 - `bb50825` refactor: migrate middleware.ts to proxy.ts (Next.js 16)
 - `ab31b58` polish: add favicon, fix viewport export, improve loading skeleton
 - `67f8f6c` fix: memoize messages array to prevent unnecessary re-renders
@@ -80,6 +81,11 @@ Major refactor based on Gemini + manual code review:
 ## Cleanup (6am shift)
 - Migrated middleware.ts → proxy.ts (Next.js 16 convention)
 - All build warnings resolved ✅
+
+## Final Review (7am shift)
+- Updated README roadmap to reflect current state
+- Verified build, routes, and demo data
+- **Project ready for 10am testing** 🎉
 
 ## Quick Commands
 ```bash
