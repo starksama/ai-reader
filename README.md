@@ -64,12 +64,15 @@ The tree IS the data structure. Messages with `parent_id`. Simple.
 
 ## Roadmap
 
-- [x] Content parsing (URL, paste, markdown)
+- [x] Content parsing (URL, paste, markdown, PDF)
 - [x] Reader UI with highlights
 - [x] Layer navigation
-- [ ] Real AI integration
-- [ ] Supabase auth + sync
-- [ ] LiteLLM billing
+- [x] Real AI integration (GPT-4o-mini)
+- [x] Magic link auth (Supabase)
+- [x] Thread persistence (localStorage)
+- [x] Export notes as markdown
+- [ ] Cloud sync when logged in
+- [ ] Usage tracking / billing
 
 ---
 
