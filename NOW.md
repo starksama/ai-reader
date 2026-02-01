@@ -1,68 +1,64 @@
 # NOW.md — Mull Status
 
-**Last updated:** 2026-02-01 10:00 (deadline)
+**Last updated:** 2026-02-02 00:00 (night shift)
 
-## Current State: ✅ Ready for Testing (10am Deadline Met ✓)
+## Current State: ✅ Deployed & Refactored
 
-### 🔍 Night Shift Code Review (04:00)
-First principles audit complete:
-- Architecture: Clean Zustand stores, proper SSR guards ✅
-- Branching: Push/pop layer pattern works well ✅
-- State: No prop drilling, focused stores ✅
-- Error handling: Loading states, graceful fallbacks ✅
-- Mobile: Selection handling + PWA manifest ✅
-- Build: Passing (Next.js 16, Turbopack) ✅
-- Minor: `goTo()` in layer-store is unused (future breadcrumbs?)
+### 🧹 Tonight's Cleanup (19:00-23:30)
+Major refactor based on Gemini + manual code review:
 
-### Night Shift Progress (4am-10am)
-- Fixed React hooks lint violations
-- Added PWA manifest + mobile app metadata
-- Verified codebase clean (~4800 LOC)
+**Bugs Fixed:**
+1. ❌ No reactivity → ✅ Zustand selector subscriptions
+2. ❌ State duplication → ✅ Direct store reads
+3. ❌ useEffect sync anti-pattern → ✅ Removed
+4. ❌ Potential infinite loops → ✅ useCallback selectors
+5. ❌ Data denormalization → ✅ Single source of truth (threads only)
+6. ❌ Auth race condition → ✅ Shared initialization promise
+7. ❌ Auth memory leak → ✅ Subscription cleanup
 
-- **Build:** Passing (Next.js 16, Turbopack)
-- **Lint:** Clean (0 errors)
-- **Dev server:** Works locally
-- **Commits:** 55+ commits
+**Other Changes:**
+- Magic link auth (no more OAuth setup needed)
+- Better API error handling
+- Store version migration for backward compat
+- Non-streaming responses (fixes blinking)
 
-## Blocking for "Testable"
-
-### Vercel Deployment
-- `vercel.json` exists (region: hnd1)
-- **Blocker:** No Vercel credentials configured
-- **Action needed:** Anton to run `vercel login` and `vercel --prod`
+### Commits Tonight
+- `88ad237` fix(auth): race condition and memory leak
+- `2ff6fe1` fix: major refactor based on code review
+- `7418ed1` fix: race condition in thread storage
+- `ad21c2d` fix: address 4 bugs from feedback
+- `2c84e73` feat(auth): switch from OAuth to magic link
 
 ## What Works
-- Home page with URL input
-- Article reader view
-- Text selection → chat UI
-- Highlighting
-- Branch navigation
-- Mobile selection (selectionchange + debounce)
-- "Finish" → session summary
-- Export notes as markdown
+- ✅ Home page with URL input
+- ✅ Article reader view
+- ✅ Text selection → chat UI
+- ✅ Highlighting
+- ✅ Branch navigation (up/down through explored paragraphs)
+- ✅ Thread persistence (localStorage)
+- ✅ "Finish" → session summary
+- ✅ Export notes as markdown
+- ✅ Magic link auth (Supabase)
+- ✅ Real AI responses (GPT-4o-mini)
+- ✅ Mobile selection handling
 
-## What's NEW: AI Integration ✅
-- Real AI responses using OpenAI GPT-4o-mini
-- Streaming responses
-- Requires `OPENAI_API_KEY` in `.env.local`
+## Requires Setup
+- `OPENAI_API_KEY` in Vercel env
+- `NEXT_PUBLIC_SUPABASE_URL` + `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+- Supabase: Site URL + Redirect URLs configured
+- Supabase: SMTP for magic links (or use Resend)
 
-## What's NEW: Supabase Auth + History ✅
-- Google & GitHub login
-- Session history sidebar
-- Database schema for sessions, messages, notes, highlights
-- Row-level security (RLS) policies
-- Requires Supabase project setup (see `supabase/schema.sql`)
+## Known Issues
+- History sidebar uses session-store (Supabase) but app stores locally (notes-store)
+  - Could sync to Supabase when logged in (future)
+- middleware.ts deprecated warning (Next.js wants "proxy")
 
-## What's Mocked
-- Nothing! Both AI and persistence are ready.
-
-## Test Checklist for Anton
-- [ ] Deploy: `vercel --prod`
-- [ ] Test URL parsing with real articles
-- [ ] Test mobile selection on phone
-- [ ] Test branch up/down navigation
-- [ ] Test highlight feature
-- [ ] Test finish/summary flow
+## Test Checklist
+- [x] Deploy: Vercel auto-deploys on push
+- [ ] Test magic link auth flow
+- [ ] Test thread persistence (ask question, navigate away, come back)
+- [ ] Test export notes
+- [ ] Test on mobile
 
 ## Quick Commands
 ```bash
@@ -70,6 +66,22 @@ cd ~/clawd/mull
 pnpm dev      # Local dev server
 pnpm build    # Production build
 pnpm lint     # ESLint check
-vercel        # Deploy preview
-vercel --prod # Deploy production
+```
+
+## Architecture (Clean)
+```
+stores/
+├── notes-store.ts   # Threads per article (localStorage)
+├── auth-store.ts    # Supabase auth state
+├── session-store.ts # Supabase history (not integrated yet)
+├── layer-store.ts   # Navigation stack
+├── highlight-store.ts
+├── theme-store.ts
+└── reader-store.ts
+
+components/
+├── layers/detail-layer.tsx  # Chat with AI about paragraphs
+├── reader/article-view.tsx  # Main reading view
+├── auth/login-button.tsx    # Magic link auth
+└── ...
 ```
