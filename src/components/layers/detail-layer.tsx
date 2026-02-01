@@ -1,10 +1,10 @@
 'use client';
 
-import { useState, useRef, useEffect, useCallback } from 'react';
+import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft, ChevronUp, ChevronDown, Send, ChevronRight } from 'lucide-react';
 import { ChatBubble } from '@/components/chat/chat-bubble';
-import { useNotesStore, type Message } from '@/stores/notes-store';
+import { useNotesStore } from '@/stores/notes-store';
 import { useKeyboardShortcuts } from '@/hooks/use-keyboard-shortcuts';
 
 interface Paragraph {
@@ -36,30 +36,29 @@ export function DetailLayer({
   onNavigate,
 }: DetailLayerProps) {
   const [input, setInput] = useState('');
-  const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showContext, setShowContext] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   
-  const { getThread, addMessageToThread, addNote } = useNotesStore();
+  // FIX #1-4: Use selector to subscribe to store updates directly
+  // This avoids copying state and handles reactivity properly
+  const thread = useNotesStore(
+    useCallback(
+      (state) => state.articles[articleUrl]?.threads?.[paragraph.index],
+      [articleUrl, paragraph.index]
+    )
+  );
+  const messages = thread?.messages ?? [];
+  
+  const addMessageToThread = useNotesStore((state) => state.addMessageToThread);
 
   const currentExploredIndex = exploredParagraphs.indexOf(paragraph.index);
   const canGoPrev = currentExploredIndex > 0;
   const canGoNext = currentExploredIndex < exploredParagraphs.length - 1 && currentExploredIndex !== -1;
 
   const hasSelection = !!selectedText;
-
-  // Load existing thread or create new one
-  useEffect(() => {
-    const existingThread = getThread(articleUrl, paragraph.index);
-    if (existingThread) {
-      setMessages(existingThread.messages);
-    } else {
-      setMessages([]);
-    }
-  }, [articleUrl, paragraph.index, getThread]);
 
   useKeyboardShortcuts({
     onEscape: onBack,
@@ -83,19 +82,17 @@ export function DetailLayer({
   // Scroll to bottom when new messages arrive
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
+  }, [messages.length]);
 
   // Build previous context (2-3 paragraphs before)
-  const getPreviousContext = useCallback(() => {
+  const previousContext = useMemo(() => {
     if (allParagraphs.length === 0) return '';
     
     const startIdx = Math.max(0, paragraph.index - 3);
-    const prevParagraphs = allParagraphs
+    return allParagraphs
       .slice(startIdx, paragraph.index)
       .map(p => p.text)
       .join('\n\n');
-    
-    return prevParagraphs;
   }, [allParagraphs, paragraph.index]);
 
   const handleAsk = useCallback(async (e: React.FormEvent) => {
@@ -107,13 +104,6 @@ export function DetailLayer({
     setError(null);
     
     // Add user message (creates thread if needed)
-    const userMessage: Message = {
-      id: `user-${Date.now()}`,
-      role: 'user',
-      content: question,
-      createdAt: Date.now(),
-    };
-    setMessages(prev => [...prev, userMessage]);
     addMessageToThread(articleUrl, articleTitle, paragraph.index, { role: 'user', content: question }, selectedText);
     
     setIsLoading(true);
@@ -123,7 +113,7 @@ export function DetailLayer({
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          messages: [...messages, userMessage].map(m => ({
+          messages: [...messages, { role: 'user', content: question }].map(m => ({
             role: m.role,
             content: m.content,
           })),
@@ -131,34 +121,22 @@ export function DetailLayer({
             articleTitle,
             selectedText,
             paragraphText: paragraph.text,
-            previousContext: getPreviousContext(),
+            previousContext,
           },
         }),
       });
 
       if (!response.ok) {
-        throw new Error('Failed to get response');
+        const errorText = await response.text();
+        throw new Error(errorText || 'Failed to get response');
       }
 
       const responseText = await response.text();
       
       // Add assistant message
-      const assistantMessage: Message = {
-        id: `assistant-${Date.now()}`,
-        role: 'assistant',
-        content: responseText,
-        createdAt: Date.now(),
-      };
-      setMessages(prev => [...prev, assistantMessage]);
       addMessageToThread(articleUrl, articleTitle, paragraph.index, { role: 'assistant', content: responseText });
 
-      // Also save as legacy note for export
-      addNote(articleUrl, articleTitle, {
-        paragraphIndex: paragraph.index,
-        paragraphText: (selectedText || paragraph.text).slice(0, 200) + '...',
-        question,
-        answer: responseText,
-      });
+      // FIX #5: Removed duplicate addNote call - thread already stores the data
 
     } catch (err) {
       console.error('Chat error:', err);
@@ -166,12 +144,12 @@ export function DetailLayer({
     } finally {
       setIsLoading(false);
     }
-  }, [input, isLoading, messages, articleTitle, selectedText, paragraph, articleUrl, getPreviousContext, addMessageToThread, addNote]);
+  }, [input, isLoading, messages, articleTitle, selectedText, paragraph, articleUrl, previousContext, addMessageToThread]);
 
-  const handleQuickQuestion = (q: string) => {
+  const handleQuickQuestion = useCallback((q: string) => {
     setInput(q);
     inputRef.current?.focus();
-  };
+  }, []);
 
   const suggestedQuestions = [
     "Explain simply",

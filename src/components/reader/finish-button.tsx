@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { CheckCircle, X, Download, Share2 } from 'lucide-react';
 import { useNotesStore } from '@/stores/notes-store';
@@ -20,11 +20,18 @@ export function FinishButton({ articleUrl, articleTitle }: FinishButtonProps) {
   const { getArticleNotes, exportNotes } = useNotesStore();
   const { getHighlights } = useHighlightStore();
   
-  const notes = getArticleNotes(articleUrl);
+  const article = getArticleNotes(articleUrl);
   const highlights = getHighlights(articleUrl);
-  const noteCount = notes?.notes.length || 0;
+  
+  // Count threads with messages (questions explored)
+  const threads = useMemo(() => {
+    if (!article?.threads) return [];
+    return Object.values(article.threads).filter(t => t.messages.length > 0);
+  }, [article?.threads]);
+  
+  const questionCount = threads.length;
   const highlightCount = highlights.length;
-  const totalCount = noteCount + highlightCount;
+  const totalCount = questionCount + highlightCount;
 
   if (totalCount === 0) return null;
 
@@ -35,7 +42,7 @@ export function FinishButton({ articleUrl, articleTitle }: FinishButtonProps) {
     // Mock summary generation
     await new Promise(resolve => setTimeout(resolve, 800));
     
-    // Generate summary based on notes and highlights
+    // Generate summary based on threads and highlights
     let summaryText = `## Session Summary: ${articleTitle}\n\n`;
     
     if (highlightCount > 0) {
@@ -46,10 +53,13 @@ export function FinishButton({ articleUrl, articleTitle }: FinishButtonProps) {
       summaryText += '\n';
     }
     
-    if (noteCount > 0) {
-      summaryText += `**${noteCount} questions explored:**\n`;
-      notes?.notes.slice(0, 3).forEach((n, i) => {
-        summaryText += `${i + 1}. ${n.question}\n`;
+    if (questionCount > 0) {
+      summaryText += `**${questionCount} sections explored:**\n`;
+      threads.slice(0, 3).forEach((thread, i) => {
+        const firstQuestion = thread.messages.find(m => m.role === 'user');
+        if (firstQuestion) {
+          summaryText += `${i + 1}. ${firstQuestion.content}\n`;
+        }
       });
       summaryText += '\n';
     }
@@ -167,10 +177,10 @@ export function FinishButton({ articleUrl, articleTitle }: FinishButtonProps) {
                   </div>
                   <div className="text-center">
                     <p className="text-2xl font-bold" style={{ color: 'var(--accent)' }}>
-                      {noteCount}
+                      {questionCount}
                     </p>
                     <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>
-                      Questions
+                      Explored
                     </p>
                   </div>
                 </div>

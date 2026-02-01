@@ -17,19 +17,9 @@ export interface Thread {
   updatedAt: number;
 }
 
-export interface Note {
-  id: string;
-  paragraphIndex: number;
-  paragraphText: string;
-  question: string;
-  answer: string;
-  createdAt: number;
-}
-
 export interface ArticleNotes {
   url: string;
   title: string;
-  notes: Note[];
   threads: Record<number, Thread>;
   createdAt: number;
   updatedAt: number;
@@ -39,13 +29,16 @@ interface NotesState {
   articles: Record<string, ArticleNotes>;
   
   // Thread operations
-  getThread: (url: string, paragraphIndex: number) => Thread | undefined;
   addMessageToThread: (url: string, title: string, paragraphIndex: number, message: Omit<Message, 'id' | 'createdAt'>, selectedText?: string) => void;
   
-  // Legacy note operations (for export)
-  addNote: (url: string, title: string, note: Omit<Note, 'id' | 'createdAt'>) => void;
+  // Read operations
   getArticleNotes: (url: string) => ArticleNotes | undefined;
+  hasThreads: (url: string) => boolean;
+  
+  // Export
   exportNotes: (url: string) => string;
+  
+  // Cleanup
   clearArticleNotes: (url: string) => void;
 }
 
@@ -53,11 +46,6 @@ export const useNotesStore = create<NotesState>()(
   persist(
     (set, get) => ({
       articles: {},
-
-      getThread: (url, paragraphIndex) => {
-        const article = get().articles[url];
-        return article?.threads?.[paragraphIndex];
-      },
 
       // Combined: creates thread if needed + adds message (atomic operation)
       addMessageToThread: (url, title, paragraphIndex, message, selectedText) => {
@@ -127,7 +115,6 @@ export const useNotesStore = create<NotesState>()(
               [url]: {
                 url,
                 title,
-                notes: [],
                 threads: { [paragraphIndex]: newThread },
                 createdAt: now,
                 updatedAt: now,
@@ -137,45 +124,12 @@ export const useNotesStore = create<NotesState>()(
         });
       },
 
-      addNote: (url, title, note) => {
-        const now = Date.now();
-        const newNote: Note = {
-          ...note,
-          id: `note-${now}`,
-          createdAt: now,
-        };
-
-        set((state) => {
-          const existing = state.articles[url];
-          if (existing) {
-            return {
-              articles: {
-                ...state.articles,
-                [url]: {
-                  ...existing,
-                  notes: [...existing.notes, newNote],
-                  updatedAt: now,
-                },
-              },
-            };
-          }
-          return {
-            articles: {
-              ...state.articles,
-              [url]: {
-                url,
-                title,
-                notes: [newNote],
-                threads: {},
-                createdAt: now,
-                updatedAt: now,
-              },
-            },
-          };
-        });
-      },
-
       getArticleNotes: (url) => get().articles[url],
+      
+      hasThreads: (url) => {
+        const article = get().articles[url];
+        return article ? Object.keys(article.threads).length > 0 : false;
+      },
 
       exportNotes: (url) => {
         const article = get().articles[url];
@@ -191,42 +145,40 @@ export const useNotesStore = create<NotesState>()(
           '',
         ];
 
-        // Export threads
-        const threadEntries = Object.values(article.threads || {}).sort((a, b) => a.paragraphIndex - b.paragraphIndex);
+        // Export threads sorted by paragraph index
+        const threadEntries = Object.values(article.threads || {})
+          .filter(t => t.messages.length > 0)
+          .sort((a, b) => a.paragraphIndex - b.paragraphIndex);
         
+        if (threadEntries.length === 0) {
+          lines.push('*No notes yet*');
+          return lines.join('\n');
+        }
+
         threadEntries.forEach((thread) => {
-          if (thread.messages.length === 0) return;
-          
           lines.push(`## Paragraph ${thread.paragraphIndex + 1}`);
+          
           if (thread.selectedText) {
             lines.push('');
             lines.push(`> "${thread.selectedText}"`);
           }
           lines.push('');
 
-          thread.messages.forEach((msg) => {
-            if (msg.role === 'user') {
-              lines.push(`**Q:** ${msg.content}`);
-            } else {
-              lines.push(`**A:** ${msg.content}`);
+          // Group messages into Q&A pairs
+          for (let i = 0; i < thread.messages.length; i += 2) {
+            const userMsg = thread.messages[i];
+            const assistantMsg = thread.messages[i + 1];
+            
+            if (userMsg?.role === 'user') {
+              lines.push(`**Q:** ${userMsg.content}`);
+              lines.push('');
             }
-            lines.push('');
-          });
+            if (assistantMsg?.role === 'assistant') {
+              lines.push(`**A:** ${assistantMsg.content}`);
+              lines.push('');
+            }
+          }
 
-          lines.push('---');
-          lines.push('');
-        });
-
-        // Also export legacy notes
-        article.notes.forEach((note, index) => {
-          lines.push(`## Note ${index + 1}`);
-          lines.push('');
-          lines.push(`> ${note.paragraphText}`);
-          lines.push('');
-          lines.push(`**Q:** ${note.question}`);
-          lines.push('');
-          lines.push(`**A:** ${note.answer}`);
-          lines.push('');
           lines.push('---');
           lines.push('');
         });
@@ -244,6 +196,19 @@ export const useNotesStore = create<NotesState>()(
     }),
     {
       name: 'mull-notes',
+      version: 2, // Bump version to handle migration
+      migrate: (persistedState: unknown, version: number) => {
+        if (version === 1) {
+          // Migrate from v1 (with notes array) to v2 (threads only)
+          const state = persistedState as { articles: Record<string, { notes?: unknown[]; threads?: Record<number, Thread> }> };
+          for (const key in state.articles) {
+            if (state.articles[key]?.notes) {
+              delete (state.articles[key] as { notes?: unknown[] }).notes;
+            }
+          }
+        }
+        return persistedState as NotesState;
+      },
     }
   )
 );

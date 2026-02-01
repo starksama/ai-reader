@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Download, Check } from 'lucide-react';
 import { useNotesStore } from '@/stores/notes-store';
 import { useHighlightStore } from '@/stores/highlight-store';
@@ -16,9 +16,15 @@ export function ExportButton({ url }: ExportButtonProps) {
   
   const articleNotes = getArticleNotes(url);
   const highlights = getHighlights(url);
-  const noteCount = articleNotes?.notes.length || 0;
+  
+  // Count threads with messages
+  const threadCount = useMemo(() => {
+    if (!articleNotes?.threads) return 0;
+    return Object.values(articleNotes.threads).filter(t => t.messages.length > 0).length;
+  }, [articleNotes?.threads]);
+  
   const highlightCount = highlights.length;
-  const totalCount = noteCount + highlightCount;
+  const totalCount = threadCount + highlightCount;
 
   const handleExport = () => {
     let markdown = exportNotes(url);
