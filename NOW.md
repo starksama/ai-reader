@@ -1,6 +1,6 @@
 # NOW.md — Mull Status
 
-**Last updated:** 2026-02-02 05:00 (night shift)
+**Last updated:** 2026-02-02 06:00 (night shift)
 
 ## Current State: ✅ Deployed & Refactored
 
@@ -23,6 +23,7 @@ Major refactor based on Gemini + manual code review:
 - Non-streaming responses (fixes blinking)
 
 ### Commits Tonight
+- `bb50825` refactor: migrate middleware.ts to proxy.ts (Next.js 16)
 - `ab31b58` polish: add favicon, fix viewport export, improve loading skeleton
 - `67f8f6c` fix: memoize messages array to prevent unnecessary re-renders
 - `4fab886` fix: lint errors in login-button, export-button, finish-button
@@ -54,7 +55,6 @@ Major refactor based on Gemini + manual code review:
 ## Known Issues
 - History sidebar uses session-store (Supabase) but app stores locally (notes-store)
   - Could sync to Supabase when logged in (future)
-- middleware.ts deprecated warning (Next.js wants "proxy")
 
 ## Test Checklist
 - [x] Deploy: Vercel auto-deploys on push
@@ -76,6 +76,10 @@ Major refactor based on Gemini + manual code review:
 - Fixed Next.js viewport export (no more build warnings)
 - Added theme-color meta for mobile browser chrome
 - Improved loading skeleton with staggered animations
+
+## Cleanup (6am shift)
+- Migrated middleware.ts → proxy.ts (Next.js 16 convention)
+- All build warnings resolved ✅
 
 ## Quick Commands
 ```bash
