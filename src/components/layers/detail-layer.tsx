@@ -4,9 +4,8 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft, ChevronUp, ChevronDown, Send, ChevronRight } from 'lucide-react';
 import { ChatBubble } from '@/components/chat/chat-bubble';
-import { useNotesStore } from '@/stores/notes-store';
+import { useNotesStore, type Message } from '@/stores/notes-store';
 import { useKeyboardShortcuts } from '@/hooks/use-keyboard-shortcuts';
-import { Toast, useToast } from '@/components/ui/toast';
 
 interface Paragraph {
   id: string;
@@ -21,14 +20,9 @@ interface DetailLayerProps {
   articleTitle: string;
   selectedText?: string;
   exploredParagraphs?: number[];
+  allParagraphs?: Paragraph[];
   onBack: () => void;
   onNavigate?: (index: number) => void;
-}
-
-interface Message {
-  id: string;
-  role: 'user' | 'assistant';
-  content: string;
 }
 
 export function DetailLayer({ 
@@ -37,6 +31,7 @@ export function DetailLayer({
   articleTitle, 
   selectedText, 
   exploredParagraphs = [],
+  allParagraphs = [],
   onBack,
   onNavigate,
 }: DetailLayerProps) {
@@ -46,14 +41,25 @@ export function DetailLayer({
   const [error, setError] = useState<string | null>(null);
   const [showContext, setShowContext] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
-  const { addNote } = useNotesStore();
-  const { toast, show: showToast, hide: hideToast } = useToast();
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  
+  const { getThread, createThread, addMessageToThread, addNote } = useNotesStore();
 
   const currentExploredIndex = exploredParagraphs.indexOf(paragraph.index);
   const canGoPrev = currentExploredIndex > 0;
   const canGoNext = currentExploredIndex < exploredParagraphs.length - 1 && currentExploredIndex !== -1;
 
   const hasSelection = !!selectedText;
+
+  // Load existing thread or create new one
+  useEffect(() => {
+    const existingThread = getThread(articleUrl, paragraph.index);
+    if (existingThread) {
+      setMessages(existingThread.messages);
+    } else {
+      setMessages([]);
+    }
+  }, [articleUrl, paragraph.index, getThread]);
 
   useKeyboardShortcuts({
     onEscape: onBack,
@@ -74,6 +80,24 @@ export function DetailLayer({
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, [paragraph.index]);
 
+  // Scroll to bottom when new messages arrive
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
+
+  // Build previous context (2-3 paragraphs before)
+  const getPreviousContext = useCallback(() => {
+    if (allParagraphs.length === 0) return '';
+    
+    const startIdx = Math.max(0, paragraph.index - 3);
+    const prevParagraphs = allParagraphs
+      .slice(startIdx, paragraph.index)
+      .map(p => p.text)
+      .join('\n\n');
+    
+    return prevParagraphs;
+  }, [allParagraphs, paragraph.index]);
+
   const handleAsk = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
     if (!input.trim() || isLoading) return;
@@ -82,22 +106,22 @@ export function DetailLayer({
     setInput('');
     setError(null);
     
+    // Ensure thread exists
+    const existingThread = getThread(articleUrl, paragraph.index);
+    if (!existingThread) {
+      createThread(articleUrl, articleTitle, paragraph.index, selectedText);
+    }
+    
     // Add user message
     const userMessage: Message = {
       id: `user-${Date.now()}`,
       role: 'user',
       content: question,
+      createdAt: Date.now(),
     };
     setMessages(prev => [...prev, userMessage]);
+    addMessageToThread(articleUrl, paragraph.index, { role: 'user', content: question });
     
-    // Add placeholder assistant message
-    const assistantId = `assistant-${Date.now()}`;
-    const assistantMessage: Message = {
-      id: assistantId,
-      role: 'assistant',
-      content: '',
-    };
-    setMessages(prev => [...prev, assistantMessage]);
     setIsLoading(true);
     
     try {
@@ -113,6 +137,7 @@ export function DetailLayer({
             articleTitle,
             selectedText,
             paragraphText: paragraph.text,
+            previousContext: getPreviousContext(),
           },
         }),
       });
@@ -121,47 +146,33 @@ export function DetailLayer({
         throw new Error('Failed to get response');
       }
 
-      const reader = response.body?.getReader();
-      if (!reader) throw new Error('No reader available');
+      const responseText = await response.text();
+      
+      // Add assistant message
+      const assistantMessage: Message = {
+        id: `assistant-${Date.now()}`,
+        role: 'assistant',
+        content: responseText,
+        createdAt: Date.now(),
+      };
+      setMessages(prev => [...prev, assistantMessage]);
+      addMessageToThread(articleUrl, paragraph.index, { role: 'assistant', content: responseText });
 
-      const decoder = new TextDecoder();
-      let fullContent = '';
-
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-
-        const chunk = decoder.decode(value);
-        fullContent += chunk;
-        
-        // Update the assistant message with streamed content
-        setMessages(prev => 
-          prev.map(m => 
-            m.id === assistantId 
-              ? { ...m, content: fullContent }
-              : m
-          )
-        );
-      }
-
-      // Save to notes
+      // Also save as legacy note for export
       addNote(articleUrl, articleTitle, {
         paragraphIndex: paragraph.index,
         paragraphText: (selectedText || paragraph.text).slice(0, 200) + '...',
         question,
-        answer: fullContent,
+        answer: responseText,
       });
-      showToast('Note saved');
 
     } catch (err) {
       console.error('Chat error:', err);
       setError(err instanceof Error ? err.message : 'Something went wrong');
-      // Remove the empty assistant message on error
-      setMessages(prev => prev.filter(m => m.id !== assistantId));
     } finally {
       setIsLoading(false);
     }
-  }, [input, isLoading, messages, articleTitle, selectedText, paragraph, articleUrl, addNote, showToast]);
+  }, [input, isLoading, messages, articleTitle, selectedText, paragraph, articleUrl, getPreviousContext, getThread, createThread, addMessageToThread, addNote]);
 
   const handleQuickQuestion = (q: string) => {
     setInput(q);
@@ -335,10 +346,16 @@ export function DetailLayer({
                 key={message.id}
                 role={message.role} 
                 content={message.content}
-                isLoading={isLoading && message.role === 'assistant' && !message.content}
-                isStreaming={isLoading && message.role === 'assistant' && message === messages[messages.length - 1]}
               />
             ))}
+            {isLoading && (
+              <ChatBubble 
+                role="assistant" 
+                content=""
+                isLoading={true}
+              />
+            )}
+            <div ref={messagesEndRef} />
           </div>
         )}
 
@@ -379,8 +396,6 @@ export function DetailLayer({
           </form>
         </motion.div>
       </div>
-
-      <Toast message={toast.message} isVisible={toast.visible} onHide={hideToast} />
     </motion.div>
   );
 }

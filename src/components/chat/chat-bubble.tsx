@@ -1,46 +1,18 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Copy, Check, Bot, User } from 'lucide-react';
 
 interface ChatBubbleProps {
   role: 'user' | 'assistant';
   content: string;
-  isStreaming?: boolean;
   isLoading?: boolean;
 }
 
-export function ChatBubble({ role, content, isStreaming = false, isLoading = false }: ChatBubbleProps) {
-  const [displayedText, setDisplayedText] = useState('');
+export function ChatBubble({ role, content, isLoading = false }: ChatBubbleProps) {
   const [copied, setCopied] = useState(false);
   const isUser = role === 'user';
-
-  useEffect(() => {
-    if (!content || isUser) {
-      setDisplayedText(content || '');
-      return;
-    }
-
-    if (isStreaming) {
-      setDisplayedText('');
-      const words = content.split(' ');
-      let currentIndex = 0;
-
-      const interval = setInterval(() => {
-        if (currentIndex < words.length) {
-          setDisplayedText(prev => prev + (currentIndex > 0 ? ' ' : '') + words[currentIndex]);
-          currentIndex++;
-        } else {
-          clearInterval(interval);
-        }
-      }, 15);
-
-      return () => clearInterval(interval);
-    } else {
-      setDisplayedText(content);
-    }
-  }, [content, isStreaming, isUser]);
 
   const handleCopy = async () => {
     await navigator.clipboard.writeText(content);
@@ -90,6 +62,27 @@ export function ChatBubble({ role, content, isStreaming = false, isLoading = fal
     );
   }
 
+  // Format content with basic markdown
+  const formatContent = (text: string) => {
+    return text.split('\n').map((line, i) => {
+      // Bold text
+      const formattedLine = line.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+      
+      // List items
+      if (line.startsWith('•') || line.startsWith('-') || line.match(/^\d+\./)) {
+        return (
+          <p key={i} className="ml-4 my-1" dangerouslySetInnerHTML={{ __html: formattedLine }} />
+        );
+      }
+      
+      return line ? (
+        <p key={i} className="my-1" dangerouslySetInnerHTML={{ __html: formattedLine }} />
+      ) : (
+        <br key={i} />
+      );
+    });
+  };
+
   return (
     <motion.div 
       initial={{ opacity: 0, y: 8 }}
@@ -120,7 +113,7 @@ export function ChatBubble({ role, content, isStreaming = false, isLoading = fal
         }}
       >
         {/* Copy button for assistant */}
-        {!isUser && !isStreaming && (
+        {!isUser && (
           <button
             onClick={handleCopy}
             className="absolute top-2 right-2 p-1.5 rounded-md transition-opacity opacity-0 group-hover:opacity-100"
@@ -134,32 +127,7 @@ export function ChatBubble({ role, content, isStreaming = false, isLoading = fal
           {isUser ? (
             <p>{content}</p>
           ) : (
-            <>
-              {displayedText.split('\n').map((line, i) => {
-                const formattedLine = line.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-                
-                if (line.startsWith('•') || line.startsWith('-')) {
-                  return (
-                    <p key={i} className="ml-4 my-1" dangerouslySetInnerHTML={{ __html: formattedLine }} />
-                  );
-                }
-                
-                return line ? (
-                  <p key={i} className="my-1" dangerouslySetInnerHTML={{ __html: formattedLine }} />
-                ) : (
-                  <br key={i} />
-                );
-              })}
-              
-              {isStreaming && displayedText !== content && (
-                <motion.span 
-                  className="inline-block w-0.5 h-4 ml-0.5"
-                  style={{ backgroundColor: 'var(--accent)' }}
-                  animate={{ opacity: [1, 0] }}
-                  transition={{ duration: 0.4, repeat: Infinity }}
-                />
-              )}
-            </>
+            formatContent(content)
           )}
         </div>
       </div>

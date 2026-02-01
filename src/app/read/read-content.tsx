@@ -299,6 +299,7 @@ export function ReadContent() {
                 articleTitle={article.title}
                 selectedText={currentLayer.selectedText}
                 exploredParagraphs={Array.from(exploredParagraphs)}
+                allParagraphs={article.paragraphs}
                 onBack={handleBack}
                 onNavigate={(index) => {
                   if (index >= 0 && index < article.paragraphs.length) {

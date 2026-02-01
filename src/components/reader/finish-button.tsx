@@ -181,7 +181,6 @@ export function FinishButton({ articleUrl, articleTitle }: FinishButtonProps) {
                     role="assistant" 
                     content={summary || ''} 
                     isLoading={isSummarizing}
-                    isStreaming={!isSummarizing && !!summary}
                   />
                 </div>
 
