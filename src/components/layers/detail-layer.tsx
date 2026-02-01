@@ -50,7 +50,8 @@ export function DetailLayer({
       [articleUrl, paragraph.index]
     )
   );
-  const messages = thread?.messages ?? [];
+  // Memoize messages to avoid creating new array reference on each render
+  const messages = useMemo(() => thread?.messages ?? [], [thread?.messages]);
   
   const addMessageToThread = useNotesStore((state) => state.addMessageToThread);
 
