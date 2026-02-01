@@ -6,18 +6,23 @@ interface AuthState {
   user: User | null;
   isLoading: boolean;
   isInitialized: boolean;
+  emailSent: boolean;
+  error: string | null;
   
   // Actions
   initialize: () => Promise<void>;
-  signInWithGoogle: () => Promise<void>;
-  signInWithGithub: () => Promise<void>;
+  signInWithEmail: (email: string) => Promise<boolean>;
   signOut: () => Promise<void>;
+  clearEmailSent: () => void;
+  clearError: () => void;
 }
 
 export const useAuthStore = create<AuthState>((set, get) => ({
   user: null,
   isLoading: false,
   isInitialized: false,
+  emailSent: false,
+  error: null,
 
   initialize: async () => {
     if (get().isInitialized) return;
@@ -34,32 +39,24 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     });
   },
 
-  signInWithGoogle: async () => {
-    set({ isLoading: true });
+  signInWithEmail: async (email: string) => {
+    set({ isLoading: true, error: null, emailSent: false });
     const supabase = createClient();
     
-    await supabase.auth.signInWithOAuth({
-      provider: 'google',
+    const { error } = await supabase.auth.signInWithOtp({
+      email,
       options: {
-        redirectTo: `${window.location.origin}/auth/callback`,
+        emailRedirectTo: `${window.location.origin}/auth/callback`,
       },
     });
     
-    set({ isLoading: false });
-  },
-
-  signInWithGithub: async () => {
-    set({ isLoading: true });
-    const supabase = createClient();
+    if (error) {
+      set({ isLoading: false, error: error.message });
+      return false;
+    }
     
-    await supabase.auth.signInWithOAuth({
-      provider: 'github',
-      options: {
-        redirectTo: `${window.location.origin}/auth/callback`,
-      },
-    });
-    
-    set({ isLoading: false });
+    set({ isLoading: false, emailSent: true });
+    return true;
   },
 
   signOut: async () => {
@@ -68,4 +65,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     await supabase.auth.signOut();
     set({ user: null, isLoading: false });
   },
+
+  clearEmailSent: () => set({ emailSent: false }),
+  clearError: () => set({ error: null }),
 }));
