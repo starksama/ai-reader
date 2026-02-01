@@ -1,6 +1,6 @@
 # NOW.md — Mull Status
 
-**Last updated:** 2026-02-02 00:00 (night shift)
+**Last updated:** 2026-02-02 04:00 (night shift)
 
 ## Current State: ✅ Deployed & Refactored
 
@@ -23,6 +23,8 @@ Major refactor based on Gemini + manual code review:
 - Non-streaming responses (fixes blinking)
 
 ### Commits Tonight
+- `67f8f6c` fix: memoize messages array to prevent unnecessary re-renders
+- `4fab886` fix: lint errors in login-button, export-button, finish-button
 - `88ad237` fix(auth): race condition and memory leak
 - `2ff6fe1` fix: major refactor based on code review
 - `7418ed1` fix: race condition in thread storage
@@ -55,10 +57,18 @@ Major refactor based on Gemini + manual code review:
 
 ## Test Checklist
 - [x] Deploy: Vercel auto-deploys on push
-- [ ] Test magic link auth flow
-- [ ] Test thread persistence (ask question, navigate away, come back)
-- [ ] Test export notes
-- [ ] Test on mobile
+- [x] Build passes with all source code fixes
+- [ ] Test magic link auth flow (manual)
+- [ ] Test thread persistence (manual: ask question, navigate away, come back)
+- [ ] Test export notes (manual)
+- [ ] Test on mobile (manual)
+
+## Code Review Notes (4am shift)
+**Architecture is solid:**
+- notes-store: Clean atomic operations, localStorage persist with migration
+- auth-store: Race condition protection via shared promise, memory leak prevention
+- detail-layer: Proper Zustand selectors with memoization for performance
+- React Compiler compatible with fixed memoization patterns
 
 ## Quick Commands
 ```bash
