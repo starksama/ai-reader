@@ -9,6 +9,8 @@ import { useThemeStore, type Theme } from '@/stores/theme-store';
 import { useReaderStore } from '@/stores/reader-store';
 import { parseContent } from '@/utils/parse-content';
 import { parsePDF } from '@/utils/parse-pdf';
+import { LoginButton } from '@/components/auth/login-button';
+import { HistorySidebar } from '@/components/history/history-sidebar';
 
 type InputMode = 'paste' | 'upload' | 'url';
 
@@ -118,6 +120,12 @@ export default function Home() {
 
   return (
     <main className="min-h-screen flex flex-col items-center justify-center p-6 pb-20" style={{ backgroundColor: 'var(--bg-primary)' }}>
+      {/* Top bar with auth and history */}
+      <div className="fixed top-4 right-4 z-30 flex items-center gap-2">
+        <HistorySidebar />
+        <LoginButton />
+      </div>
+
       <motion.div 
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}

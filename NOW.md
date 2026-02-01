@@ -46,8 +46,15 @@ First principles audit complete:
 - Streaming responses
 - Requires `OPENAI_API_KEY` in `.env.local`
 
+## What's NEW: Supabase Auth + History ✅
+- Google & GitHub login
+- Session history sidebar
+- Database schema for sessions, messages, notes, highlights
+- Row-level security (RLS) policies
+- Requires Supabase project setup (see `supabase/schema.sql`)
+
 ## What's Mocked
-- Nothing! AI is now real.
+- Nothing! Both AI and persistence are ready.
 
 ## Test Checklist for Anton
 - [ ] Deploy: `vercel --prod`
