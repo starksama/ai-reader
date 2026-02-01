@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { User } from '@supabase/supabase-js';
+import { User, Subscription } from '@supabase/supabase-js';
 import { createClient } from '@/lib/supabase/client';
 
 interface AuthState {
@@ -8,6 +8,7 @@ interface AuthState {
   isInitialized: boolean;
   emailSent: boolean;
   error: string | null;
+  _subscription: Subscription | null;
   
   // Actions
   initialize: () => Promise<void>;
@@ -15,7 +16,11 @@ interface AuthState {
   signOut: () => Promise<void>;
   clearEmailSent: () => void;
   clearError: () => void;
+  cleanup: () => void;
 }
+
+// Track initialization to prevent race conditions
+let initializationPromise: Promise<void> | null = null;
 
 export const useAuthStore = create<AuthState>((set, get) => ({
   user: null,
@@ -23,20 +28,36 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   isInitialized: false,
   emailSent: false,
   error: null,
+  _subscription: null,
 
   initialize: async () => {
+    // Return existing promise if already initializing (prevents race condition)
+    if (initializationPromise) {
+      return initializationPromise;
+    }
+    
+    // Already initialized
     if (get().isInitialized) return;
     
-    const supabase = createClient();
+    initializationPromise = (async () => {
+      try {
+        const supabase = createClient();
+        
+        // Get initial session
+        const { data: { user } } = await supabase.auth.getUser();
+        
+        // Listen for auth changes and store subscription for cleanup
+        const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+          set({ user: session?.user ?? null });
+        });
+        
+        set({ user, isInitialized: true, _subscription: subscription });
+      } finally {
+        initializationPromise = null;
+      }
+    })();
     
-    // Get initial session
-    const { data: { user } } = await supabase.auth.getUser();
-    set({ user, isInitialized: true });
-    
-    // Listen for auth changes
-    supabase.auth.onAuthStateChange((_event, session) => {
-      set({ user: session?.user ?? null });
-    });
+    return initializationPromise;
   },
 
   signInWithEmail: async (email: string) => {
@@ -68,4 +89,13 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
   clearEmailSent: () => set({ emailSent: false }),
   clearError: () => set({ error: null }),
+  
+  // Cleanup subscription to prevent memory leaks
+  cleanup: () => {
+    const subscription = get()._subscription;
+    if (subscription) {
+      subscription.unsubscribe();
+      set({ _subscription: null });
+    }
+  },
 }));
