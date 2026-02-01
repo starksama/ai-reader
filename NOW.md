@@ -41,9 +41,13 @@ First principles audit complete:
 - "Finish" → session summary
 - Export notes as markdown
 
+## What's NEW: AI Integration ✅
+- Real AI responses using OpenAI GPT-4o-mini
+- Streaming responses
+- Requires `OPENAI_API_KEY` in `.env.local`
+
 ## What's Mocked
-- AI responses (mock data, no real AI SDK yet)
-- This is intentional for "testable except AI SDK"
+- Nothing! AI is now real.
 
 ## Test Checklist for Anton
 - [ ] Deploy: `vercel --prod`
