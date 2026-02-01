@@ -1,6 +1,6 @@
 # NOW.md — Mull Status
 
-**Last updated:** 2026-02-02 04:00 (night shift)
+**Last updated:** 2026-02-02 05:00 (night shift)
 
 ## Current State: ✅ Deployed & Refactored
 
@@ -23,6 +23,7 @@ Major refactor based on Gemini + manual code review:
 - Non-streaming responses (fixes blinking)
 
 ### Commits Tonight
+- `ab31b58` polish: add favicon, fix viewport export, improve loading skeleton
 - `67f8f6c` fix: memoize messages array to prevent unnecessary re-renders
 - `4fab886` fix: lint errors in login-button, export-button, finish-button
 - `88ad237` fix(auth): race condition and memory leak
@@ -69,6 +70,12 @@ Major refactor based on Gemini + manual code review:
 - auth-store: Race condition protection via shared promise, memory leak prevention
 - detail-layer: Proper Zustand selectors with memoization for performance
 - React Compiler compatible with fixed memoization patterns
+
+## UI Polish (5am shift)
+- Added favicon (M logo SVG)
+- Fixed Next.js viewport export (no more build warnings)
+- Added theme-color meta for mobile browser chrome
+- Improved loading skeleton with staggered animations
 
 ## Quick Commands
 ```bash
