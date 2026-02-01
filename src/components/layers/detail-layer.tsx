@@ -43,7 +43,7 @@ export function DetailLayer({
   const inputRef = useRef<HTMLInputElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   
-  const { getThread, createThread, addMessageToThread, addNote } = useNotesStore();
+  const { getThread, addMessageToThread, addNote } = useNotesStore();
 
   const currentExploredIndex = exploredParagraphs.indexOf(paragraph.index);
   const canGoPrev = currentExploredIndex > 0;
@@ -106,13 +106,7 @@ export function DetailLayer({
     setInput('');
     setError(null);
     
-    // Ensure thread exists
-    const existingThread = getThread(articleUrl, paragraph.index);
-    if (!existingThread) {
-      createThread(articleUrl, articleTitle, paragraph.index, selectedText);
-    }
-    
-    // Add user message
+    // Add user message (creates thread if needed)
     const userMessage: Message = {
       id: `user-${Date.now()}`,
       role: 'user',
@@ -120,7 +114,7 @@ export function DetailLayer({
       createdAt: Date.now(),
     };
     setMessages(prev => [...prev, userMessage]);
-    addMessageToThread(articleUrl, paragraph.index, { role: 'user', content: question });
+    addMessageToThread(articleUrl, articleTitle, paragraph.index, { role: 'user', content: question }, selectedText);
     
     setIsLoading(true);
     
@@ -156,7 +150,7 @@ export function DetailLayer({
         createdAt: Date.now(),
       };
       setMessages(prev => [...prev, assistantMessage]);
-      addMessageToThread(articleUrl, paragraph.index, { role: 'assistant', content: responseText });
+      addMessageToThread(articleUrl, articleTitle, paragraph.index, { role: 'assistant', content: responseText });
 
       // Also save as legacy note for export
       addNote(articleUrl, articleTitle, {
@@ -172,7 +166,7 @@ export function DetailLayer({
     } finally {
       setIsLoading(false);
     }
-  }, [input, isLoading, messages, articleTitle, selectedText, paragraph, articleUrl, getPreviousContext, getThread, createThread, addMessageToThread, addNote]);
+  }, [input, isLoading, messages, articleTitle, selectedText, paragraph, articleUrl, getPreviousContext, addMessageToThread, addNote]);
 
   const handleQuickQuestion = (q: string) => {
     setInput(q);

@@ -30,7 +30,7 @@ export interface ArticleNotes {
   url: string;
   title: string;
   notes: Note[];
-  threads: Record<number, Thread>; // keyed by paragraphIndex
+  threads: Record<number, Thread>;
   createdAt: number;
   updatedAt: number;
 }
@@ -40,8 +40,7 @@ interface NotesState {
   
   // Thread operations
   getThread: (url: string, paragraphIndex: number) => Thread | undefined;
-  createThread: (url: string, title: string, paragraphIndex: number, selectedText?: string) => Thread;
-  addMessageToThread: (url: string, paragraphIndex: number, message: Omit<Message, 'id' | 'createdAt'>) => void;
+  addMessageToThread: (url: string, title: string, paragraphIndex: number, message: Omit<Message, 'id' | 'createdAt'>, selectedText?: string) => void;
   
   // Legacy note operations (for export)
   addNote: (url: string, title: string, note: Omit<Note, 'id' | 'createdAt'>) => void;
@@ -60,53 +59,8 @@ export const useNotesStore = create<NotesState>()(
         return article?.threads?.[paragraphIndex];
       },
 
-      createThread: (url, title, paragraphIndex, selectedText) => {
-        const now = Date.now();
-        const thread: Thread = {
-          id: `thread-${now}`,
-          paragraphIndex,
-          selectedText,
-          messages: [],
-          createdAt: now,
-          updatedAt: now,
-        };
-
-        set((state) => {
-          const existing = state.articles[url];
-          if (existing) {
-            return {
-              articles: {
-                ...state.articles,
-                [url]: {
-                  ...existing,
-                  threads: {
-                    ...existing.threads,
-                    [paragraphIndex]: thread,
-                  },
-                  updatedAt: now,
-                },
-              },
-            };
-          }
-          return {
-            articles: {
-              ...state.articles,
-              [url]: {
-                url,
-                title,
-                notes: [],
-                threads: { [paragraphIndex]: thread },
-                createdAt: now,
-                updatedAt: now,
-              },
-            },
-          };
-        });
-
-        return thread;
-      },
-
-      addMessageToThread: (url, paragraphIndex, message) => {
+      // Combined: creates thread if needed + adds message (atomic operation)
+      addMessageToThread: (url, title, paragraphIndex, message, selectedText) => {
         const now = Date.now();
         const newMessage: Message = {
           ...message,
@@ -115,22 +69,67 @@ export const useNotesStore = create<NotesState>()(
         };
 
         set((state) => {
-          const article = state.articles[url];
-          if (!article?.threads?.[paragraphIndex]) return state;
+          const existingArticle = state.articles[url];
+          const existingThread = existingArticle?.threads?.[paragraphIndex];
 
+          // If thread exists, just add the message
+          if (existingThread) {
+            return {
+              articles: {
+                ...state.articles,
+                [url]: {
+                  ...existingArticle,
+                  threads: {
+                    ...existingArticle.threads,
+                    [paragraphIndex]: {
+                      ...existingThread,
+                      messages: [...existingThread.messages, newMessage],
+                      updatedAt: now,
+                    },
+                  },
+                  updatedAt: now,
+                },
+              },
+            };
+          }
+
+          // Create new thread with the message
+          const newThread: Thread = {
+            id: `thread-${now}`,
+            paragraphIndex,
+            selectedText,
+            messages: [newMessage],
+            createdAt: now,
+            updatedAt: now,
+          };
+
+          // If article exists, add thread to it
+          if (existingArticle) {
+            return {
+              articles: {
+                ...state.articles,
+                [url]: {
+                  ...existingArticle,
+                  threads: {
+                    ...existingArticle.threads,
+                    [paragraphIndex]: newThread,
+                  },
+                  updatedAt: now,
+                },
+              },
+            };
+          }
+
+          // Create new article with thread
           return {
             articles: {
               ...state.articles,
               [url]: {
-                ...article,
-                threads: {
-                  ...article.threads,
-                  [paragraphIndex]: {
-                    ...article.threads[paragraphIndex],
-                    messages: [...article.threads[paragraphIndex].messages, newMessage],
-                    updatedAt: now,
-                  },
-                },
+                url,
+                title,
+                notes: [],
+                threads: { [paragraphIndex]: newThread },
+                createdAt: now,
                 updatedAt: now,
               },
             },
