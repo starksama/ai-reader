@@ -61,6 +61,47 @@ export function DetailLayer({
   const user = useAuthStore((state) => state.user);
   const { currentSession, createSession, addMessage, sessions } = useSessionStore();
 
+  const currentExploredIndex = exploredParagraphs.indexOf(paragraph.index);
+  const canGoPrev = currentExploredIndex > 0;
+  const canGoNext = currentExploredIndex < exploredParagraphs.length - 1 && currentExploredIndex !== -1;
+
+  const hasSelection = !!selectedText;
+
+  useKeyboardShortcuts({
+    onEscape: onBack,
+    onPrev: () => {
+      if (onNavigate && canGoPrev) {
+        onNavigate(exploredParagraphs[currentExploredIndex - 1]);
+      }
+    },
+    onNext: () => {
+      if (onNavigate && canGoNext) {
+        onNavigate(exploredParagraphs[currentExploredIndex + 1]);
+      }
+    },
+  });
+
+  useEffect(() => {
+    inputRef.current?.focus();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, [paragraph.index]);
+
+  // Scroll to bottom when new messages arrive
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages.length]);
+
+  // Build previous context (2-3 paragraphs before)
+  const previousContext = useMemo(() => {
+    if (allParagraphs.length === 0) return '';
+    
+    const startIdx = Math.max(0, paragraph.index - 3);
+    return allParagraphs
+      .slice(startIdx, paragraph.index)
+      .map(p => p.text)
+      .join('\n\n');
+  }, [allParagraphs, paragraph.index]);
+
   const handleAsk = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
     if (!input.trim() || isLoading) return;
