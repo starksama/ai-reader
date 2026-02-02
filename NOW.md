@@ -2,7 +2,14 @@
 
 **Last updated:** 2026-02-02 07:00 (night shift)
 
-## Current State: ✅ Deployed & Refactored
+## Current State: ✅ Deployed & Refactored + Remote Sync
+
+### 🔧 Night Shift (01:00-03:00)
+**Features Added:**
+1. ✅ **Remote Sync**: Integrated `useSessionStore` with `DetailLayer`. 
+   - Automatic session creation/detection for URLs.
+   - Real-time message syncing to Supabase when logged in.
+   - Dual-persistence (Local-first + Supabase-backup).
 
 ### 🧹 Tonight's Cleanup (19:00-23:30)
 Major refactor based on Gemini + manual code review:

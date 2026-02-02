@@ -5,6 +5,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft, ChevronUp, ChevronDown, Send, ChevronRight } from 'lucide-react';
 import { ChatBubble } from '@/components/chat/chat-bubble';
 import { useNotesStore } from '@/stores/notes-store';
+import { useSessionStore } from '@/stores/session-store';
+import { useAuthStore } from '@/stores/auth-store';
 import { useKeyboardShortcuts } from '@/hooks/use-keyboard-shortcuts';
 
 interface Paragraph {
@@ -55,46 +57,9 @@ export function DetailLayer({
   
   const addMessageToThread = useNotesStore((state) => state.addMessageToThread);
 
-  const currentExploredIndex = exploredParagraphs.indexOf(paragraph.index);
-  const canGoPrev = currentExploredIndex > 0;
-  const canGoNext = currentExploredIndex < exploredParagraphs.length - 1 && currentExploredIndex !== -1;
-
-  const hasSelection = !!selectedText;
-
-  useKeyboardShortcuts({
-    onEscape: onBack,
-    onPrev: () => {
-      if (onNavigate && canGoPrev) {
-        onNavigate(exploredParagraphs[currentExploredIndex - 1]);
-      }
-    },
-    onNext: () => {
-      if (onNavigate && canGoNext) {
-        onNavigate(exploredParagraphs[currentExploredIndex + 1]);
-      }
-    },
-  });
-
-  useEffect(() => {
-    inputRef.current?.focus();
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  }, [paragraph.index]);
-
-  // Scroll to bottom when new messages arrive
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages.length]);
-
-  // Build previous context (2-3 paragraphs before)
-  const previousContext = useMemo(() => {
-    if (allParagraphs.length === 0) return '';
-    
-    const startIdx = Math.max(0, paragraph.index - 3);
-    return allParagraphs
-      .slice(startIdx, paragraph.index)
-      .map(p => p.text)
-      .join('\n\n');
-  }, [allParagraphs, paragraph.index]);
+  // Auth and Sync
+  const user = useAuthStore((state) => state.user);
+  const { currentSession, createSession, addMessage, sessions } = useSessionStore();
 
   const handleAsk = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
@@ -104,9 +69,36 @@ export function DetailLayer({
     setInput('');
     setError(null);
     
-    // Add user message (creates thread if needed)
+    // 1. Add user message locally (creates thread if needed)
     addMessageToThread(articleUrl, articleTitle, paragraph.index, { role: 'user', content: question }, selectedText);
     
+    // 2. Sync to Supabase if authenticated
+    let activeSessionId = currentSession?.id;
+    
+    if (user && !activeSessionId) {
+      // Try to find session for this URL
+      const existingSession = sessions.find(s => s.source_url === articleUrl);
+      if (existingSession) {
+        activeSessionId = existingSession.id;
+      } else {
+        // Create new session
+        const newSession = await createSession(articleTitle, articleUrl, 'url');
+        activeSessionId = newSession?.id;
+      }
+    }
+
+    if (user && activeSessionId) {
+      addMessage({
+        session_id: activeSessionId,
+        role: 'user',
+        content: question,
+        paragraph_index: paragraph.index,
+        paragraph_text: paragraph.text,
+        selected_text: selectedText ?? null,
+        parent_id: null, // Basic flat list for now
+      });
+    }
+
     setIsLoading(true);
     
     try {
@@ -134,10 +126,21 @@ export function DetailLayer({
 
       const responseText = await response.text();
       
-      // Add assistant message
+      // 3. Add assistant message locally
       addMessageToThread(articleUrl, articleTitle, paragraph.index, { role: 'assistant', content: responseText });
 
-      // FIX #5: Removed duplicate addNote call - thread already stores the data
+      // 4. Sync assistant message to Supabase
+      if (user && activeSessionId) {
+        addMessage({
+          session_id: activeSessionId,
+          role: 'assistant',
+          content: responseText,
+          paragraph_index: paragraph.index,
+          paragraph_text: paragraph.text,
+          selected_text: selectedText ?? null,
+          parent_id: null,
+        });
+      }
 
     } catch (err) {
       console.error('Chat error:', err);
